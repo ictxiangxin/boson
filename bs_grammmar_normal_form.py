@@ -2,6 +2,8 @@ __author__ = 'ict'
 
 import re
 
+start_non_terminal_symbol = "start"
+
 token_tuple = [
     ("ROOT", r"root"),
     ("NAME", r"[_a-zA-Z]+"),
@@ -77,7 +79,6 @@ def bs_token_list(filename):
 
 
 def bs_grammar_analysis(token_list):
-    non_terminal_set = set()
     sentense_set = set()
     for line in token_list:
         stack = [0]
@@ -117,11 +118,12 @@ def bs_grammar_analysis(token_list):
                 else:
                     raise Exception("Invalid reduce number: %d" % reduce_number)
             elif op[0] == "a":
-                non_terminal_set.add(symbol_stack[0][1])
                 temp_sentense_set = set()
                 for sentense in symbol_stack[1:]:
                     sentense.reverse()
                     temp_sentense_set.add(tuple([symbol_stack[0][1]] + [e[1] for e in sentense]))
                 sentense_set |= temp_sentense_set
                 break
-    return non_terminal_set, sentense_set
+    if start_non_terminal_symbol not in set([sentence[0] for sentence in sentense_set]):
+        raise Exception("No start non terminal symbol in grammar, need: %s" % start_non_terminal_symbol)
+    return sentense_set
