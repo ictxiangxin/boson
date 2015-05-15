@@ -5,6 +5,21 @@ import copy
 from bs_grammmar_normal_form import start_non_terminal_symbol, end_symbol
 
 
+def bs_non_terminal_set(sentence_set):
+    return set([sentense[0] for sentense in sentence_set])
+
+
+def bs_terminal_set(sentence_set, non_terminal_set=None):
+    if non_terminal_set is None:
+        non_terminal_set = bs_non_terminal_set(sentence_set)
+    else:
+        non_terminal_set = copy.deepcopy(non_terminal_set)
+    all_elem = set()
+    for sentense in sentence_set:
+        all_elem |= set([elem for elem in sentense])
+    return all_elem - non_terminal_set
+
+
 def bs_non_terminal_closure(non_terminal, sentense_set, non_terminal_set, visited=None):
     closure = set()
     if visited is None:
@@ -27,16 +42,13 @@ def bs_move_set(state_sentence_set):
     return move_set
 
 
-def bs_generate_slr_dfa(sentense_set):
-    non_terminal_set = set()
+def bs_generate_slr_dfa(sentence_set):
+    non_terminal_set = bs_non_terminal_set(sentence_set)
     non_terminal_closure = {}
-    first_flag_sentence_set = []
-    for sentence in sentense_set:
-        non_terminal_set.add(sentence[0])
-        first_flag_sentence_set.append((sentence, 1))
+    first_flag_sentence_set = [(sentence, 1) for sentence in sentence_set]
     first_flag_sentence_set = tuple(first_flag_sentence_set)
     for non_terminal in non_terminal_set:
-        non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentense_set, non_terminal_set)
+        non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
     scan_index = 0
@@ -84,7 +96,7 @@ def bs_generate_slr_dfa(sentense_set):
 
 def bs_non_terminal_first_set(sentence_set):
     first_set = {}
-    non_terminal_set = set([sentence[0] for sentence in sentence_set])
+    non_terminal_set = bs_non_terminal_set(sentence_set)
     old_set_size = {non_terminal: 0 for non_terminal in non_terminal_set}
     continue_loop = True
     while continue_loop:
@@ -100,8 +112,6 @@ def bs_non_terminal_first_set(sentence_set):
             else:
                 first_set[sentence[0]].add(sentence[1])
         for non_terminal in non_terminal_set:
-            print(non_terminal)
-            print(first_set[non_terminal])
             if len(first_set[non_terminal]) != old_set_size[non_terminal]:
                 old_set_size[non_terminal] = len(first_set[non_terminal])
                 continue_loop = True
@@ -146,3 +156,40 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
                 old_set_size[non_terminal] = len(follow_set[non_terminal])
                 continue_loop = True
     return follow_set
+
+
+def bs_generate_slr_table(sentence_set):
+    sentence_list = list(sentence_set)
+    slr_dfa_state, slr_dfa_move = bs_generate_slr_dfa(sentence_set)
+    follow_set = bs_non_terminal_follow_set(sentence_set)
+    non_terminal_set = bs_non_terminal_set(sentence_set)
+    terminal_set = bs_terminal_set(sentence_set, non_terminal_set)
+    action_table = [["e"] * (len(terminal_set) + 1) for _ in range(len(slr_dfa_state))]
+    goto_table = [[-1] * (len(non_terminal_set) - 1) for _ in range(len(slr_dfa_state))]
+    terminal_index = {}
+    non_terminal_index = {}
+    count = 0
+    for terminal in terminal_set:
+        terminal_index[terminal] = count
+        count += 1
+    terminal_index[end_symbol] = count
+    count = 0
+    for non_terminal in non_terminal_set:
+        if non_terminal != start_non_terminal_symbol:
+            non_terminal_index[non_terminal] = count
+            count += 1
+    for state, move_map in slr_dfa_move.items():
+        for elem, next_state in move_map.items():
+            if elem in terminal_set:
+                action_table[state][terminal_index[elem]] = "s%d" % next_state
+            else:
+                goto_table[state][non_terminal_index[elem]] = next_state
+    for state_index in range(len(slr_dfa_state)):
+        state_set = slr_dfa_state[state_index]
+        for state_sentence in state_set:
+            sentence, flag = state_sentence
+            if flag == len(sentence):
+                for terminal in follow_set[sentence[0]]:
+                    reduce_number = sentence_list.index(sentence)
+                    action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
+    return terminal_index, non_terminal_index, action_table, goto_table
