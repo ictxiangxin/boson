@@ -3,6 +3,7 @@ __author__ = 'ict'
 import re
 
 start_non_terminal_symbol = "start"
+end_symbol = "$"
 
 token_tuple = [
     ("ROOT", r"root"),
@@ -16,10 +17,10 @@ token_tuple = [
 token_regrex = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
 
 terminal_index = {
-    "NAME":   0,
-    "TOWARD": 1,
-    "OR":     2,
-    "$":      3,
+    "NAME":     0,
+    "TOWARD":   1,
+    "OR":       2,
+    end_symbol: 3,
 }
 
 action_table = [
@@ -73,7 +74,7 @@ def bs_token_list(filename):
             else:
                 temp_list.append((token_class, token_string))
         if len(temp_list) != 0:
-            temp_list.append(("$", ""))
+            temp_list.append((end_symbol, ""))
             token_list.append(temp_list)
     return token_list
 
@@ -97,16 +98,13 @@ def bs_grammar_analysis(token_list):
             elif op[0] == "r":
                 reduce_number = int(op[1:])
                 if reduce_number == 1:
-                    stack.pop()
-                    stack.pop()
-                    stack.pop()
+                    stack.pop(), stack.pop(), stack.pop()
                     stack.append(goto_table[stack[-1]][non_terminal_index["L"]])
                 elif reduce_number == 2:
                     stack.pop()
                     stack.append(goto_table[stack[-1]][non_terminal_index["L"]])
                 elif reduce_number == 3:
-                    stack.pop()
-                    stack.pop()
+                    stack.pop(), stack.pop()
                     stack.append(goto_table[stack[-1]][non_terminal_index["N"]])
                     non_terminal_n = symbol_stack.pop()
                     non_terminal_n.append(symbol_stack.pop())
