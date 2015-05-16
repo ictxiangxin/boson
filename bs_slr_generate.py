@@ -28,10 +28,9 @@ def bs_slr_move_set(state_sentence_set):
 def bs_slr_generate_dfa(sentence_set):
     non_terminal_set = bs_non_terminal_set(sentence_set)
     non_terminal_closure = {}
-    first_flag_sentence_set = [(sentence, 1) for sentence in sentence_set]
-    first_flag_sentence_set = tuple(first_flag_sentence_set)
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_slr_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
+    first_flag_sentence_set = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
     scan_index = 0
@@ -79,6 +78,10 @@ def bs_slr_generate_dfa(sentence_set):
 
 def bs_slr_generate_table(sentence_set):
     sentence_list = list(sentence_set)
+    sentence_list.sort()
+    for sentence_index in range(len(sentence_list)):
+        if sentence_list[sentence_index][0] == start_non_terminal_symbol:
+            sentence_list[sentence_index], sentence_list[0] = sentence_list[0], sentence_list[sentence_index]
     slr_dfa_state, slr_dfa_move = bs_slr_generate_dfa(sentence_set)
     follow_set = bs_non_terminal_follow_set(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
