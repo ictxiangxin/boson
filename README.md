@@ -2,7 +2,7 @@
 
 v0.1
 
-Boson can use productions given by the user to generator grammar analyzer code.
+Boson can use production sentences given by the user to generate grammar analyzer code.
 
 Only support Python3.
 
