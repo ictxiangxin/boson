@@ -115,5 +115,7 @@ def bs_slr_generate_table(sentence_set):
             if flag == len(sentence):
                 for terminal in follow_set[sentence[0]]:
                     reduce_number = sentence_list.index(sentence)
+                    if action_table[state_index][terminal_index[terminal]] != "e":
+                        raise Exception("This grammar is not SLR !!!")
                     action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
     return terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list

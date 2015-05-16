@@ -1,0 +1,6 @@
+start -> E
+E -> E plus T | E minus T | T
+T -> T times F | T div F | F
+F -> F power D | D
+D -> bl E br | N
+N -> int | float

@@ -78,7 +78,7 @@ def bs_token_list(filename):
     return token_list
 
 
-def bs_grammar_analysis(token_list):
+def bs_grammar_analyzer(token_list):
     sentense_set = set()
     for line in token_list:
         stack = [0]

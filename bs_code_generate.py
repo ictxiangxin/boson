@@ -3,12 +3,11 @@ __author__ = 'ict'
 import sys
 
 from bs_code_generator_helper import *
-from bs_slr_generate import bs_slr_generate_table
 
 
-def bs_slr_generate_python_code(sentence_set, output=sys.stdout):
+def bs_generate_python_code(analyzer_table, output=sys.stdout):
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
-        bs_slr_generate_table(sentence_set)
+        analyzer_table
     terminal_index_reverse_map = {}
     non_terminal_index_reverse_map = {}
     max_terminal_len = 0
@@ -17,7 +16,7 @@ def bs_slr_generate_python_code(sentence_set, output=sys.stdout):
     max_end_action_len = 0
     max_goto_len = 0
     max_end_goto_len = 0
-    max_reduce_number_len = len(str(len(sentence_set)))
+    max_reduce_number_len = len(str(len(sentence_list)))
     for terminal, index in terminal_index.items():
         terminal_index_reverse_map[index] = terminal
         if len(terminal) > max_terminal_len:
@@ -130,17 +129,17 @@ def bs_slr_generate_python_code(sentence_set, output=sys.stdout):
     bs_code_output(output, "%s -> %s\n" % (sentence_list[0][0], " ".join(sentence_list[0][1:])), 5)
     bs_code_output(output, "\"\"\"\n", 4)
     bs_code_output(output, "pass\n", 4)
-    for reduce_index in range(1, len(sentence_set) - 1):
+    for reduce_index in range(1, len(sentence_list) - 1):
         bs_code_output(output, "elif operation_number == %d:\n" % reduce_index, 3)
         bs_code_output(output, "\"\"\"\n", 4)
         bs_code_output(output, "Add some code for reduce %d here...\n" % reduce_index, 5)
         bs_code_output(output, "%s -> %s\n" % (sentence_list[reduce_index][0], " ".join(sentence_list[reduce_index][1:])), 5)
         bs_code_output(output, "\"\"\"\n", 4)
         bs_code_output(output, "pass\n", 4)
-    bs_code_output(output, "elif operation_number == %d:\n" % (len(sentence_set) - 1), 3)
+    bs_code_output(output, "elif operation_number == %d:\n" % (len(sentence_list) - 1), 3)
     bs_code_output(output, "\"\"\"\n", 4)
-    bs_code_output(output, "Add some code for reduce %d here...\n" % (len(sentence_set) - 1), 5)
-    bs_code_output(output, "%s -> %s\n" % (sentence_list[len(sentence_set) - 1][0], " ".join(sentence_list[len(sentence_set) - 1][1:])), 5)
+    bs_code_output(output, "Add some code for reduce %d here...\n" % (len(sentence_list) - 1), 5)
+    bs_code_output(output, "%s -> %s\n" % (sentence_list[len(sentence_list) - 1][0], " ".join(sentence_list[len(sentence_list) - 1][1:])), 5)
     bs_code_output(output, "\"\"\"\n", 4)
     bs_code_output(output, "pass\n", 4)
     bs_code_output(output, "else:\n", 3)
