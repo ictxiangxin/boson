@@ -1,6 +1,6 @@
 __author__ = 'ict'
 
-from bs_helper import *
+from bs_analyzer_helper import *
 
 
 def bs_slr_non_terminal_closure(non_terminal, sentense_set, non_terminal_set, visited=None):
@@ -87,6 +87,11 @@ def bs_slr_generate_table(sentence_set):
     goto_table = [[-1] * (len(non_terminal_set) - 1) for _ in range(len(slr_dfa_state))]
     terminal_index = {}
     non_terminal_index = {}
+    reduce_symbol_sum = {}
+    reduce_to_non_terminal = {}
+    for sentence_index in range(len(sentence_list)):
+        reduce_symbol_sum[sentence_index] = len(sentence_list[sentence_index]) - 1
+        reduce_to_non_terminal[sentence_index] = sentence_list[sentence_index][0]
     count = 0
     for terminal in terminal_set:
         terminal_index[terminal] = count
@@ -111,4 +116,4 @@ def bs_slr_generate_table(sentence_set):
                 for terminal in follow_set[sentence[0]]:
                     reduce_number = sentence_list.index(sentence)
                     action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
-    return terminal_index, non_terminal_index, action_table, goto_table
+    return terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list
