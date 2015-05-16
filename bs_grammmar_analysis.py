@@ -2,8 +2,7 @@ __author__ = 'ict'
 
 import re
 
-start_non_terminal_symbol = "start"
-end_symbol = "$"
+from bs_configure import *
 
 token_tuple = [
     ("ROOT", r"root"),
