@@ -44,13 +44,13 @@ The usage of boson.py is:
 boson.py [grammar file] -o/output <code file> -a/analyzer <analyzer> -l/language <language>
 ```
 
-(`\[grammar file\]`) is the file contains grammar description.
+`\[grammar file\]` is the file contains grammar description.
 
-(`-o/output <code file>`) is analyzer code file which gernerated by boson.
+`-o/output <code file>` is analyzer code file which gernerated by boson.
 
-(`-a/analyzer <analyzer>`) is the type of analyzer.
+`-a/analyzer <analyzer>` is the type of analyzer.
 
-(`-l/language <language>`) is the language of generated code.
+`-l/language <language>` is the language of generated code.
 
 ####Example
 
