@@ -1,6 +1,6 @@
 __author__ = 'ict'
 
-from bs_analyzer_helper import *
+from boson.bs_analyzer_helper import *
 
 
 def bs_slr_non_terminal_closure(non_terminal, sentense_set, non_terminal_set, visited=None):
@@ -16,12 +16,49 @@ def bs_slr_non_terminal_closure(non_terminal, sentense_set, non_terminal_set, vi
     return closure
 
 
-def bs_slr_generate_dfa(sentence_set):
+def bs_lr_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
+    flag_sentence_set = set()
+    loop_continue = True
+    while loop_continue:
+        loop_continue = False
+        for sentence, flag in flag_sentence_list:
+            if isinstance(sentence[1], frozenset):
+                real_sentence = sentence[0]
+                postfix_set = sentence[1]
+                if flag < len(real_sentence):
+                    symbol = real_sentence[flag]
+                    if symbol in non_terminal_set:
+                        if flag < len(real_sentence) - 1:
+                            next_symbol = real_sentence[flag + 1]
+                            if next_symbol in non_terminal_set:
+                                non_terminal_mark = frozenset(first_set[next_symbol])
+                            else:
+                                non_terminal_mark = frozenset({next_symbol})
+                        else:
+                            non_terminal_mark = frozenset(postfix_set)
+                        for flag_sentence_index in range(len(flag_sentence_list)):
+                            flag_sentence = flag_sentence_list[flag_sentence_index]
+                            if flag_sentence[0][0] == symbol and not isinstance(flag_sentence[0][1], frozenset):
+                                flag_sentence_list[flag_sentence_index] = \
+                                    ((flag_sentence[0], non_terminal_mark), flag_sentence[1])
+                                loop_continue = True
+    for flag_sentence in flag_sentence_list:
+        flag_sentence_set.add(((flag_sentence[0][0], frozenset(flag_sentence[0][1])), flag_sentence[1]))
+    return flag_sentence_set
+
+
+def bs_lr_generate_dfa(sentence_set):
     non_terminal_set = bs_non_terminal_set(sentence_set)
+    first_set = bs_non_terminal_first_set(sentence_set)
     non_terminal_closure = {}
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_slr_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
-    first_flag_sentence_set = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
+    first_flag_sentence_list = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
+    for flag_sentence_index in range(len(first_flag_sentence_list)):
+        flag_sentence = first_flag_sentence_list[flag_sentence_index]
+        if flag_sentence[0][0] == start_non_terminal_symbol:
+            first_flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset({end_symbol})), flag_sentence[1])
+    first_flag_sentence_set = bs_lr_mark_postfix(first_flag_sentence_list, non_terminal_set, first_set)
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
     scan_index = 0
@@ -30,8 +67,8 @@ def bs_slr_generate_dfa(sentence_set):
         move_sentence_map = {}
         for now_flag_sentence in now_flag_sentence_set:
             now_sentence, now_index = now_flag_sentence
-            if now_index < len(now_sentence):
-                move = now_sentence[now_index]
+            if now_index < len(now_sentence[0]):
+                move = now_sentence[0][now_index]
                 if move not in move_sentence_map:
                     move_sentence_map[move] = set()
                 move_sentence_map[move].add(now_flag_sentence)
@@ -42,14 +79,15 @@ def bs_slr_generate_dfa(sentence_set):
                 move_flag_sentence[1] += 1
                 move_flag_sentence = tuple(move_flag_sentence)
                 new_state.add(move_flag_sentence)
-                move_sentence, move_index = move_flag_sentence
-                if move_index < len(move_sentence):
-                    if move_sentence[move_index] in non_terminal_set:
-                        temp_closure = non_terminal_closure[move_sentence[move_index]]
+                move_postfix_sentence, move_index = move_flag_sentence
+                if move_index < len(move_postfix_sentence[0]):
+                    if move_postfix_sentence[0][move_index] in non_terminal_set:
+                        temp_closure = non_terminal_closure[move_postfix_sentence[0][move_index]]
                         temp_closure_set = set()
                         for temp_sentence in temp_closure:
                             temp_closure_set.add((temp_sentence, 1))
                         new_state |= temp_closure_set
+                new_state = bs_lr_mark_postfix(list(new_state), non_terminal_set, first_set)
             hashable_new_state = frozenset(new_state)
             if scan_index not in state_transfer:
                 state_transfer[scan_index] = {}
@@ -65,14 +103,13 @@ def bs_slr_generate_dfa(sentence_set):
     return state_list, state_transfer
 
 
-def bs_slr_generate_table(sentence_set):
+def bs_lr_generate_table(sentence_set):
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
         if sentence_list[sentence_index][0] == start_non_terminal_symbol:
             sentence_list[sentence_index], sentence_list[0] = sentence_list[0], sentence_list[sentence_index]
-    slr_dfa_state, slr_dfa_move = bs_slr_generate_dfa(sentence_set)
-    follow_set = bs_non_terminal_follow_set(sentence_set)
+    slr_dfa_state, slr_dfa_move = bs_lr_generate_dfa(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
     terminal_set = bs_terminal_set(sentence_set, non_terminal_set)
     action_table = [["e"] * (len(terminal_set) + 1) for _ in range(len(slr_dfa_state))]
@@ -104,11 +141,11 @@ def bs_slr_generate_table(sentence_set):
         state_set = slr_dfa_state[state_index]
         for state_sentence in state_set:
             sentence, flag = state_sentence
-            if flag == len(sentence):
-                for terminal in follow_set[sentence[0]]:
-                    reduce_number = sentence_list.index(sentence)
+            if flag == len(sentence[0]):
+                for terminal in sentence[1]:
+                    reduce_number = sentence_list.index(sentence[0])
                     if action_table[state_index][terminal_index[terminal]] != "e":
-                        raise Exception("This grammar is not SLR !!!")
+                        raise Exception("This grammar is not LR !!!")
                     if reduce_number == 0:
                         action_table[state_index][terminal_index[terminal]] = "a"
                     else:

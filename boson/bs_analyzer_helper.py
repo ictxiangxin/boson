@@ -2,7 +2,7 @@ __author__ = 'ict'
 
 import copy
 
-from bs_configure import *
+from boson.bs_configure import *
 
 
 def bs_non_terminal_set(sentence_set):

@@ -2,7 +2,7 @@ __author__ = 'ict'
 
 import re
 
-from bs_configure import *
+from boson.bs_configure import *
 
 token_tuple = [
     ("ROOT", r"root"),

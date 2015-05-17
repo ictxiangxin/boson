@@ -2,7 +2,7 @@ __author__ = 'ict'
 
 import sys
 
-from bs_code_generator_helper import *
+from boson.bs_code_generator_helper import *
 
 
 def bs_generate_python_code(analyzer_table, output=sys.stdout):
