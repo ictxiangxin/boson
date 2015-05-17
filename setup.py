@@ -7,8 +7,8 @@ if sys.version[0] < '3':
 
 from distutils.core import setup
 
-with open('README.md') as f:
-    LONG_DESCRIPTION = f.read()
+with open('README.md') as fp:
+    LONG_DESCRIPTION = fp.read()
 
 
 # TODO: add more specific information about boson.
