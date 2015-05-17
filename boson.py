@@ -1,5 +1,7 @@
 __author__ = 'ict'
 
+import os
+
 from bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
 from bs_slr_generate import bs_slr_generate_table
 from bs_lr_generate import bs_lr_generate_table
@@ -74,17 +76,22 @@ def main(argv):
         fp = open(code_file, "w")
     else:
         fp = sys.stdout
-    print("Parse grammar file...", end="")
-    sentence_set = bs_grammar_analyzer(bs_token_list(grammar_file))
-    print("Done")
-    print("Generate %s grammar analysis table..." % analyzer.upper(), end="")
-    analyzer_table = grammar_generate_table[analyzer](sentence_set)
-    print("Done")
-    print("Generate analyzer %s code..." % language.upper(), end="")
-    code_generator[language](analyzer_table, fp)
-    print("Done")
-    if code_file is not None:
+    try:
+        print("Parse grammar file...", end="")
+        sentence_set = bs_grammar_analyzer(bs_token_list(grammar_file))
+        print("Done")
+        print("Generate %s grammar analysis table..." % analyzer.upper(), end="")
+        analyzer_table = grammar_generate_table[analyzer](sentence_set)
+        print("Done")
+        print("Generate analyzer %s code..." % language.upper(), end="")
+        code_generator[language](analyzer_table, fp)
+        print("Done")
+        if code_file is not None:
+            fp.close()
+    except Exception as e:
+        print(e)
         fp.close()
+        os.remove(code_file)
 
 if __name__ == "__main__":
     main(sys.argv)
