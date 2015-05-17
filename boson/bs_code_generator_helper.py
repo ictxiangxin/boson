@@ -1,6 +1,6 @@
 __author__ = 'ict'
 
-from bs_configure import *
+from boson.bs_configure import *
 
 
 def bs_indent(indent_sum):

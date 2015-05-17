@@ -5,7 +5,7 @@ import os
 from bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
 from bs_slr_generate import bs_slr_generate_table
 from bs_lr_generate import bs_lr_generate_table
-from bs_code_generate import *
+from boson.bs_code_generate import *
 
 code_generator = {
     "python": bs_generate_python_code

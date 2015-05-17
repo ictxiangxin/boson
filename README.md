@@ -64,6 +64,22 @@ boson.py example/arithmetic_grammar.txt -a SLR -l Python -o example/arithmetic_g
 
 You can use boson as library, just import boson code file.
 
+Of course, you can install the python package, and just import boson module.
+
+Example:
+
+    >>> from boson.bs_grammmar_analysis import bs_token_list as bs_token_list
+    >>> bs_token_list("not_slr_grammar.txt")
+    [[('NAME', 'start'), ('TOWARD', '->'), ('NAME', 'L'), ('NAME', 'eq'), ('NAME', '
+    R'), ('OR', '|'), ('NAME', 'R'), ('$', '')], [('NAME', 'L'), ('TOWARD', '->'), (
+    'NAME', 'times'), ('NAME', 'R'), ('OR', '|'), ('NAME', 'id'), ('$', '')], [('NAM
+    E', 'R'), ('TOWARD', '->'), ('NAME', 'L'), ('$', '')]]
+
+###How to install boson?
+
+You just need download the ZIP file, and unZIP it, type the command:
+ `python setup.py install` or `sudo python setup.py install`
+
 ####Parse grammar file
 
 "bs_grammar_analysis.py" file contains functions are used to parse grammar file.
