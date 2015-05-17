@@ -1,10 +1,12 @@
 #Boson  - grammar analyzer generator
 
+[![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
+
 v0.1
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 
-Only support Python3.
+> Only support Python3.
 
 * * *
 
@@ -33,7 +35,7 @@ Write these productions to one file.
 
 ###Easy to use
 
-Use boson.py to generate code.
+> Use boson.py to generate code.
 
 You can execute boson.py by "python3 boson.py" in linux or "python boson.py" in windows.
 So that you can see the usage of boson.py.
@@ -78,7 +80,7 @@ Example:
 ###How to install boson?
 
 You just need download the ZIP file, and unZIP it, type the command:
- `python setup.py install` or `sudo python setup.py install`
+ `python3 setup.py install` or `sudo python3 setup.py install`
 
 ####Parse grammar file
 
