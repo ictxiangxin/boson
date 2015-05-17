@@ -23,8 +23,6 @@ setup(name='boson',
       platforms=['MS Windows', 'Mac X', 'Unix/Linux'],
       keywords=['boson', 'grammar analyzer generator'],
       packages=['boson'],
-      package_data={
-          'boson': ['example/*.*', 'test/*.*']},
       classifiers=['Natural Language :: English',
                    'Programming Language :: Python',
                    'Operating System :: Microsoft :: Windows',

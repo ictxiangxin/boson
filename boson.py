@@ -1,6 +1,8 @@
 __author__ = 'ict'
 
 import os
+import argparse
+from argparse import RawTextHelpFormatter
 
 from boson.bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
 from boson.bs_slr_generate import bs_slr_generate_table
@@ -17,61 +19,19 @@ grammar_generate_table = {
 }
 
 
-def usage():
+def welcome():
     print("======== %s ========" % boson_title)
     print("Author: " + boson_author)
     print("Email: " + boson_author_email)
     print()
-    print("Usage:")
-    print("    " + sys.argv[0] + " [grammar file] -o/output <code file> -a/analyzer <analyzer> -l/language <language>")
 
 
 def main(argv):
-    if len(argv) < 2:
-        usage()
-        exit()
-    grammar_file = sys.argv[1]
-    code_file = None
-    analyzer = "slr"
-    language = "python"
-    i = 2
-    while i < len(argv):
-        if argv[i][0] == "-":
-            option = argv[i][1:]
-            i += 1
-            if option == "o" or option == "output":
-                if i < len(argv):
-                    code_file = argv[i]
-                else:
-                    usage()
-                    exit()
-            elif option == "a" or option == "analyzer":
-                if i < len(argv) - 1:
-                    analyzer = argv[i].lower()
-                else:
-                    usage()
-                    exit()
-            elif option == "l" or option == "language":
-                if i < len(argv) - 1:
-                    language = argv[i].lower()
-                else:
-                    usage()
-                    exit()
-            else:
-                usage()
-                exit()
-            i += 1
-        else:
-            usage()
-            exit()
-    if analyzer not in grammar_generate_table:
-        usage()
-        print("Analyzer: " + ", ".join(list(grammar_generate_table)))
-        exit()
-    if language not in code_generator:
-        usage()
-        print("Language: " + ", ".join(list(code_generator)))
-        exit()
+    welcome()
+    grammar_file = argv.grammar_file
+    code_file = argv.output
+    analyzer = argv.analyzer
+    language = argv.language
     if code_file is not None:
         fp = open(code_file, "w")
     else:
@@ -94,4 +54,17 @@ def main(argv):
         os.remove(code_file)
 
 if __name__ == "__main__":
-    main(sys.argv)
+    parse = argparse.ArgumentParser(description="Boson commandline", formatter_class=RawTextHelpFormatter)
+    parse.add_argument("grammar_file", help="Inpute grammar description file.")
+    parse.add_argument("-o", "--output", help="Output grammar analyzer code.")
+    parse.add_argument("-a", "--analyzer", default="slr", choices=["slr", "lr"],
+                       help="Analyzer type (default is SLR).\n"
+                            "SLR - Simple LR.\n"
+                            "LR  - Standard LR.\n"
+                       )
+    parse.add_argument("-l", "--language", default="python", choices=["python"],
+                       help="Generate code language (default is Python).\n"
+                            "Python - Python3 code.\n"
+                       )
+    args = parse.parse_args()
+    main(args)
