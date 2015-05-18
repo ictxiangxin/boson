@@ -7,6 +7,7 @@ from argparse import RawTextHelpFormatter
 from boson.bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
 from boson.bs_slr_generate import bs_slr_generate_table
 from boson.bs_lr_generate import bs_lr_generate_table
+from boson.bs_lalr_generate import bs_lalr_generate_table
 from boson.bs_code_generate import *
 
 code_generator = {
@@ -14,8 +15,9 @@ code_generator = {
 }
 
 grammar_generate_table = {
-    "slr": bs_slr_generate_table,
-    "lr":  bs_lr_generate_table,
+    "slr":  bs_slr_generate_table,
+    "lr":   bs_lr_generate_table,
+    "lalr": bs_lalr_generate_table,
 }
 
 
@@ -54,13 +56,14 @@ def main(argv):
         os.remove(code_file)
 
 if __name__ == "__main__":
-    parse = argparse.ArgumentParser(description="Boson commandline", formatter_class=RawTextHelpFormatter)
+    parse = argparse.ArgumentParser(description="%s commandline" % boson_title, formatter_class=RawTextHelpFormatter)
     parse.add_argument("grammar_file", help="Inpute grammar description file.")
     parse.add_argument("-o", "--output", help="Output grammar analyzer code.")
-    parse.add_argument("-a", "--analyzer", default="slr", choices=["slr", "lr"],
+    parse.add_argument("-a", "--analyzer", default="slr", choices=["slr", "lr", "lalr"],
                        help="Analyzer type (default is SLR).\n"
-                            "SLR - Simple LR.\n"
-                            "LR  - Standard LR.\n"
+                            "SLR  - Simple LR.\n"
+                            "LR   - Standard LR.\n"
+                            "LALR - Look-Ahead LR.\n"
                        )
     parse.add_argument("-l", "--language", default="python", choices=["python"],
                        help="Generate code language (default is Python).\n"

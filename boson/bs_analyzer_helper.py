@@ -6,7 +6,7 @@ from boson.bs_configure import *
 
 
 def bs_non_terminal_set(sentence_set):
-    return set([sentense[0] for sentense in sentence_set])
+    return set([sentence[0] for sentence in sentence_set])
 
 
 def bs_terminal_set(sentence_set, non_terminal_set=None):
@@ -15,8 +15,8 @@ def bs_terminal_set(sentence_set, non_terminal_set=None):
     else:
         non_terminal_set = copy.deepcopy(non_terminal_set)
     all_elem = set()
-    for sentense in sentence_set:
-        all_elem |= set([elem for elem in sentense])
+    for sentence in sentence_set:
+        all_elem |= set([elem for elem in sentence])
     return all_elem - non_terminal_set
 
 
@@ -82,3 +82,47 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
                 old_set_size[non_terminal] = len(follow_set[non_terminal])
                 continue_loop = True
     return follow_set
+
+
+def bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set, visited=None):
+    closure = set()
+    if visited is None:
+        visited = set()
+    for sentence in sentence_set:
+        if non_terminal == sentence[0]:
+            closure.add(sentence)
+            if sentence[1] in non_terminal_set and sentence[1] not in visited:
+                visited.add(sentence[1])
+                closure |= bs_non_terminal_closure(sentence[1], sentence_set, non_terminal_set, visited)
+    return closure
+
+
+def bs_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
+    flag_sentence_set = set()
+    loop_continue = True
+    while loop_continue:
+        loop_continue = False
+        for sentence, flag in flag_sentence_list:
+            if isinstance(sentence[1], frozenset):
+                real_sentence = sentence[0]
+                postfix_set = sentence[1]
+                if flag < len(real_sentence):
+                    symbol = real_sentence[flag]
+                    if symbol in non_terminal_set:
+                        if flag < len(real_sentence) - 1:
+                            next_symbol = real_sentence[flag + 1]
+                            if next_symbol in non_terminal_set:
+                                non_terminal_mark = frozenset(first_set[next_symbol])
+                            else:
+                                non_terminal_mark = frozenset({next_symbol})
+                        else:
+                            non_terminal_mark = frozenset(postfix_set)
+                        for flag_sentence_index in range(len(flag_sentence_list)):
+                            flag_sentence = flag_sentence_list[flag_sentence_index]
+                            if flag_sentence[0][0] == symbol and not isinstance(flag_sentence[0][1], frozenset):
+                                flag_sentence_list[flag_sentence_index] = \
+                                    ((flag_sentence[0], non_terminal_mark), flag_sentence[1])
+                                loop_continue = True
+    for flag_sentence in flag_sentence_list:
+        flag_sentence_set.add(((flag_sentence[0][0], frozenset(flag_sentence[0][1])), flag_sentence[1]))
+    return flag_sentence_set

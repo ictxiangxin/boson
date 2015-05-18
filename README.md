@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
 
-v0.1
+v0.2
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 

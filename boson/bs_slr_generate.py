@@ -3,24 +3,11 @@ __author__ = 'ict'
 from boson.bs_analyzer_helper import *
 
 
-def bs_slr_non_terminal_closure(non_terminal, sentense_set, non_terminal_set, visited=None):
-    closure = set()
-    if visited is None:
-        visited = set()
-    for sentense in sentense_set:
-        if non_terminal == sentense[0]:
-            closure.add(sentense)
-            if sentense[1] in non_terminal_set and sentense[1] not in visited:
-                visited.add(sentense[1])
-                closure |= bs_slr_non_terminal_closure(sentense[1], sentense_set, non_terminal_set, visited)
-    return closure
-
-
 def bs_slr_generate_dfa(sentence_set):
     non_terminal_set = bs_non_terminal_set(sentence_set)
     non_terminal_closure = {}
     for non_terminal in non_terminal_set:
-        non_terminal_closure[non_terminal] = bs_slr_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
+        non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     first_flag_sentence_set = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
