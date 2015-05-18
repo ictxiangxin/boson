@@ -8,11 +8,11 @@ from boson.bs_code_generate import bs_generate_python_code
 
 
 if __name__ == "__main__":
-    token_list = bs_token_list("slr_grammar.txt")
+    token_list = bs_token_list("test/slr_grammar.txt")
     sentence_set = bs_grammar_analyzer(token_list)
     slr_tables = bs_slr_generate_table(sentence_set)
     bs_generate_python_code(slr_tables)
-    token_list = bs_token_list("not_slr_grammar.txt")
+    token_list = bs_token_list("test/not_slr_grammar.txt")
     sentence_set = bs_grammar_analyzer(token_list)
     slr_tables = bs_lr_generate_table(sentence_set)
     bs_generate_python_code(slr_tables)
