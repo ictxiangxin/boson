@@ -13,7 +13,7 @@ def bs_kernel_of_mark_state(state):
 
 
 def bs_lalr_generate_dfa(sentence_set):
-    sentence_mark = {}
+    sentence_postfix_mark = {}
     slr_state, slr_transfer = bs_slr_generate_dfa(sentence_set)
     lr_state, lr_transfer = bs_lr_generate_dfa(sentence_set)
     lalr_state = []
@@ -21,16 +21,16 @@ def bs_lalr_generate_dfa(sentence_set):
     for state in lr_state:
         state_kernel = bs_kernel_of_mark_state(state)
         state_number = slr_state.index(state_kernel)
-        sentence_mark[state_number] = {}
+        sentence_postfix_mark[state_number] = {}
         for sentence in state:
             real_sentence = (sentence[0][0], sentence[1])
-            if real_sentence not in sentence_mark[state_number]:
-                sentence_mark[state_number][real_sentence] = set()
-            sentence_mark[state_number][real_sentence] |= sentence[0][1]
+            if real_sentence not in sentence_postfix_mark[state_number]:
+                sentence_postfix_mark[state_number][real_sentence] = set()
+            sentence_postfix_mark[state_number][real_sentence] |= sentence[0][1]
     for state_number in range(len(slr_state)):
         temp_state = set()
         for sentence in slr_state[state_number]:
-            temp_state.add(((sentence[0], frozenset(sentence_mark[state_number][sentence])), sentence[1]))
+            temp_state.add(((sentence[0], frozenset(sentence_postfix_mark[state_number][sentence])), sentence[1]))
         lalr_state.append(frozenset(temp_state))
     return lalr_state, lalr_transfer
 

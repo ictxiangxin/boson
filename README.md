@@ -10,6 +10,13 @@ Boson can use production sentences given by the user to generate grammar analyze
 
 * * *
 
+##How to install boson?
+
+You just need download the ZIP file, and unZIP it, type the command:
+ `python3 setup.py install` or `sudo python3 setup.py install`
+
+* * *
+
 ##Usage
 
 Boson read file contains a set of productions, and each production form is:
@@ -70,17 +77,12 @@ Of course, you can install the python package, and just import boson module.
 
 Example:
 
-    >>> from boson.bs_grammmar_analysis import bs_token_list as bs_token_list
-    >>> bs_token_list("not_slr_grammar.txt")
-    [[('NAME', 'start'), ('TOWARD', '->'), ('NAME', 'L'), ('NAME', 'eq'), ('NAME', '
-    R'), ('OR', '|'), ('NAME', 'R'), ('$', '')], [('NAME', 'L'), ('TOWARD', '->'), (
-    'NAME', 'times'), ('NAME', 'R'), ('OR', '|'), ('NAME', 'id'), ('$', '')], [('NAM
-    E', 'R'), ('TOWARD', '->'), ('NAME', 'L'), ('$', '')]]
-
-###How to install boson?
-
-You just need download the ZIP file, and unZIP it, type the command:
- `python3 setup.py install` or `sudo python3 setup.py install`
+    >>> from boson.bs_grammar_analysis import bs_token_list
+    >>> from boson.bs_lalr_generate.py import bs_lalr_generate_table
+    >>> from boson.bs_code_generate import bs_generate_python_code
+    >>> bs_generate_python_code(bs_lalr_generate_table(bs_grammar_sentence_set("test/not_slr_grammar.txt")))
+    *** Here you will get the code of LALR grammar analyzer of grammar, which described in ***
+    *** "test/not_slr_grammar.txt" file.                                                   ***
 
 ####Parse grammar file
 

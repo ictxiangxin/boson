@@ -124,3 +124,7 @@ def bs_grammar_analyzer(token_list):
     if start_non_terminal_symbol not in set([sentence[0] for sentence in sentense_set]):
         raise Exception("No start non terminal symbol in grammar, need: %s" % start_non_terminal_symbol)
     return sentense_set
+
+
+def bs_grammar_sentence_set(filename):
+    return bs_grammar_analyzer(bs_token_list(filename))
