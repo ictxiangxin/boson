@@ -138,6 +138,21 @@ bs_generate_python_code(tables_tuple)
 
 * * *
 
+##Reference
+
+Boson can generate SLR, LR, LALR analyzer.
+
+###SLR - Simple LR
+
+> boson.bs_slr_generate
+
+`bs_slr_generate_dfa(sentence_set)` function can generate SLR DFA, it return `state_list` and `state_transfer`.
+
+`bs_slr_generate_table(sentence_set)` function can generate SLR table, it `return terminal_index`, `non_terminal_index`,
+ `action_table`, `goto_table`, `reduce_symbol_sum`, `reduce_to_non_terminal`, `sentence_list`.
+
+* * *
+
 ##Author
 
 Author: ict
