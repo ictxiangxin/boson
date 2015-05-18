@@ -17,7 +17,7 @@ if __name__ == "__main__":
     sentence_set = bs_grammar_analyzer(token_list)
     slr_tables = bs_lr_generate_table(sentence_set)
     bs_generate_python_code(slr_tables)
-    token_list = bs_token_list("test/not_lalr_grammar.txt")
+    token_list = bs_token_list("test/not_slr_grammar.txt")
     sentence_set = bs_grammar_analyzer(token_list)
     slr_tables = bs_lalr_generate_table(sentence_set)
     bs_generate_python_code(slr_tables)
