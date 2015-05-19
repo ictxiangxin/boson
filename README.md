@@ -15,6 +15,10 @@ Boson can use production sentences given by the user to generate grammar analyze
 You just need download the ZIP file, and unZIP it, type the command:
  `python3 setup.py install` or `sudo python3 setup.py install`
 
+Or Clone it from Github:
+
+`git clone https://github.com/ictxiangxin/boson`
+
 * * *
 
 ##Usage
@@ -29,7 +33,10 @@ There is a convention which must exist a non-terminal named "start"
 
 `[code]` is not necessary.
 
+**Notice**
+
 `name` satisfied `[_a-zA-Z][_a-zA-Z0-0]*`
+
 `code` satisfied `\{.*\}`
 
 A example of arithmetic grammar like this:
@@ -119,7 +126,7 @@ For example, if we want to generate SLR analyzer, import "bs_slr_generate.py".
 It returns a tuple, which contains these tables.
 
 ```python
-tables_tuple = bs_slr_generate_table(sentencezz_list)
+tables_tuple = bs_slr_generate_table(sentence_list)
 ```
 
 ####Generate analyzer code
@@ -164,4 +171,6 @@ Boson can generate SLR, LR, LALR analyzer.
 
 Author: ict
 
-Email: ictxiangxin@gmail.com or ictxiangxin@hotmail.com
+Email: ictxiangxin@gmail.com
+
+Email: ictxiangxin@hotmail.com
