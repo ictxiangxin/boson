@@ -2,6 +2,7 @@ __author__ = 'ict'
 
 import os
 import argparse
+import time
 from argparse import RawTextHelpFormatter
 
 from boson.bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
@@ -40,14 +41,23 @@ def main(argv):
         fp = sys.stdout
     try:
         print("Parse grammar file...", end="")
-        sentence_set = bs_grammar_analyzer(bs_token_list(grammar_file))
-        print("Done")
+        start_time = time.time()
+        global_start_time = start_time
+        sentence_set, reduce_code = bs_grammar_analyzer(bs_token_list(grammar_file))
+        end_time = time.time()
+        print("Done [%fs]" % ((end_time - start_time) / 1000))
         print("Generate %s grammar analysis table..." % analyzer.upper(), end="")
+        start_time = time.time()
         analyzer_table = grammar_generate_table[analyzer](sentence_set)
-        print("Done")
+        end_time = time.time()
+        print("Done [%fs]" % ((end_time - start_time) / 1000))
         print("Generate analyzer %s code..." % language.upper(), end="")
-        code_generator[language](analyzer_table, fp)
-        print("Done")
+        start_time = time.time()
+        code_generator[language](analyzer_table, reduce_code, fp)
+        end_time = time.time()
+        global_end_time = time.time()
+        print("Done [%fs]" % ((end_time - start_time) / 1000))
+        print("Complete!!! [%fs]" % ((global_end_time - global_start_time) / 1000))
         if code_file is not None:
             fp.close()
     except Exception as e:
@@ -61,13 +71,13 @@ if __name__ == "__main__":
     parse.add_argument("-o", "--output", help="Output grammar analyzer code.")
     parse.add_argument("-a", "--analyzer", default="slr", choices=["slr", "lr", "lalr"],
                        help="Analyzer type (default is SLR).\n"
-                            "SLR  - Simple LR.\n"
-                            "LR   - Standard LR.\n"
-                            "LALR - Look-Ahead LR.\n"
+                            "slr  - SLR(Simple LR)\n"
+                            "lr   - LR(Standard LR)\n"
+                            "lalr - LALR(Look-Ahead LR)\n"
                        )
-    parse.add_argument("-l", "--language", default="python", choices=["python"],
-                       help="Generate code language (default is Python).\n"
-                            "Python - Python3 code.\n"
+    parse.add_argument("-l", "--language", default="python", choices=["python3"],
+                       help="Generate code language (default is Python3).\n"
+                            "python3 - Python3 code.\n"
                        )
     args = parse.parse_args()
     main(args)

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
 
-v0.2
+v0.3
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 
@@ -22,20 +22,25 @@ You just need download the ZIP file, and unZIP it, type the command:
 Boson read file contains a set of productions, and each production form is:
 
 ```
-<non-terminal> -> <non-terminal/terminal combination> | <non-terminal/terminal combination> | ...
+name : <name combination> [code] | <name combination> [code] | ... ;
 ```
 
 There is a convention which must exist a non-terminal named "start"
 
+`[code]` is not necessary.
+
+`name` satisfied `[_a-zA-Z][_a-zA-Z0-0]*`
+`code` satisfied `\{.*\}`
+
 A example of arithmetic grammar like this:
 
 ```
-start -> E
-E -> E plus T | E minus T | T
-T -> T times F | T div F | F
-F -> F power D | D
-D -> bl E br | N
-N -> int | float
+start : E
+E : E plus T | E minus T | T ;
+T : T times F | T div F | F ;
+F : F power D | D ;
+D : bl E br | N ;
+N : int | float ;
 ```
 
 Write these productions to one file.
@@ -80,9 +85,11 @@ Example:
     >>> from boson.bs_grammar_analysis import bs_token_list
     >>> from boson.bs_lalr_generate.py import bs_lalr_generate_table
     >>> from boson.bs_code_generate import bs_generate_python_code
-    >>> bs_generate_python_code(bs_lalr_generate_table(bs_grammar_sentence_set("test/not_slr_grammar.txt")))
-    *** Here you will get the code of LALR grammar analyzer of grammar, which described in ***
-    *** "test/not_slr_grammar.txt" file.                                                   ***
+    >>> sentence_set, reduce_code = bs_grammar_analysis("example/arithmetic_grammar.txt")
+    >>> lalr_table = bs_lalr_generate_table(sentence_set)
+    >>> bs_generate_python_code(lalr_table, reduce_code)
+    *** Here you will get the code of LALR grammar analyzer of grammar, which described ***
+    *** in "example/arithmetic_grammar.txt" file.                                       ***
 
 ####Parse grammar file
 
@@ -94,10 +101,10 @@ Example:
 token_list = bs_token_list(grammar_file)
 ```
 
-**bs_grammar_analyzer()** function use token list to generate production sentence list.
+**bs_grammar_analyzer()** function use token list to generate production sentence set and reduce code for each sentence.
 
 ```python
-sentence_list = bs_grammar_analyzer(token_list)
+sentence_set, reduce_code = bs_grammar_analyzer(token_list)
 ```
 
 Now, the final result of "bs_grammar_analysis.py" is sentence list.
@@ -126,14 +133,14 @@ So, you need open a file first, and analyzer code may saved in this file.
 
 ```python
 fp = open("my_analyzer.py", "w")
-bs_generate_python_code(tables_tuple, fp)
+bs_generate_python_code(tables_tuple, reduce_code, output=fp)
 fp.close()
 ```
 
 If you do not provide any file handle, the default value is **sys.stdout**, it may print all codes on screen.
 
 ```python
-bs_generate_python_code(tables_tuple)
+bs_generate_python_code(tables_tuple, reduce_code)
 ```
 
 * * *
@@ -148,7 +155,7 @@ Boson can generate SLR, LR, LALR analyzer.
 
 `bs_slr_generate_dfa(sentence_set)` function can generate SLR DFA, it return `state_list` and `state_transfer`.
 
-`bs_slr_generate_table(sentence_set)` function can generate SLR table, it `return terminal_index`, `non_terminal_index`,
+`bs_slr_generate_table(sentence_set)` function can generate SLR table, it return `terminal_index`, `non_terminal_index`,
  `action_table`, `goto_table`, `reduce_symbol_sum`, `reduce_to_non_terminal`, `sentence_list`.
 
 * * *

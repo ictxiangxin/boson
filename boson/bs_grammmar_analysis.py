@@ -169,7 +169,10 @@ def bs_grammar_analyzer(token_list):
                     temp_statement = [name] + statement[0]
                     sentence = tuple([token[1] for token in temp_statement])
                     sentence_set.add(sentence)
-                    reduce_code[sentence] = statement[1][1]
+                    if statement[1] is not None:
+                        reduce_code[sentence] = statement[1][1]
+                    else:
+                        reduce_code[sentence] = None
             elif operation_number == 8:
                 statement = symbol_stack.pop()
                 symbol_stack.append([statement])
@@ -186,5 +189,5 @@ def bs_grammar_analyzer(token_list):
     return sentence_set, reduce_code
 
 
-def bs_grammar_sentence_set_and_reduce_code(filename):
+def bs_grammar_analysis(filename):
     return bs_grammar_analyzer(bs_token_list(filename))

@@ -78,12 +78,16 @@ def bs_lr_generate_table(sentence_set):
         reduce_symbol_sum[sentence_index] = len(sentence_list[sentence_index]) - 1
         reduce_to_non_terminal[sentence_index] = sentence_list[sentence_index][0]
     count = 0
-    for terminal in terminal_set:
+    terminal_list = list(terminal_set)
+    terminal_list.sort()
+    for terminal in terminal_list:
         terminal_index[terminal] = count
         count += 1
     terminal_index[end_symbol] = count
     count = 0
-    for non_terminal in non_terminal_set:
+    non_terminal_list = list(non_terminal_set)
+    non_terminal_list.sort()
+    for non_terminal in non_terminal_list:
         if non_terminal != start_non_terminal_symbol:
             non_terminal_index[non_terminal] = count
             count += 1

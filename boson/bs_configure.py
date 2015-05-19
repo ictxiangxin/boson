@@ -5,7 +5,7 @@ end_symbol = "$"
 
 boson_name = "Boson"
 boson_version_main = 0
-boson_version_sub = 2
+boson_version_sub = 3
 boson_title = "%s v%d.%d" % (boson_name, boson_version_main, boson_version_sub)
 boson_author = "ict"
 boson_author_email = "ictxiangxin@gmail.com"

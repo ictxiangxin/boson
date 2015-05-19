@@ -1,6 +1,19 @@
-start -> E
-E -> E plus T | E minus T | T
-T -> T times F | T div F | F
-F -> F power D | D
-D -> bl E br | N
-N -> int | float
+start: E
+     ;
+E : E plus T { $$ = [$1, $2, $3] }
+  | E minus T { $$ = [$1, $2, $3] }
+  | T { $$ = [$1] }
+  ;
+T : T times F { $$ = [$1, $2, $3] }
+  | T div F { $$ = [$1, $2, $3] }
+  | F { $$ = [$1] }
+  ;
+F : F power D { $$ = [$1, $2, $3] }
+  | D { $$ = [$1] }
+  ;
+D : bl E br { $$ = [$1, $2, $3] }
+  | N { $$ = [$1] }
+  ;
+N : int { $$ = [$1] }
+  | float { $$ = [$1] }
+  ;
