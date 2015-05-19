@@ -1,0 +1,16 @@
+start : grammar
+      ;
+grammar : grammar statement_block
+        | statement_block
+        ;
+statement_block : name reduce statement_set end
+                ;
+statement_set : statement_set or statement
+              | statement
+              ;
+statement : name_list code
+          | name_list
+          ;
+name_list : name_list name
+          | name
+          ;
