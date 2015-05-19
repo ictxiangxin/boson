@@ -5,51 +5,96 @@ import re
 from boson.bs_configure import *
 
 token_tuple = [
-    ("ROOT", r"root"),
-    ("NAME", r"[_a-zA-Z]+"),
-    ("TOWARD", r"\->"),
-    ("OR", r"\|"),
-    ("SKIP", r"[ \t]+"),
-    ("NEWLINE", r"\n|\r\n"),
-    ("INVALID", r"."),
+    ("name",    r"[_a-zA-Z][_a-zA-Z0-9]*"),
+    ("reduce",  r"\:"),
+    ("or",      r"\|"),
+    ("code",    r"\{.*\}"),
+    ("end",     r"\;"),
+    ("skip",    r"[ \t]+"),
+    ("newline", r"\n|\r\n"),
+    ("invalid", r"."),
 ]
-token_regrex = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
+
+token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
 
 terminal_index = {
-    "NAME":     0,
-    "TOWARD":   1,
-    "OR":       2,
-    end_symbol: 3,
+    "name":   0,
+    "reduce": 1,
+    "end":    2,
+    "code":   3,
+    "or":     4,
+    "$":      5,
 }
 
 action_table = [
-    ["s1", "e",  "e",  "e"],
-    ["s2", "s5", "r4", "r4"],
-    ["s2", "e",  "r4", "r4"],
-    ["e",  "e",  "r3", "r3"],
-    ["e",  "e",  "s7", "r2"],
-    ["s2", "e",  "e",  "e"],
-    ["e",  "e",  "e",  "a"],
-    ["s2", "e",  "e",  "e"],
-    ["e",  "e",  "e",  "r1"],
+    ["s1",  "e",   "e",   "e",   "e",    "e"],
+    ["e",   "s4",  "e",   "e",   "e",    "e"],
+    ["r1",  "e",   "e",   "e",   "e",   "r1"],
+    ["s1",  "e",   "e",   "e",   "e",    "a"],
+    ["s8",  "e",   "e",   "e",   "e",    "e"],
+    ["r4",  "e",   "e",   "e",   "e",   "r4"],
+    ["e",   "e",   "s10", "e",   "s11",  "e"],
+    ["e",   "e",   "r8",  "e",   "r8",   "e"],
+    ["r2",  "e",   "r2",  "r2",  "r2",   "e"],
+    ["s12", "e",   "r5",  "s13", "r5",   "e"],
+    ["r7",  "e",   "e",   "e",   "e",   "r7"],
+    ["s8",  "e",   "e",   "e",   "e",    "e"],
+    ["r3",  "e",   "r3",  "r3",  "r3",   "e"],
+    ["e",   "e",   "r6",  "e",   "r6",   "e"],
+    ["e",   "e",   "r9",  "e",   "r9",   "e"],
 ]
 
 non_terminal_index = {
-    "N": 0,
-    "L": 1,
+    "statement_block": 0,
+    "statement_set":   1,
+    "name_list":       2,
+    "statement":       3,
+    "grammar":         4,
 }
 
 goto_table = [
-    [4, -1],
-    [3, -1],
-    [3, -1],
-    [-1, -1],
-    [-1, -1],
-    [4,  6],
-    [-1, -1],
-    [4, 8],
-    [-1, -1],
+    [2,  -1, -1, -1,  3],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [5,  -1, -1, -1, -1],
+    [-1, 6,  9,  7,  -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, 9,  14, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
 ]
+
+reduce_symbol_sum = {
+    0:  1,
+    1:  1,
+    2:  1,
+    3:  2,
+    4:  2,
+    5:  1,
+    6:  2,
+    7:  4,
+    8:  1,
+    9:  3,
+}
+
+reduce_to_non_terminal = {
+    0:  "start",
+    1:  "grammar",
+    2:  "name_list",
+    3:  "name_list",
+    4:  "grammar",
+    5:  "statement",
+    6:  "statement",
+    7:  "statement_block",
+    8:  "statement_set",
+    9:  "statement_set",
+}
 
 
 def bs_token_list(filename):
@@ -57,74 +102,89 @@ def bs_token_list(filename):
         text = fp.read()
         token_list = list()
         line_number = 1
-        temp_list = list()
-        for one_token in re.finditer(token_regrex, text):
+        for one_token in re.finditer(token_regular_expression, text):
             token_class = one_token.lastgroup
             token_string = one_token.group(token_class)
-            if token_class == "SKIP":
+            if token_class == "skip":
                 pass
-            elif token_class == "NEWLINE":
-                temp_list.append(("$", ""))
-                token_list.append(temp_list)
-                temp_list = list()
+            elif token_class == "newline":
                 line_number += 1
-            elif token_class == "INVALID":
+            elif token_class == "invalid":
                 raise RuntimeError("[Line: %d] Invalid token: %s" % (line_number, token_string))
             else:
-                temp_list.append((token_class, token_string))
-        if len(temp_list) != 0:
-            temp_list.append((end_symbol, ""))
-            token_list.append(temp_list)
+                token_list.append((token_class, token_string))
+    token_list.append((end_symbol, ""))
     return token_list
 
 
 def bs_grammar_analyzer(token_list):
-    sentense_set = set()
-    for line in token_list:
-        stack = [0]
-        symbol_stack = []
-        token_index = 0
-        while token_index < len(line):
-            token = line[token_index]
-            op = action_table[stack[-1]][terminal_index[token[0]]]
-            if op[0] == "e":
-                raise Exception("Grammar error: " + " ".join([e[1] for e in line]))
-            elif op[0] == "s":
-                stack.append(int(op[1:]))
-                if token[0] == "NAME":
-                    symbol_stack.append(token)
-                token_index += 1
-            elif op[0] == "r":
-                reduce_number = int(op[1:])
-                if reduce_number == 1:
-                    stack.pop(), stack.pop(), stack.pop()
-                    stack.append(goto_table[stack[-1]][non_terminal_index["L"]])
-                elif reduce_number == 2:
-                    stack.pop()
-                    stack.append(goto_table[stack[-1]][non_terminal_index["L"]])
-                elif reduce_number == 3:
-                    stack.pop(), stack.pop()
-                    stack.append(goto_table[stack[-1]][non_terminal_index["N"]])
-                    non_terminal_n = symbol_stack.pop()
-                    non_terminal_n.append(symbol_stack.pop())
-                    symbol_stack.append(non_terminal_n)
-                elif reduce_number == 4:
-                    stack.pop()
-                    stack.append(goto_table[stack[-1]][non_terminal_index["N"]])
-                    symbol_stack.append([symbol_stack.pop()])
-                else:
-                    raise Exception("Invalid reduce number: %d" % reduce_number)
-            elif op[0] == "a":
-                temp_sentense_set = set()
-                for sentense in symbol_stack[1:]:
-                    sentense.reverse()
-                    temp_sentense_set.add(tuple([symbol_stack[0][1]] + [e[1] for e in sentense]))
-                sentense_set |= temp_sentense_set
-                break
-    if start_non_terminal_symbol not in set([sentence[0] for sentence in sentense_set]):
-        raise Exception("No start non terminal symbol in grammar, need: %s" % start_non_terminal_symbol)
-    return sentense_set
+    sentence_set = set()
+    reduce_code = {}
+    symbol_stack = []
+    stack = [0]
+    token_index = 0
+    while token_index < len(token_list):
+        token = token_list[token_index]
+        token_type = token[0]
+        now_state = stack[-1]
+        operation = action_table[now_state][terminal_index[token_type]]
+        operation_flag = operation[0]
+        if operation_flag == "e":
+            raise Exception("Grammar error: " + " ".join([t[1] for t in token_list]))
+        elif operation_flag == "s":
+            operation_number = int(operation[1:])
+            stack.append(operation_number)
+            token_index += 1
+            if token[0] in ["name", "code"]:
+                symbol_stack.append(token)
+        elif operation_flag == "r":
+            operation_number = int(operation[1:])
+            reduce_sum = reduce_symbol_sum[operation_number]
+            for _ in range(reduce_sum):
+                stack.pop()
+            now_state = stack[-1]
+            stack.append(goto_table[now_state][non_terminal_index[reduce_to_non_terminal[operation_number]]])
+            if operation_number == 1:
+                pass
+            elif operation_number == 2:
+                symbol_stack.append([symbol_stack.pop()])
+            elif operation_number == 3:
+                name = symbol_stack.pop()
+                name_list = symbol_stack.pop()
+                name_list.append(name)
+                symbol_stack.append(name_list)
+            elif operation_number == 4:
+                pass
+            elif operation_number == 5:
+                name_list = symbol_stack.pop()
+                symbol_stack.append((name_list, None))
+            elif operation_number == 6:
+                code = symbol_stack.pop()
+                name_list = symbol_stack.pop()
+                symbol_stack.append((name_list, code))
+            elif operation_number == 7:
+                statement_set = symbol_stack.pop()
+                name = symbol_stack.pop()
+                for statement in statement_set:
+                    temp_statement = [name] + statement[0]
+                    sentence = tuple([token[1] for token in temp_statement])
+                    sentence_set.add(sentence)
+                    reduce_code[sentence] = statement[1][1]
+            elif operation_number == 8:
+                statement = symbol_stack.pop()
+                symbol_stack.append([statement])
+            elif operation_number == 9:
+                statement = symbol_stack.pop()
+                statement_set = symbol_stack.pop()
+                symbol_stack.append(statement_set + [statement])
+            else:
+                raise Exception("Invalid reduce number: %d" % operation_number)
+        elif operation_flag == "a":
+            break
+        else:
+            raise Exception("Invalid action: %s" % operation)
+    return sentence_set, reduce_code
 
 
-def bs_grammar_sentence_set(filename):
+def bs_grammar_sentence_set_and_reduce_code(filename):
     return bs_grammar_analyzer(bs_token_list(filename))
