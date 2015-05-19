@@ -119,10 +119,20 @@ def bs_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
                             non_terminal_mark = frozenset(postfix_set)
                         for flag_sentence_index in range(len(flag_sentence_list)):
                             flag_sentence = flag_sentence_list[flag_sentence_index]
-                            if flag_sentence[0][0] == symbol and not isinstance(flag_sentence[0][1], frozenset):
-                                flag_sentence_list[flag_sentence_index] = \
-                                    ((flag_sentence[0], non_terminal_mark), flag_sentence[1])
-                                loop_continue = True
+                            if isinstance(flag_sentence[0][1], frozenset):
+                                if flag_sentence[0][0][0] == symbol:
+                                    old_mark_sum = len(flag_sentence_list[flag_sentence_index][0][1])
+                                    temp_mark_set = set(flag_sentence_list[flag_sentence_index][0][1])
+                                    temp_mark_set |= non_terminal_mark
+                                    flag_sentence_list[flag_sentence_index] = \
+                                        ((flag_sentence[0][0], frozenset(temp_mark_set)), flag_sentence[1])
+                                    if len(flag_sentence_list[flag_sentence_index][0][1]) > old_mark_sum:
+                                        loop_continue = True
+                            else:
+                                if flag_sentence[0][0] == symbol:
+                                    flag_sentence_list[flag_sentence_index] = \
+                                        ((flag_sentence[0], non_terminal_mark), flag_sentence[1])
+                                    loop_continue = True
     for flag_sentence in flag_sentence_list:
         flag_sentence_set.add(((flag_sentence[0][0], frozenset(flag_sentence[0][1])), flag_sentence[1]))
     return flag_sentence_set
