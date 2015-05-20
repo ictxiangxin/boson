@@ -42,7 +42,7 @@ There is a convention which must exist a non-terminal named "start"
 A example of arithmetic grammar like this:
 
 ```
-start : E
+start : E ;
 E : E plus T | E minus T | T ;
 T : T times F | T div F | F ;
 F : F power D | D ;
@@ -53,7 +53,7 @@ N : int | float ;
 Add you can write literal terminal like this:
 
 ```
-start : E
+start : E ;
 E : E '+' T | E '-' T | T ;
 T : T '*' F | T '/' F | F ;
 F : F '^' D | D ;
@@ -103,9 +103,9 @@ Example:
     >>> from boson.bs_grammar_analysis import bs_token_list
     >>> from boson.bs_lalr_generate.py import bs_lalr_generate_table
     >>> from boson.bs_code_generate import bs_generate_python_code
-    >>> sentence_set, reduce_code = bs_grammar_analysis("example/arithmetic_grammar.txt")
+    >>> sentence_set, reduce_code, literal = bs_grammar_analysis("example/arithmetic_grammar.txt")
     >>> lalr_table = bs_lalr_generate_table(sentence_set)
-    >>> bs_generate_python_code(lalr_table, reduce_code)
+    >>> bs_generate_python_code(lalr_table, reduce_code, literal)
     *** Here you will get the code of LALR grammar analyzer of grammar, which described ***
     *** in "example/arithmetic_grammar.txt" file.                                       ***
 
@@ -116,7 +116,7 @@ Example:
 **bs_token_list()** function read grammar file and return a token list.
 
 ```python
-token_list = bs_token_list(grammar_file)
+token_list, literal = bs_token_list(grammar_file)
 ```
 
 **bs_grammar_analyzer()** function use token list to generate production sentence set and reduce code for each sentence.
@@ -151,14 +151,14 @@ So, you need open a file first, and analyzer code may saved in this file.
 
 ```python
 fp = open("my_analyzer.py", "w")
-bs_generate_python_code(tables_tuple, reduce_code, output=fp)
+bs_generate_python_code(tables_tuple, reduce_code, literal, output=fp)
 fp.close()
 ```
 
 If you do not provide any file handle, the default value is **sys.stdout**, it may print all codes on screen.
 
 ```python
-bs_generate_python_code(tables_tuple, reduce_code)
+bs_generate_python_code(tables_tuple, reduce_code, literal)
 ```
 
 * * *
