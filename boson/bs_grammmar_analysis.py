@@ -9,6 +9,7 @@ token_tuple = [
     ("reduce",  r"\:"),
     ("or",      r"\|"),
     ("code",    r"\{.*\}"),
+    ("literal", r"\'[^\']+\'"),
     ("end",     r"\;"),
     ("skip",    r"[ \t]+"),
     ("newline", r"\n|\r\n"),
@@ -101,7 +102,10 @@ def bs_token_list(filename):
     with open(filename, "r") as fp:
         text = fp.read()
         token_list = list()
+        literal_map = {}
+        literal_reverse_map = {}
         line_number = 1
+        literal_number = 1
         for one_token in re.finditer(token_regular_expression, text):
             token_class = one_token.lastgroup
             token_string = one_token.group(token_class)
@@ -111,10 +115,20 @@ def bs_token_list(filename):
                 line_number += 1
             elif token_class == "invalid":
                 raise RuntimeError("[Line: %d] Invalid token: %s" % (line_number, token_string))
+            elif token_class == "literal":
+                literal_string = token_string[1: -1]
+                if literal_string in literal_map:
+                    literal_class = literal_map[literal_string]
+                else:
+                    literal_class = literal_templet % literal_number
+                    literal_number += 1
+                    literal_map[literal_string] = literal_class
+                    literal_reverse_map[literal_class] = literal_string
+                token_list.append(("name", literal_class))
             else:
                 token_list.append((token_class, token_string))
     token_list.append((end_symbol, ""))
-    return token_list
+    return token_list, (literal_map, literal_reverse_map)
 
 
 def bs_grammar_analyzer(token_list):
@@ -190,4 +204,6 @@ def bs_grammar_analyzer(token_list):
 
 
 def bs_grammar_analysis(filename):
-    return bs_grammar_analyzer(bs_token_list(filename))
+    token_list, literal = bs_token_list(filename)
+    sentence_set, reduce_code = bs_grammar_analyzer(token_list)
+    return sentence_set, reduce_code, literal

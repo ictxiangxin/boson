@@ -50,6 +50,17 @@ D : bl E br | N ;
 N : int | float ;
 ```
 
+Add you can write literal terminal like this:
+
+```
+start : E
+E : E '+' T | E '-' T | T ;
+T : T '*' F | T '/' F | F ;
+F : F '^' D | D ;
+D : '(' E ')' | N ;
+N : int | float ;
+```
+
 Write these productions to one file.
 
 ###Easy to use

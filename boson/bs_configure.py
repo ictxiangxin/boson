@@ -3,6 +3,8 @@ __author__ = 'ict'
 start_non_terminal_symbol = "start"
 end_symbol = "$"
 
+literal_templet = "literal%d"
+
 boson_name = "Boson"
 boson_version_main = 0
 boson_version_sub = 3
