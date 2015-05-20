@@ -14,3 +14,5 @@ boson_author_email = "ictxiangxin@gmail.com"
 
 indent_char = " "
 indent_size = 4
+
+invalid_token_class = "boson_invalid"
