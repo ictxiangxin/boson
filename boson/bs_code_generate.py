@@ -179,42 +179,23 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, output=sys.std
     bs_code_output(output, "now_state = stack[-1]\n", 3)
     bs_code_output(output, "now_non_terminal_index = non_terminal_index[reduce_to_non_terminal[operation_number]]\n", 3)
     bs_code_output(output, "stack.append(goto_table[now_state][now_non_terminal_index])\n", 3)
-    bs_code_output(output, "if operation_number == 1:\n", 3)
-    literal_sentence = list(sentence_list[1])
-    if have_literal:
-        for now_sentence_index in range(len(literal_sentence)):
-            if literal_sentence[now_sentence_index] in literal_reverse_map:
-                literal_sentence[now_sentence_index] = "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
-    bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
-    if reduce_code[sentence_list[1]] is not None:
-        bs_generate_reduce_code(output, reduce_code[sentence_list[1]], reduce_symbol_sum[1], reduce_to_non_terminal[1], 4)
-    else:
-        bs_code_output(output, "pass\n", 4)
-    for reduce_index in range(2, len(sentence_list) - 1):
-        bs_code_output(output, "elif operation_number == %d:\n" % reduce_index, 3)
+    for reduce_index in range(1, len(sentence_list)):
+        if reduce_index == 1:
+            bs_code_output(output, "if operation_number == 1:\n", 3)
+        else:
+            bs_code_output(output, "elif operation_number == %d:\n" % reduce_index, 3)
         literal_sentence = list(sentence_list[reduce_index])
         if have_literal:
             for now_sentence_index in range(len(literal_sentence)):
                 if literal_sentence[now_sentence_index] in literal_reverse_map:
-                    literal_sentence[now_sentence_index] = "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
+                    literal_sentence[now_sentence_index] =\
+                        "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
         bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
         if reduce_code[sentence_list[reduce_index]] is not None:
             bs_generate_reduce_code(output, reduce_code[sentence_list[reduce_index]], reduce_symbol_sum[reduce_index],
                                     reduce_to_non_terminal[reduce_index], 4)
         else:
             bs_code_output(output, "pass\n", 4)
-    bs_code_output(output, "elif operation_number == %d:\n" % (len(sentence_list) - 1), 3)
-    literal_sentence = list(sentence_list[-1])
-    if have_literal:
-        for now_sentence_index in range(len(literal_sentence)):
-            if literal_sentence[now_sentence_index] in literal_reverse_map:
-                literal_sentence[now_sentence_index] = "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
-    bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
-    if reduce_code[sentence_list[-1]] is not None:
-        bs_generate_reduce_code(output, reduce_code[sentence_list[-1]], reduce_symbol_sum[len(sentence_list) - 1],
-                                reduce_to_non_terminal[len(sentence_list) - 1], 4)
-    else:
-        bs_code_output(output, "pass\n", 4)
     bs_code_output(output, "else:\n", 3)
     bs_code_output(output, "raise Exception(\"Invalid reduce number: %d\" % operation_number)\n", 4)
     bs_code_output(output, "elif operation_flag == \"a\":\n", 2)
