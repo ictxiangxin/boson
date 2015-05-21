@@ -5,9 +5,14 @@ import re
 from boson.bs_configure import *
 
 
-class BosonLexcialAnalyzer:
-    def __init__(self, filename):
-        token_tuple = []
+class BosonLexicalAnalyzer:
+    def __init__(self, filename, ignore=None, error=None):
+        self.__token_tuple = []
+        self.__ignore = set(ignore)
+        if error is None:
+            self.__error = {invalid_token_class}
+        else:
+            self.__error = set(error)
         have_invalid = False
         with open(filename, "r") as fp:
             while True:
@@ -31,17 +36,19 @@ class BosonLexcialAnalyzer:
                 while line[-1] in [" ", "\t", "\n", "\r"]:
                     line = line[:-1]
                 name = line
-                token_tuple.append((name, regular_expression))
+                self.__token_tuple.append((name, regular_expression))
                 if regular_expression == ".":
                     have_invalid = True
         if not have_invalid:
-            token_tuple.append((invalid_token_class, "."))
-        self.__token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
+            self.__token_tuple.append((invalid_token_class, "."))
+        self.__token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in self.__token_tuple)
 
     def tokenize(self, filename, ignore=None, error=None):
-        token_list = []
+        if ignore is None:
+            ignore = self.__ignore
         if error is None:
-            error = [invalid_token_class]
+            error = self.__error
+        token_list = []
         with open(filename, "r") as fp:
             text = fp.read()
             for one_token in re.finditer(self.__token_regular_expression, text):
@@ -55,3 +62,18 @@ class BosonLexcialAnalyzer:
                 token_list.append((token_class, token_string))
             token_list.append((end_symbol, ""))
         return token_list
+
+    def get_token_tuple(self):
+        return self.__token_tuple
+
+    def set_ignore(self, ignore):
+        self.__ignore == set(ignore)
+
+    def get_ignore(self):
+        return self.__ignore
+
+    def set_error(self, error):
+        self.__error = set(error)
+
+    def get_error(self):
+        return self.__error

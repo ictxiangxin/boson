@@ -5,7 +5,7 @@ import sys
 from boson.bs_code_generator_helper import *
 
 
-def bs_generate_shift_code(output, mode, indent):
+def bs_generate_shift_code(output, mode, indent=0):
     if mode == "default":
         bs_code_output(output, "boson_stack.append(token)\n", indent)
     elif mode == "blank":
@@ -16,7 +16,7 @@ def bs_generate_shift_code(output, mode, indent):
         raise Exception("Invalid shift code mode: %s" % mode)
 
 
-def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, indent):
+def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, indent=0):
     bs_code_output(output, "boson_sentence = []\n", indent)
     bs_code_output(output, "for boson_i in range(%d):\n" % reduce_number, indent)
     bs_code_output(output, "boson_sentence.insert(0, boson_stack.pop())\n", indent + 1)
@@ -40,7 +40,36 @@ def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, in
     bs_code_output(output, "boson_stack.append(boson_reduce)\n", indent)
 
 
-def bs_generate_python_code(analyzer_table, reduce_code, literal, output=sys.stdout):
+def bs_generate_lexical_analyzer(output, lex, indent=0):
+    token_tuple = lex.get_token_tuple()
+    ignore = lex.get_ignore()
+    error = lex.get_error()
+    max_token_name_len = 0
+    for token in token_tuple:
+        if len(token[0]) > max_token_name_len:
+            max_token_name_len = len(token[0])
+    bs_code_output(output, "boson_token_tuple = {\n", indent)
+    for token in token_tuple:
+        bs_code_output(output, "(\"%s\", " % token[0] + " " * (max_token_name_len - len(token[0])) +
+                       "r\"%s\"),\n" % token[1], indent + 1)
+    bs_code_output(output, "}\n", indent)
+    bs_code_output(output, "\n", indent)
+    bs_code_output(output, "boson_ignore = {\n", indent)
+    for each_ignore in ignore:
+        bs_code_output(output, "\"%s\",\n" % each_ignore, indent + 1)
+    bs_code_output(output, "}\n", indent)
+    bs_code_output(output, "\n", indent)
+    bs_code_output(output, "boson_error = {\n", indent)
+    for each_error in error:
+        bs_code_output(output, "\"%s\",\n" % each_error, indent + 1)
+    bs_code_output(output, "}\n", indent)
+    bs_code_output(output, "\n", indent)
+    bs_code_output(output, "boson_token_regular_expression = ", indent)
+    bs_code_output(output, "\"|\".join(\"(?P<%s>%s)\" % pair for pair in boson_token_tuple", indent)
+    bs_code_output(output, "\n", indent)
+
+
+def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, output=sys.stdout):
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
     terminal_index_reverse_map = {}
@@ -92,6 +121,9 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, output=sys.std
     bs_code_output(output, "\"\"\"\n")
     bs_code_output(output, "\n")
     bs_code_output(output, "\n")
+    if lex is not None:
+        bs_generate_lexical_analyzer(output, lex)
+        bs_code_output(output, "\n")
     bs_code_output(output, "terminal_index = {\n")
     for index in range(len(terminal_index_reverse_map)):
         terminal = terminal_index_reverse_map[index]
@@ -145,7 +177,22 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, output=sys.std
         bs_code_output(output, "}\n")
         bs_code_output(output, "\n")
     bs_code_output(output, "\n")
-    bs_code_output(output, "def grammar_analysis(token_list):\n")
+    if lex is not None:
+        bs_code_output(output, "def boson_lexical_analysis(text):\n")
+        bs_code_output(output, "boson_token_list = []\n", 1)
+        bs_code_output(output, "for one_token in re.finditer(boson_token_regular_expression, text):\n", 1)
+        bs_code_output(output, "token_class = one_token.lastgroup\n", 1)
+        bs_code_output(output, "token_string = one_token.group(token_class)\n", 1)
+        bs_code_output(output, "if token_class in boson_ignore:\n", 1)
+        bs_code_output(output, "continue\n", 2)
+        bs_code_output(output, "if token_class in boson_error:\n", 1)
+        bs_code_output(output, "raise Exception(\"Invalid token: (%s, \"%s\")\" % (token_class, token_string))\n", 2)
+        bs_code_output(output, "boson_token_list.append((token_class, token_string))\n", 1)
+        bs_code_output(output, "boson_token_list.append((\"%s\", \"\"))\n" % end_symbol, 1)
+        bs_code_output(output, "return boson_token_list\n", 1)
+        bs_code_output(output, "\n")
+        bs_code_output(output, "\n")
+    bs_code_output(output, "def boson_grammar_analysis(token_list):\n")
     bs_code_output(output, "\"\"\"\n", 1)
     bs_code_output(output, "Add some data structure definition code here...\n", 2)
     bs_code_output(output, "\"\"\"\n", 1)

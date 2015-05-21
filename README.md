@@ -100,6 +100,7 @@ Of course, you can install the python package, and just import boson module.
 
 Example:
 
+```python
     >>> from boson.bs_grammar_analysis import bs_token_list
     >>> from boson.bs_lalr_generate.py import bs_lalr_generate_table
     >>> from boson.bs_code_generate import bs_generate_python_code
@@ -108,6 +109,7 @@ Example:
     >>> bs_generate_python_code(lalr_table, reduce_code, literal)
     *** Here you will get the code of LALR grammar analyzer of grammar, which described ***
     *** in "example/arithmetic_grammar.txt" file.                                       ***
+```
 
 ####Parse grammar file
 
@@ -144,14 +146,75 @@ tables_tuple = bs_slr_generate_table(sentence_list)
 
 All code generator use analyzer table to generate code of grammar analyzer.
 
-Import "bs_code_generate.py" file, which include code generators of all languages.
+> Import "bs_code_generate.py" file, which include code generators of all languages.
 
-Each generator is a function, the first argument is analyzer tables and the second argument is file handle.
-So, you need open a file first, and analyzer code may saved in this file.
+Each generator is a function, now, I am already finished Python3 code generator, and it definition is:
+
+#####Python3 code generator definition
+
+`bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, output=sys.stdout)`
+
+**analyzer_table** is grammar analyzer tables, which output by SLR, LR, or LALR generator.
+
+**reduce_code** is the reduce code of each reduce sentence writen in grammar file.
+
+**literal** is the literal terminal map output by lexical analyzer.
+
+**lex** is the simple lexical analyzer (is a Class) provided by boson, default is None.
+
+**output** is the output file handle, default is stdout, which will output code on screen.
+
+#####With lexical analyzer
+
+Boson provide a simple lexical analyzer, you can use it by `import boson.bs_lexical_analyzer`.
+And just instantiate Class BosonLexicalAnalyzer.
+It will read a lexical description file, which each line described one token and its regular expression.
+
+The format is:
+```
+"regular expression here"  token_name
+```
+
+**For example**
+
+"lex.txt":
+
+```
+"[_a-zA-Z][_a-zA-Z0-9]*" name
+"\r\n|\n"                newline
+" \t"                    skip
+"."                      invalid
+```
+
+When you create this file, now, you can instantiate Class BosonLexicalAnalyzer by:
+
+```python
+mylex = BosonLexicalAnalyzer("lex.txt", ignore=("sip"), error=("invalid"))
+```
+
+`ignore` and `error` are not necessary, so you can create lexical analyzer just like this:
+
+``` python
+mylex = BosonLexicalAnalyzer("lex.txt")
+```
+
+Now, you can use `mylex` by invoke its `tokenize()` function.
+And you also can use it to generate simple lexical analyzer code by give it to code generator.
+
+#####Without lexical analyzer
 
 ```python
 fp = open("my_analyzer.py", "w")
 bs_generate_python_code(tables_tuple, reduce_code, literal, output=fp)
+fp.close()
+```
+
+####With lexical analyzer
+
+```python
+fp = open("my_analyzer.py", "w")
+mylex = BosonLexicalAnalyzer("lex.txt")
+bs_generate_python_code(tables_tuple, reduce_code, literal, lex=mylex, output=fp)
 fp.close()
 ```
 

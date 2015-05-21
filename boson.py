@@ -72,7 +72,7 @@ if __name__ == "__main__":
     parse.add_argument("-a", "--analyzer", default="slr", choices=["slr", "lr", "lalr"],
                        help="Analyzer type (default is SLR).\n"
                             "slr  - SLR(Simple LR)\n"
-                            "lr   - LR(Standard LR)\n"
+                            "lr   - LR(Canonical LR)\n"
                             "lalr - LALR(Look-Ahead LR)\n"
                        )
     parse.add_argument("-l", "--language", default="python", choices=["python3"],
