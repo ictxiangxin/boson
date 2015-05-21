@@ -7,60 +7,86 @@
 """
 
 
+import re
+
+
+boson_token_tuple = [
+    ("int",           r"[1-9][0-9]*"),
+    ("float",         r"[1-9][0-9]*\.[0-9]+"),
+    ("plus",          r"\+"),
+    ("minus",         r"\-"),
+    ("times",         r"\*"),
+    ("dive",          r"\/"),
+    ("power",         r"\^"),
+    ("bl",            r"\("),
+    ("br",            r"\)"),
+    ("boson_invalid", r"."),
+]
+
+boson_ignore = {
+}
+
+boson_error = {
+    "boson_invalid",
+}
+
+boson_token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in boson_token_tuple)
+
+
 terminal_index = {
-    "bl":    0,
-    "br":    1,
-    "div":   2,
-    "float": 3,
-    "int":   4,
-    "minus": 5,
-    "plus":  6,
-    "power": 7,
-    "times": 8,
-    "$":     9,
+    "float":    0,
+    "int":      1,
+    "literal1": 2,
+    "literal2": 3,
+    "literal3": 4,
+    "literal4": 5,
+    "literal5": 6,
+    "literal6": 7,
+    "literal7": 8,
+    "$":        9,
 }
 
 action_table = [
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r12", "e",   "e",   "r12", "r12", "r12", "r12", "r12"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r5",  "e",   "e",   "r5",  "r5",  "r5",  "r5",   "r5"],
-    ["e",   "e",   "r7",  "e",   "e",   "r7",  "r7",  "r7",  "r7",   "r7"],
-    ["e",   "e",   "r8",  "e",   "e",   "r8",  "r8",  "r8",  "r8",   "r8"],
-    ["e",   "e",   "e",   "e",   "e",   "s18", "s17", "e",   "e",     "a"],
-    ["e",   "e",   "s19", "e",   "e",   "r4",  "r4",  "e",   "s20",  "r4"],
-    ["e",   "e",   "r9",  "e",   "e",   "r9",  "r9",  "s21", "r9",   "r9"],
-    ["e",   "r12", "r12", "e",   "e",   "r12", "r12", "r12", "r12",   "e"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["e",   "r5",  "r5",  "e",   "e",   "r5",  "r5",  "r5",  "r5",    "e"],
-    ["e",   "r7",  "r7",  "e",   "e",   "r7",  "r7",  "r7",  "r7",    "e"],
-    ["e",   "r8",  "r8",  "e",   "e",   "r8",  "r8",  "r8",  "r8",    "e"],
-    ["e",   "s23", "e",   "e",   "e",   "s25", "s24", "e",   "e",     "e"],
-    ["e",   "r4",  "s26", "e",   "e",   "r4",  "r4",  "e",   "s27",   "e"],
-    ["e",   "r9",  "r9",  "e",   "e",   "r9",  "r9",  "s28", "r9",    "e"],
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["s2",  "e",   "e",   "s4",  "s5",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "s34", "e",   "e",   "e",   "s25", "s24", "e",   "e",     "e"],
-    ["e",   "r1",  "r1",  "e",   "e",   "r1",  "r1",  "r1",  "r1",   "r1"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["s10", "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "s19", "e",   "e",   "r3",  "r3",  "e",   "s20",  "r3"],
-    ["e",   "e",   "s19", "e",   "e",   "r2",  "r2",  "e",   "s20",  "r2"],
-    ["e",   "e",   "r10", "e",   "e",   "r10", "r10", "s21", "r10", "r10"],
-    ["e",   "e",   "r11", "e",   "e",   "r11", "r11", "s21", "r11", "r11"],
-    ["e",   "e",   "r6",  "e",   "e",   "r6",  "r6",  "r6",  "r6",   "r6"],
-    ["e",   "r1",  "r1",  "e",   "e",   "r1",  "r1",  "r1",  "r1",    "e"],
-    ["e",   "r3",  "s26", "e",   "e",   "r3",  "r3",  "e",   "s27",   "e"],
-    ["e",   "r2",  "s26", "e",   "e",   "r2",  "r2",  "e",   "s27",   "e"],
-    ["e",   "r10", "r10", "e",   "e",   "r10", "r10", "s28", "r10",   "e"],
-    ["e",   "r11", "r11", "e",   "e",   "r11", "r11", "s28", "r11",   "e"],
-    ["e",   "r6",  "r6",  "e",   "e",   "r6",  "r6",  "r6",  "r6",    "e"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["e",   "e",   "r4",  "r4",  "s9",  "s10", "e",   "e",   "e",    "r4"],
+    ["e",   "e",   "r5",  "r5",  "r5",  "r5",  "r5",  "e",   "e",    "r5"],
+    ["e",   "e",   "r12", "r12", "r12", "r12", "r12", "e",   "e",   "r12"],
+    ["e",   "e",   "r8",  "r8",  "r8",  "r8",  "r8",  "e",   "e",    "r8"],
+    ["e",   "e",   "r9",  "r9",  "r9",  "r9",  "s11", "e",   "e",    "r9"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["e",   "e",   "s21", "s20", "e",   "e",   "e",   "e",   "e",     "a"],
+    ["e",   "e",   "r7",  "r7",  "r7",  "r7",  "r7",  "e",   "e",    "r7"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["e",   "e",   "r4",  "r4",  "s25", "s26", "e",   "e",   "r4",    "e"],
+    ["e",   "e",   "r5",  "r5",  "r5",  "r5",  "r5",  "e",   "r5",    "e"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["e",   "e",   "r8",  "r8",  "r8",  "r8",  "r8",  "e",   "r8",    "e"],
+    ["e",   "e",   "r9",  "r9",  "r9",  "r9",  "s28", "e",   "r9",    "e"],
+    ["e",   "e",   "r12", "r12", "r12", "r12", "r12", "e",   "r12",   "e"],
+    ["e",   "e",   "s30", "s29", "e",   "e",   "e",   "e",   "s31",   "e"],
+    ["e",   "e",   "r7",  "r7",  "r7",  "r7",  "r7",  "e",   "r7",    "e"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["s8",  "s4",  "e",   "e",   "e",   "e",   "e",   "s6",  "e",     "e"],
+    ["e",   "e",   "r10", "r10", "r10", "r10", "s11", "e",   "e",   "r10"],
+    ["e",   "e",   "r11", "r11", "r11", "r11", "s11", "e",   "e",   "r11"],
+    ["e",   "e",   "r6",  "r6",  "r6",  "r6",  "r6",  "e",   "e",    "r6"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["e",   "e",   "s30", "s29", "e",   "e",   "e",   "e",   "s36",   "e"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["s19", "s15", "e",   "e",   "e",   "e",   "e",   "s14", "e",     "e"],
+    ["e",   "e",   "r1",  "r1",  "r1",  "r1",  "r1",  "e",   "r1",   "r1"],
+    ["e",   "e",   "r3",  "r3",  "s9",  "s10", "e",   "e",   "e",    "r3"],
+    ["e",   "e",   "r2",  "r2",  "s9",  "s10", "e",   "e",   "e",    "r2"],
+    ["e",   "e",   "r10", "r10", "r10", "r10", "s28", "e",   "r10",   "e"],
+    ["e",   "e",   "r11", "r11", "r11", "r11", "s28", "e",   "r11",   "e"],
+    ["e",   "e",   "r1",  "r1",  "r1",  "r1",  "r1",  "e",   "r1",    "e"],
+    ["e",   "e",   "r6",  "r6",  "r6",  "r6",  "r6",  "e",   "r6",    "e"],
+    ["e",   "e",   "r3",  "r3",  "s25", "s26", "e",   "e",   "r3",    "e"],
+    ["e",   "e",   "r2",  "r2",  "s25", "s26", "e",   "e",   "r2",    "e"],
 ]
 
 non_terminal_index = {
@@ -72,37 +98,37 @@ non_terminal_index = {
 }
 
 goto_table = [
-    [3,  6,  8,  1,   7],
-    [-1, -1, -1, -1, -1],
-    [11, 14, 16, 9,  15],
+    [2,  7,  5,  3,   1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
+    [13, 18, 16, 17, 12],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
-    [11, 22, 16, 9,  15],
+    [2,  -1, 22, 3,  -1],
+    [2,  -1, 23, 3,  -1],
+    [24, -1, -1, 3,  -1],
+    [-1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1],
+    [13, 27, 16, 17, 12],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1],
-    [3,  -1, 8,  1,  29],
-    [3,  -1, 8,  1,  30],
-    [3,  -1, 31, 1,  -1],
-    [3,  -1, 32, 1,  -1],
-    [33, -1, -1, 1,  -1],
+    [2,  -1, 5,  3,  32],
+    [2,  -1, 5,  3,  33],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
-    [11, -1, 16, 9,  35],
-    [11, -1, 16, 9,  36],
-    [11, -1, 37, 9,  -1],
-    [11, -1, 38, 9,  -1],
-    [39, -1, -1, 9,  -1],
     [-1, -1, -1, -1, -1],
+    [13, -1, 34, 17, -1],
+    [13, -1, 35, 17, -1],
     [-1, -1, -1, -1, -1],
+    [37, -1, -1, 17, -1],
+    [13, -1, 16, 17, 38],
+    [13, -1, 16, 17, 39],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1],
@@ -146,17 +172,41 @@ reduce_to_non_terminal = {
     12: "D",
 }
 
+literal_map = {
+    "^": "literal5",
+    "*": "literal3",
+    "+": "literal1",
+    "-": "literal2",
+    "(": "literal6",
+    ")": "literal7",
+    "/": "literal4",
+}
 
-def grammar_analysis(token_list):
-    """
-        Add some data structure definition code here...
-    """
+
+def boson_lexical_analysis(text):
+    boson_token_list = []
+    for one_token in re.finditer(boson_token_regular_expression, text):
+        token_class = one_token.lastgroup
+        token_text = one_token.group(token_class)
+        if token_class in boson_ignore:
+            continue
+        if token_class in boson_error:
+            raise Exception("Invalid token: (%s, \"%s\")" % (token_class, token_text))
+        boson_token_list.append((token_class, token_text))
+    boson_token_list.append(("$", ""))
+    return boson_token_list
+
+
+def boson_grammar_analysis(token_list):
     boson_stack = []
     stack = [0]
     token_index = 0
     while token_index < len(token_list):
         token = token_list[token_index]
-        token_type = token[0]
+        if token[1] in literal_map:
+            token_type = literal_map[token[1]]
+        else:
+            token_type = token[0]
         now_state = stack[-1]
         operation = action_table[now_state][terminal_index[token_type]]
         operation_flag = operation[0]
@@ -175,96 +225,100 @@ def grammar_analysis(token_list):
             now_state = stack[-1]
             now_non_terminal_index = non_terminal_index[reduce_to_non_terminal[operation_number]]
             stack.append(goto_table[now_state][now_non_terminal_index])
-            if operation_number == 1:
-                # D -> bl E br
+            if operation_number == 0:
+                # start -> E
+                boson_sentence = []
+                for boson_i in range(1):
+                    boson_sentence.insert(0, boson_stack.pop())
+                boson_reduce = boson_sentence[0]
+                boson_stack.append(boson_reduce)
+            elif operation_number == 1:
+                # D -> '(' E ')'
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 2:
-                # E -> E minus T
+                # E -> E '+' T
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1], boson_sentence[0], boson_sentence[2]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 3:
-                # E -> E plus T
+                # E -> E '-' T
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1], boson_sentence[0], boson_sentence[2]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 4:
                 # E -> T
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             elif operation_number == 5:
                 # F -> D
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             elif operation_number == 6:
-                # F -> F power D
+                # F -> F '^' D
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1], boson_sentence[0], boson_sentence[2]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 7:
                 # N -> float
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             elif operation_number == 8:
                 # N -> int
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             elif operation_number == 9:
                 # T -> F
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             elif operation_number == 10:
-                # T -> T div F
+                # T -> T '*' F
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1], boson_sentence[0], boson_sentence[2]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 11:
-                # T -> T times F
+                # T -> T '/' F
                 boson_sentence = []
                 for boson_i in range(3):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0], boson_sentence[1], boson_sentence[2]]
+                boson_reduce = [boson_sentence[1], boson_sentence[0], boson_sentence[2]]
                 boson_stack.append(boson_reduce)
             elif operation_number == 12:
                 # D -> N
                 boson_sentence = []
                 for boson_i in range(1):
                     boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[0]]
+                boson_reduce = boson_sentence[0]
                 boson_stack.append(boson_reduce)
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
         elif operation_flag == "a":
-            break
+            return boson_stack[0]
         else:
             raise Exception("Invalid action: %s" % operation)
-    """
-        Add some postprocessing code here...
-    """

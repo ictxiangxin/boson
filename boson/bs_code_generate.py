@@ -33,7 +33,7 @@ def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, in
         if "$$" in line:
             line = line.replace("$$", "boson_reduce")
         else:
-            bs_code_output(output, "boson_reduce = (\"non-terminal\", \"%s\")\n" % reduce_non_terminal)
+            bs_code_output(output, "boson_reduce = (\"non-terminal\", \"%s\")\n" % reduce_non_terminal, indent)
         for r in range(reduce_number):
             line = line.replace("$%d" % (r + 1), "boson_sentence[%d]" % r)
         bs_code_output(output, line + "\n", indent)
@@ -48,11 +48,11 @@ def bs_generate_lexical_analyzer(output, lex, indent=0):
     for token in token_tuple:
         if len(token[0]) > max_token_name_len:
             max_token_name_len = len(token[0])
-    bs_code_output(output, "boson_token_tuple = {\n", indent)
+    bs_code_output(output, "boson_token_tuple = [\n", indent)
     for token in token_tuple:
         bs_code_output(output, "(\"%s\", " % token[0] + " " * (max_token_name_len - len(token[0])) +
                        "r\"%s\"),\n" % token[1], indent + 1)
-    bs_code_output(output, "}\n", indent)
+    bs_code_output(output, "]\n", indent)
     bs_code_output(output, "\n", indent)
     bs_code_output(output, "boson_ignore = {\n", indent)
     for each_ignore in ignore:
@@ -65,7 +65,7 @@ def bs_generate_lexical_analyzer(output, lex, indent=0):
     bs_code_output(output, "}\n", indent)
     bs_code_output(output, "\n", indent)
     bs_code_output(output, "boson_token_regular_expression = ", indent)
-    bs_code_output(output, "\"|\".join(\"(?P<%s>%s)\" % pair for pair in boson_token_tuple", indent)
+    bs_code_output(output, "\"|\".join(\"(?P<%s>%s)\" % pair for pair in boson_token_tuple)\n", indent)
     bs_code_output(output, "\n", indent)
 
 
@@ -122,6 +122,9 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "\n")
     bs_code_output(output, "\n")
     if lex is not None:
+        bs_code_output(output, "import re\n")
+        bs_code_output(output, "\n")
+        bs_code_output(output, "\n")
         bs_generate_lexical_analyzer(output, lex)
         bs_code_output(output, "\n")
     bs_code_output(output, "terminal_index = {\n")
@@ -181,21 +184,18 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
         bs_code_output(output, "def boson_lexical_analysis(text):\n")
         bs_code_output(output, "boson_token_list = []\n", 1)
         bs_code_output(output, "for one_token in re.finditer(boson_token_regular_expression, text):\n", 1)
-        bs_code_output(output, "token_class = one_token.lastgroup\n", 1)
-        bs_code_output(output, "token_string = one_token.group(token_class)\n", 1)
-        bs_code_output(output, "if token_class in boson_ignore:\n", 1)
-        bs_code_output(output, "continue\n", 2)
-        bs_code_output(output, "if token_class in boson_error:\n", 1)
-        bs_code_output(output, "raise Exception(\"Invalid token: (%s, \"%s\")\" % (token_class, token_string))\n", 2)
-        bs_code_output(output, "boson_token_list.append((token_class, token_string))\n", 1)
+        bs_code_output(output, "token_class = one_token.lastgroup\n", 2)
+        bs_code_output(output, "token_text = one_token.group(token_class)\n", 2)
+        bs_code_output(output, "if token_class in boson_ignore:\n", 2)
+        bs_code_output(output, "continue\n", 3)
+        bs_code_output(output, "if token_class in boson_error:\n", 2)
+        bs_code_output(output, "raise Exception(\"Invalid token: (%s, \\\"%s\\\")\" % (token_class, token_text))\n", 3)
+        bs_code_output(output, "boson_token_list.append((token_class, token_text))\n", 2)
         bs_code_output(output, "boson_token_list.append((\"%s\", \"\"))\n" % end_symbol, 1)
         bs_code_output(output, "return boson_token_list\n", 1)
         bs_code_output(output, "\n")
         bs_code_output(output, "\n")
     bs_code_output(output, "def boson_grammar_analysis(token_list):\n")
-    bs_code_output(output, "\"\"\"\n", 1)
-    bs_code_output(output, "Add some data structure definition code here...\n", 2)
-    bs_code_output(output, "\"\"\"\n", 1)
     bs_code_output(output, "boson_stack = []\n", 1)
     bs_code_output(output, "stack = [0]\n", 1)
     bs_code_output(output, "token_index = 0\n", 1)
@@ -226,9 +226,9 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "now_state = stack[-1]\n", 3)
     bs_code_output(output, "now_non_terminal_index = non_terminal_index[reduce_to_non_terminal[operation_number]]\n", 3)
     bs_code_output(output, "stack.append(goto_table[now_state][now_non_terminal_index])\n", 3)
-    for reduce_index in range(1, len(sentence_list)):
-        if reduce_index == 1:
-            bs_code_output(output, "if operation_number == 1:\n", 3)
+    for reduce_index in range(len(sentence_list)):
+        if reduce_index == 0:
+            bs_code_output(output, "if operation_number == %d:\n" % reduce_index, 3)
         else:
             bs_code_output(output, "elif operation_number == %d:\n" % reduce_index, 3)
         literal_sentence = list(sentence_list[reduce_index])
@@ -246,9 +246,6 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "else:\n", 3)
     bs_code_output(output, "raise Exception(\"Invalid reduce number: %d\" % operation_number)\n", 4)
     bs_code_output(output, "elif operation_flag == \"a\":\n", 2)
-    bs_code_output(output, "break\n", 3)
+    bs_code_output(output, "return boson_stack[0]\n", 3)
     bs_code_output(output, "else:\n", 2)
     bs_code_output(output, "raise Exception(\"Invalid action: %s\" % operation)\n", 3)
-    bs_code_output(output, "\"\"\"\n", 1)
-    bs_code_output(output, "Add some postprocessing code here...\n", 2)
-    bs_code_output(output, "\"\"\"\n", 1)
