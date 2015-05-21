@@ -8,7 +8,10 @@ from boson.bs_configure import *
 class BosonLexicalAnalyzer:
     def __init__(self, filename, ignore=None, error=None):
         self.__token_tuple = []
-        self.__ignore = set(ignore)
+        if ignore is None:
+            self.__ignore = []
+        else:
+            self.__ignore = set(ignore)
         if error is None:
             self.__error = {invalid_token_class}
         else:

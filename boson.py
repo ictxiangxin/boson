@@ -5,7 +5,7 @@ import argparse
 import time
 from argparse import RawTextHelpFormatter
 
-from boson.bs_grammmar_analysis import bs_token_list, bs_grammar_analyzer
+from boson.bs_grammar_analysis import bs_token_list, bs_grammar_analyzer
 from boson.bs_slr_generate import bs_slr_generate_table
 from boson.bs_lr_generate import bs_lr_generate_table
 from boson.bs_lalr_generate import bs_lalr_generate_table

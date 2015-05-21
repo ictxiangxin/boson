@@ -209,7 +209,7 @@ bs_generate_python_code(tables_tuple, reduce_code, literal, output=fp)
 fp.close()
 ```
 
-####With lexical analyzer
+#####With lexical analyzer
 
 ```python
 fp = open("my_analyzer.py", "w")
@@ -230,14 +230,45 @@ bs_generate_python_code(tables_tuple, reduce_code, literal)
 
 Boson can generate SLR, LR, LALR analyzer.
 
+All analyzer input is `sentence_set`, which created by `bs_grammar_analysis.py`.
+
+They all have a `dfa generate function` and `table generate function`.
+
+`dfa generate function` returns `state_list` and `state_transfer`.
+
+`table generate function` returns `terminal_index`, `non_terminal_index`,
+ `action_table`, `goto_table`, `reduce_symbol_sum`, `reduce_to_non_terminal`, `sentence_list`.
+
 ###SLR - Simple LR
+
+SLR in boson means SLR(1), it is fast and simple, but it only can recognize a few grammars.
 
 > boson.bs_slr_generate
 
-`bs_slr_generate_dfa(sentence_set)` function can generate SLR DFA, it return `state_list` and `state_transfer`.
+`bs_slr_generate_dfa(sentence_set)` function can generate SLR DFA.
 
-`bs_slr_generate_table(sentence_set)` function can generate SLR table, it return `terminal_index`, `non_terminal_index`,
- `action_table`, `goto_table`, `reduce_symbol_sum`, `reduce_to_non_terminal`, `sentence_list`.
+`bs_slr_generate_table(sentence_set)` function can generate SLR table.
+
+###LR - canonical LR
+
+LR in boson means LR(1), it is slower than SLR, but can recognize more grammar. And its table will bigger than SLR.
+
+> boson.bs_lr_generate
+
+`bs_lr_generate_dfa(sentence_set)` function can generate LR DFA.
+
+`bs_lr_generate_table(sentence_set)` function can generate LR table.`
+
+###LALR - Look-Ahead LR
+
+LALR in boson means LALR(1), it is slow like LR, and can recognize more grammar than SLR, but less than LR.
+The feature is that its table size is the same as SLR.
+
+> boson.bs_lalr_generate
+
+`bs_lalr_generate_dfa(sentence_set)` function can generate LALR DFA.
+
+`bs_lalr_generate_table(sentence_set)` function can generate LALR table.`
 
 * * *
 
