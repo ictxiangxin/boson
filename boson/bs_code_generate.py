@@ -6,12 +6,14 @@ from boson.bs_code_generator_helper import *
 
 
 def bs_generate_shift_code(output, mode, indent=0):
-    if mode == "default":
+    if mode == "code":
         bs_code_output(output, "boson_stack.append(token)\n", indent)
     elif mode == "blank":
         bs_code_output(output, "\"\"\"\n", indent)
         bs_code_output(output, "Add some code for shift action here...\n", indent)
         bs_code_output(output, "\"\"\"\n", indent)
+    elif mode == "null":
+        pass
     else:
         raise Exception("Invalid shift code mode: %s" % mode)
 
@@ -85,6 +87,10 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     literal_map = literal[0]
     literal_reverse_map = literal[1]
     have_literal = len(literal_map) != 0
+    have_reduce_code = False
+    for _, each_reduce_code in reduce_code.items():
+        if each_reduce_code is not None:
+            have_reduce_code = True
     for terminal, index in terminal_index.items():
         terminal_index_reverse_map[index] = terminal
         if len(terminal) > max_terminal_len:
@@ -196,7 +202,8 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
         bs_code_output(output, "\n")
         bs_code_output(output, "\n")
     bs_code_output(output, "def boson_grammar_analysis(token_list):\n")
-    bs_code_output(output, "boson_stack = []\n", 1)
+    if have_reduce_code:
+        bs_code_output(output, "boson_stack = []\n", 1)
     bs_code_output(output, "stack = [0]\n", 1)
     bs_code_output(output, "token_index = 0\n", 1)
     bs_code_output(output, "while token_index < len(token_list):\n", 1)
@@ -217,7 +224,11 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "stack.append(operation_number)\n", 3)
     bs_code_output(output, "token_index += 1\n", 3)
-    bs_generate_shift_code(output, "default", 3)
+    if have_reduce_code:
+        shift_mode = "code"
+    else:
+        shift_mode = "null"
+    bs_generate_shift_code(output, shift_mode, 3)
     bs_code_output(output, "elif operation_flag == \"r\":\n", 2)
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "reduce_sum = reduce_symbol_sum[operation_number]\n", 3)
@@ -225,6 +236,10 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "stack.pop()\n", 4)
     bs_code_output(output, "now_state = stack[-1]\n", 3)
     bs_code_output(output, "now_non_terminal_index = non_terminal_index[reduce_to_non_terminal[operation_number]]\n", 3)
+    bs_code_output(output, "goto_next_state = goto_table[now_state][now_non_terminal_index]\n", 3)
+    bs_code_output(output, "if goto_next_state == -1:\n", 3)
+    bs_code_output(output, "raise Exception(\"Invalid goto action: state=%d, non-terminal=%d\" ", 4)
+    bs_code_output(output, "% (now_state, now_non_terminal_index))\n")
     bs_code_output(output, "stack.append(goto_table[now_state][now_non_terminal_index])\n", 3)
     for reduce_index in range(len(sentence_list)):
         if reduce_index == 0:
@@ -246,6 +261,9 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "else:\n", 3)
     bs_code_output(output, "raise Exception(\"Invalid reduce number: %d\" % operation_number)\n", 4)
     bs_code_output(output, "elif operation_flag == \"a\":\n", 2)
-    bs_code_output(output, "return boson_stack[0]\n", 3)
+    if have_reduce_code:
+        bs_code_output(output, "return boson_stack[0]\n", 3)
+    else:
+        bs_code_output(output, "break\n", 3)
     bs_code_output(output, "else:\n", 2)
     bs_code_output(output, "raise Exception(\"Invalid action: %s\" % operation)\n", 3)

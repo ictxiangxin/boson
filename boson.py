@@ -46,7 +46,7 @@ def main(argv):
         print("Parse grammar file...", end="")
         start_time = time.time()
         global_start_time = start_time
-        sentence_set, reduce_code, literal = bs_grammar_analysis(grammar_file)
+        sentence_set, reduce_code, command_list, literal = bs_grammar_analysis(grammar_file)
         end_time = time.time()
         print("Done [%fs]" % ((end_time - start_time) / 1000))
         if lex_file is not None:
