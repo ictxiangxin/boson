@@ -12,6 +12,8 @@ token_tuple = [
     ("literal", r"\'[^\']+\'"),
     ("comment", r"#[^(\r\n|\n)]*"),
     ("command", r"%[_a-zA-Z]+"),
+    ("sechead", r"@[_a-zA-Z]+"),
+    ("sectext", r"@@\n.*\n@@"),
     ("end",     r"\;"),
     ("skip",    r"[ \t]+"),
     ("newline", r"\n|\r\n"),

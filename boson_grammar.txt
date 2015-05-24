@@ -1,23 +1,22 @@
 start : grammar
       ;
 
-grammar: command_block reduction_block
-       | reduction_block
-       ;
+grammar : grammar statement
+        | statement
+        ;
 
-command_block : command_block command_line
-              | command_line
-              ;
+statement : command
+          | reduction
+          | section
+          ;
 
-command_line : command name_list end
-             ;
-
-reduction_block : reduction_block reduction
-                | reduction
-                ;
+command : command element_list end
+        ;
 
 reduction : name reduce derivation_list end
         ;
+
+section : section_head section_text
 
 derivation_list : derivation_list or derivation
                 | derivation
@@ -27,6 +26,14 @@ derivation : name_list code
            | name_list
            ;
 
+element_list : element_list element
+             | element
+             ;
+
 name_list : name_list name
           | name
           ;
+
+element : name
+        | literal
+        ;
