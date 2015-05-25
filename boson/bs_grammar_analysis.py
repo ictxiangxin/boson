@@ -5,130 +5,143 @@ import re
 from boson.bs_configure import *
 
 token_tuple = [
-    ("name",    r"[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("reduce",  r"\:"),
-    ("or",      r"\|"),
-    ("code",    r"\{.*\}"),
-    ("literal", r"\'[^\']+\'"),
-    ("comment", r"#[^(\r\n|\n)]*"),
-    ("command", r"%[_a-zA-Z]+"),
-    ("sechead", r"@[_a-zA-Z]+"),
-    ("sectext", r"@@\n.*\n@@"),
-    ("end",     r"\;"),
-    ("skip",    r"[ \t]+"),
-    ("newline", r"\n|\r\n"),
-    ("invalid", r"."),
+    ("name",         r"[_a-zA-Z][_a-zA-Z0-9]*"),
+    ("reduce",       r"\:"),
+    ("or",           r"\|"),
+    ("code",         r"\{.*\}"),
+    ("literal",      r"\'[^\']+\'"),
+    ("comment",      r"#[^(\r\n|\n)]*"),
+    ("command",      r"%[_a-zA-Z]+"),
+    ("section_head", r"@[_a-zA-Z][_a-zA-Z0-9]*"),
+    ("section_text", r"@@\n.*\n@@"),
+    ("end",          r"\;"),
+    ("skip",         r"[ \t]+"),
+    ("newline",      r"\n|\r\n"),
+    ("invalid",      r"."),
 ]
 
 token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
 
+
 terminal_index = {
-    "code":    0,
-    "command": 1,
-    "end":     2,
-    "name":    3,
-    "or":      4,
-    "reduce":  5,
-    "$":       6,
+    "code":         0,
+    "command":      1,
+    "end":          2,
+    "literal":      3,
+    "name":         4,
+    "or":           5,
+    "reduce":       6,
+    "section_head": 7,
+    "section_text": 8,
+    "$":            9,
 }
 
 action_table = [
-    ["e",   "s4",  "e",   "s7",  "e",   "e",     "e"],
-    ["e",   "e",   "e",   "e",   "e",   "e",     "a"],
-    ["e",   "s4",  "e",   "s7",  "e",   "e",     "e"],
-    ["e",   "e",   "e",   "r12", "e",   "e",   "r12"],
-    ["e",   "e",   "e",   "s11", "e",   "e",     "e"],
-    ["e",   "e",   "e",   "s7",  "e",   "e",    "r8"],
-    ["e",   "r1",  "e",   "r1",  "e",   "e",     "e"],
-    ["e",   "e",   "e",   "e",   "e",   "s13",   "e"],
-    ["e",   "r14", "e",   "r14", "e",   "e",     "e"],
-    ["e",   "e",   "e",   "s7",  "e",   "e",    "r7"],
-    ["e",   "e",   "s14", "s15", "e",   "e",     "e"],
-    ["r9",  "e",   "r9",  "r9",  "r9",  "e",     "e"],
-    ["e",   "e",   "e",   "r13", "e",   "e",   "r13"],
-    ["e",   "e",   "e",   "s11", "e",   "e",     "e"],
-    ["e",   "r2",  "e",   "r2",  "e",   "e",     "e"],
-    ["r10", "e",   "r10", "r10", "r10", "e",     "e"],
-    ["s19", "e",   "r3",  "s15", "r3",  "e",     "e"],
-    ["e",   "e",   "s21", "e",   "s20", "e",     "e"],
-    ["e",   "e",   "r5",  "e",   "r5",  "e",     "e"],
-    ["e",   "e",   "r4",  "e",   "r4",  "e",     "e"],
-    ["e",   "e",   "e",   "s11", "e",   "e",     "e"],
-    ["e",   "e",   "e",   "r11", "e",   "e",   "r11"],
-    ["e",   "e",   "r6",  "e",   "r6",  "e",     "e"],
+    ["e",   "s2",  "e",   "e",   "s3",  "e",   "e",   "s5",  "e",     "e"],
+    ["e",   "r14", "e",   "e",   "r14", "e",   "e",   "r14", "e",   "r14"],
+    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "s13", "e",   "e",     "e"],
+    ["e",   "s2",  "e",   "e",   "s3",  "e",   "e",   "s5",  "e",     "a"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
+    ["e",   "r15", "e",   "e",   "r15", "e",   "e",   "r15", "e",   "r15"],
+    ["e",   "r16", "e",   "e",   "r16", "e",   "e",   "r16", "e",   "r16"],
+    ["e",   "r10", "e",   "e",   "r10", "e",   "e",   "r10", "e",   "r10"],
+    ["r6",  "e",   "r6",  "r6",  "r6",  "r6",  "e",   "e",   "e",     "e"],
+    ["r5",  "e",   "r5",  "r5",  "r5",  "r5",  "e",   "e",   "e",     "e"],
+    ["r7",  "e",   "r7",  "r7",  "r7",  "r7",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s16", "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
+    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
+    ["e",   "r9",  "e",   "e",   "r9",  "e",   "e",   "r9",  "e",    "r9"],
+    ["e",   "r12", "e",   "e",   "r12", "e",   "e",   "r12", "e",   "r12"],
+    ["e",   "r13", "e",   "e",   "r13", "e",   "e",   "r13", "e",   "r13"],
+    ["r8",  "e",   "r8",  "r8",  "r8",  "r8",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s21", "e",   "e",   "s22", "e",   "e",   "e",     "e"],
+    ["s23", "e",   "r1",  "s10", "s9",  "r1",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r3",  "e",   "e",   "r3",  "e",   "e",   "e",     "e"],
+    ["e",   "r11", "e",   "e",   "r11", "e",   "e",   "r11", "e",   "r11"],
+    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r2",  "e",   "e",   "r2",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r4",  "e",   "e",   "r4",  "e",   "e",   "e",     "e"],
 ]
 
 non_terminal_index = {
-    "command_block":   0,
-    "command_line":    1,
-    "derivation":      2,
-    "derivation_list": 3,
-    "grammar":         4,
-    "name_list":       5,
-    "reduction":       6,
-    "reduction_block": 7,
+    "command_statement":   0,
+    "derivation":          1,
+    "derivation_list":     2,
+    "element":             3,
+    "element_list":        4,
+    "grammar":             5,
+    "reduction_statement": 6,
+    "section_statement":   7,
+    "statement":           8,
 }
 
 goto_table = [
-    [2,  6,  -1, -1, 1,  -1, 3,   5],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, 8,  -1, -1, -1, -1, 3,   9],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, 10, -1, -1],
-    [-1, -1, -1, -1, -1, -1, 12, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, 12, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, 18, 17, -1, 16, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, 22, -1, -1, 16, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1],
+    [1,  -1, -1, -1, -1, 4,  6,  7,   8],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 11, 12, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [1,  -1, -1, -1, -1, -1, 6,  7,  14],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 17, -1, -1, -1, -1, -1],
+    [-1, 20, 18, 11, 19, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 17, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 24, -1, 11, 19, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
 reduce_symbol_sum = {
     0:  1,
     1:  1,
-    2:  3,
+    2:  2,
     3:  1,
-    4:  2,
+    4:  3,
     5:  1,
-    6:  3,
-    7:  2,
-    8:  1,
-    9:  1,
-    10: 2,
+    6:  1,
+    7:  1,
+    8:  2,
+    9:  2,
+    10: 1,
     11: 4,
-    12: 1,
-    13: 2,
-    14: 2,
+    12: 2,
+    13: 3,
+    14: 1,
+    15: 1,
+    16: 1,
 }
 
 reduce_to_non_terminal = {
     0:  "start",
-    1:  "command_block",
-    2:  "command_line",
-    3:  "derivation",
-    4:  "derivation",
-    5:  "derivation_list",
-    6:  "derivation_list",
-    7:  "grammar",
-    8:  "grammar",
-    9:  "name_list",
-    10: "name_list",
-    11: "reduction",
-    12: "reduction_block",
-    13: "reduction_block",
-    14: "command_block",
+    1:  "derivation",
+    2:  "derivation",
+    3:  "derivation_list",
+    4:  "derivation_list",
+    5:  "element",
+    6:  "element",
+    7:  "element_list",
+    8:  "element_list",
+    9:  "grammar",
+    10: "grammar",
+    11: "reduction_statement",
+    12: "section_statement",
+    13: "command_statement",
+    14: "statement",
+    15: "statement",
+    16: "statement",
 }
 
 
@@ -136,10 +149,7 @@ def bs_token_list(filename):
     with open(filename, "r") as fp:
         text = fp.read()
         token_list = list()
-        literal_map = {}
-        literal_reverse_map = {}
         line_number = 1
-        literal_number = 1
         for one_token in re.finditer(token_regular_expression, text):
             token_class = one_token.lastgroup
             token_string = one_token.group(token_class)
@@ -149,26 +159,20 @@ def bs_token_list(filename):
                 line_number += 1
             elif token_class == "invalid":
                 raise RuntimeError("[Line: %d] Invalid token: %s" % (line_number, token_string))
-            elif token_class == "literal":
-                literal_string = token_string[1: -1]
-                if literal_string in literal_map:
-                    literal_class = literal_map[literal_string]
-                else:
-                    literal_class = literal_templet % literal_number
-                    literal_number += 1
-                    literal_map[literal_string] = literal_class
-                    literal_reverse_map[literal_class] = literal_string
-                token_list.append(("name", literal_class))
             else:
                 token_list.append((token_class, token_string))
     token_list.append((end_symbol, ""))
-    return token_list, (literal_map, literal_reverse_map)
+    return token_list
 
 
 def bs_grammar_analyzer(token_list):
     sentence_set = set()
     reduce_code = {}
     command_list = []
+    section = {}
+    literal_map = {}
+    literal_reverse_map = {}
+    literal_number = 1
     symbol_stack = []
     stack = [0]
     token_index = 0
@@ -184,7 +188,7 @@ def bs_grammar_analyzer(token_list):
             operation_number = int(operation[1:])
             stack.append(operation_number)
             token_index += 1
-            if token_type in ["command", "name", "code"]:
+            if token_type in ["command", "name", "code", "literal", "section_head", "section_text"]:
                 symbol_stack.append(token)
         elif operation_flag == "r":
             operation_number = int(operation[1:])
@@ -198,43 +202,59 @@ def bs_grammar_analyzer(token_list):
                 raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (now_state, now_non_terminal_index))
             stack.append(goto_table[now_state][now_non_terminal_index])
             if operation_number == 0:
+                # start -> grammar
                 pass
             elif operation_number == 1:
-                pass
-            elif operation_number == 2:
-                name_list = symbol_stack.pop()
-                command = symbol_stack.pop()
-                command_line = [command] + name_list
-                literal_command = [command_line[0][1][1:]]
-                for each_name in command_line[1:]:
-                    literal_command.append(each_name[1])
-                command_list.append(literal_command)
-            elif operation_number == 3:
+                # derivation -> element_list
                 name_list = symbol_stack.pop()
                 symbol_stack.append((name_list, None))
-            elif operation_number == 4:
+            elif operation_number == 2:
+                # derivation -> element_list code
                 code = symbol_stack.pop()
-                name_list = symbol_stack.pop()
-                symbol_stack.append((name_list, code))
-            elif operation_number == 5:
+                element_list = symbol_stack.pop()
+                symbol_stack.append((element_list, code))
+            elif operation_number == 3:
+                # derivation_list -> derivation
                 derivation = symbol_stack.pop()
                 symbol_stack.append([derivation])
-            elif operation_number == 6:
+            elif operation_number == 4:
+                # derivation_list -> derivation_list or derivation
                 derivation = symbol_stack.pop()
                 derivation_list = symbol_stack.pop()
                 symbol_stack.append(derivation_list + [derivation])
+            elif operation_number == 5:
+                # element -> literal
+                literal = symbol_stack.pop()
+                literal_string = literal[1][1: -1]
+                if literal_string in literal_map:
+                    literal_class = literal_map[literal_string]
+                else:
+                    literal_class = literal_templet % literal_number
+                    literal_number += 1
+                    literal_map[literal_string] = literal_class
+                    literal_reverse_map[literal_class] = literal_string
+                symbol_stack.append((literal_class, literal_string))
+            elif operation_number == 6:
+                # element -> name
+                name = symbol_stack.pop()
+                symbol_stack.append(name)
             elif operation_number == 7:
-                pass
+                # element_list -> element
+                element = symbol_stack.pop()
+                symbol_stack.append([element])
             elif operation_number == 8:
-                pass
+                # element_list -> element_list element
+                element = symbol_stack.pop()
+                element_list = symbol_stack.pop()
+                symbol_stack.append(element_list + [element])
             elif operation_number == 9:
-                name = symbol_stack.pop()
-                symbol_stack.append([name])
+                # grammar -> grammar statement
+                pass
             elif operation_number == 10:
-                name = symbol_stack.pop()
-                name_list = symbol_stack.pop()
-                symbol_stack.append(name_list + [name])
+                # grammar -> statement
+                pass
             elif operation_number == 11:
+                # reduction_statement -> name reduce derivation_list end
                 derivation_list = symbol_stack.pop()
                 name = symbol_stack.pop()
                 for derivation in derivation_list:
@@ -245,12 +265,28 @@ def bs_grammar_analyzer(token_list):
                         reduce_code[sentence] = derivation[1][1]
                     else:
                         reduce_code[sentence] = None
-                pass
             elif operation_number == 12:
-                pass
+                # section_statement -> section_head section_text
+                section_text = symbol_stack.pop()
+                section_head = symbol_stack.pop()
+                section[section_head[1]] = section_text[1]
             elif operation_number == 13:
-                pass
+                # command_statement -> command element_list end
+                element_list = symbol_stack.pop()
+                command = symbol_stack.pop()
+                command_line = [command] + element_list
+                literal_command = [command_line[0][1][1:]]
+                for each_name in command_line[1:]:
+                    literal_command.append(each_name[1])
+                command_list.append(literal_command)
             elif operation_number == 14:
+                # statement -> command_statement
+                pass
+            elif operation_number == 15:
+                # statement -> reduction_statement
+                pass
+            elif operation_number == 16:
+                # statement -> section_statement
                 pass
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
@@ -258,10 +294,18 @@ def bs_grammar_analyzer(token_list):
             break
         else:
             raise Exception("Invalid action: %s" % operation)
-    return sentence_set, reduce_code, command_list
+    data_package = {
+        "sentence set":       sentence_set,
+        "reduce code":        reduce_code,
+        "command list":       command_list,
+        "section":            section,
+        "literal map":        literal_map,
+        "literal reverse map": literal_reverse_map,
+    }
+    return data_package
 
 
 def bs_grammar_analysis(filename):
-    token_list, literal = bs_token_list(filename)
-    sentence_set, reduce_code, command_list = bs_grammar_analyzer(token_list)
-    return sentence_set, reduce_code, command_list, literal
+    token_list = bs_token_list(filename)
+    data_package = bs_grammar_analyzer(token_list)
+    return data_package

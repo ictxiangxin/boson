@@ -5,34 +5,31 @@ grammar : grammar statement
         | statement
         ;
 
-statement : command
-          | reduction
-          | section
+statement : command_statement
+          | reduction_statement
+          | section_statement
           ;
 
-command : command element_list end
-        ;
+command_statement : command element_list end
+                  ;
 
-reduction : name reduce derivation_list end
-        ;
+reduction_statement : name reduce derivation_list end
+                    ;
 
-section : section_head section_text
+section_statement : section_head section_text
+                  ;
 
 derivation_list : derivation_list or derivation
                 | derivation
                 ;
 
-derivation : name_list code
-           | name_list
+derivation : element_list code
+           | element_list
            ;
 
 element_list : element_list element
              | element
              ;
-
-name_list : name_list name
-          | name
-          ;
 
 element : name
         | literal
