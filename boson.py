@@ -48,10 +48,6 @@ def main(argv):
         global_start_time = start_time
         data_package = bs_grammar_analysis(grammar_file)
         sentence_set = data_package["sentence set"]
-        reduce_code = data_package["reduce code"]
-        literal = (data_package["literal map"], data_package["literal reverse map"])
-        command_list = data_package["command list"]
-        section = data_package["section"]
         end_time = time.time()
         print("Done [%fs]" % ((end_time - start_time) / 1000))
         if lex_file is not None:
@@ -66,7 +62,7 @@ def main(argv):
         print("Done [%fs]" % ((end_time - start_time) / 1000))
         print("Generate analyzer %s code..." % language.upper(), end="")
         start_time = time.time()
-        code_generator[language](analyzer_table, reduce_code, literal, lex=lex, output=fp)
+        code_generator[language](analyzer_table, data_package, lex=lex, output=fp)
         end_time = time.time()
         print("Done [%fs]" % ((end_time - start_time) / 1000))
         if code_file is not None:

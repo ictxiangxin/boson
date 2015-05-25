@@ -13,7 +13,7 @@ token_tuple = [
     ("comment",      r"#[^(\r\n|\n)]*"),
     ("command",      r"%[_a-zA-Z]+"),
     ("section_head", r"@[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("section_text", r"@@\n.*\n@@"),
+    ("section_text", r"@@\n[^@]*\n@@"),
     ("end",          r"\;"),
     ("skip",         r"[ \t]+"),
     ("newline",      r"\n|\r\n"),
@@ -302,6 +302,7 @@ def bs_grammar_analyzer(token_list):
         "literal map":        literal_map,
         "literal reverse map": literal_reverse_map,
     }
+    print(literal_reverse_map)
     return data_package
 
 

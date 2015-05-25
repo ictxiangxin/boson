@@ -23,15 +23,15 @@ def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, in
     bs_code_output(output, "for boson_i in range(%d):\n" % reduce_number, indent)
     bs_code_output(output, "boson_sentence.insert(0, boson_stack.pop())\n", indent + 1)
     code = code[code.index("{") + 1: code.index("}")]
+    while code[0] in [" ", "\t"]:
+            code = code[1:]
+    while code[-1] in [" ", "\t"]:
+        code = code[: -1]
     if "\r\n" in code:
         code_list = code.split("\r\n")
     else:
         code_list = code.split("\n")
     for line in code_list:
-        while line[0] in [" ", "\t"]:
-            line = line[1:]
-        while line[-1] in [" ", "\t"]:
-            line = line[: -1]
         if "$$" in line:
             line = line.replace("$$", "boson_reduce")
         else:
@@ -71,7 +71,33 @@ def bs_generate_lexical_analyzer(output, lex, indent=0):
     bs_code_output(output, "\n", indent)
 
 
-def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, output=sys.stdout):
+def bs_generate_section(output, section_text, indent):
+    while section_text[0] in ["@", " ", "\t", "\r", "\n"]:
+        section_text = section_text[1:]
+    while section_text[-1] in ["@", " ", "\t", "\r", "\n"]:
+        section_text = section_text[: -1]
+    if "\r\n" in section_text:
+        text_list = section_text.split("\r\n")
+    else:
+        text_list = section_text.split("\n")
+    for text in text_list:
+        bs_code_output(output, text + "\n", indent)
+
+
+def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys.stdout):
+    grammar_analyzer_name = "boson_grammar_analysis"
+    lexical_analyzer_name = "boson_lexical_analysis"
+    symbol_stack_name = "boson_stack"
+    reduce_code = option_package["reduce code"]
+    literal_map = option_package["literal map"]
+    literal_reverse_map = option_package["literal reverse map"]
+    command_list = option_package["command list"]
+    for command in command_list:
+        if command[0] == "grammar_analyzer_name":
+            grammar_analyzer_name = command[1]
+        elif command[0] == "lexical_analyzer_name":
+            lexical_analyzer_name = command[1]
+    section = option_package["section"]
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
     terminal_index_reverse_map = {}
@@ -84,8 +110,6 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     max_end_goto_len = 0
     max_reduce_number_len = len(str(len(sentence_list)))
     max_literal_len = 0
-    literal_map = literal[0]
-    literal_reverse_map = literal[1]
     have_literal = len(literal_map) != 0
     have_reduce_code = False
     for _, each_reduce_code in reduce_code.items():
@@ -136,7 +160,12 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "terminal_index = {\n")
     for index in range(len(terminal_index_reverse_map)):
         terminal = terminal_index_reverse_map[index]
-        bs_code_output(output, "\"%s\": " % terminal + " " * (max_terminal_len - len(terminal)) + "%d,\n" % index, 1)
+        if terminal in literal_map:
+            bs_code_output(output, "\"%s\": " % literal_map[terminal] +
+                           " " * (max_terminal_len - len(terminal)) + "%d,\n" % index, 1)
+        else:
+            bs_code_output(output, "\"%s\": " % terminal +
+                           " " * (max_terminal_len - len(terminal)) + "%d,\n" % index, 1)
     bs_code_output(output, "}\n")
     bs_code_output(output, "\n")
     bs_code_output(output, "action_table = [\n")
@@ -187,7 +216,7 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
         bs_code_output(output, "\n")
     bs_code_output(output, "\n")
     if lex is not None:
-        bs_code_output(output, "def boson_lexical_analysis(text):\n")
+        bs_code_output(output, "def %s(text):\n" % lexical_analyzer_name)
         bs_code_output(output, "boson_token_list = []\n", 1)
         bs_code_output(output, "for one_token in re.finditer(boson_token_regular_expression, text):\n", 1)
         bs_code_output(output, "token_class = one_token.lastgroup\n", 2)
@@ -201,9 +230,11 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
         bs_code_output(output, "return boson_token_list\n", 1)
         bs_code_output(output, "\n")
         bs_code_output(output, "\n")
-    bs_code_output(output, "def boson_grammar_analysis(token_list):\n")
+    bs_code_output(output, "def %s(token_list):\n" % grammar_analyzer_name)
+    if "@initial" in section:
+        bs_generate_section(output, section["@initial"], 1)
     if have_reduce_code:
-        bs_code_output(output, "boson_stack = []\n", 1)
+        bs_code_output(output, "%s = []\n" % symbol_stack_name, 1)
     bs_code_output(output, "stack = [0]\n", 1)
     bs_code_output(output, "token_index = 0\n", 1)
     bs_code_output(output, "while token_index < len(token_list):\n", 1)
@@ -224,11 +255,14 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "stack.append(operation_number)\n", 3)
     bs_code_output(output, "token_index += 1\n", 3)
-    if have_reduce_code:
-        shift_mode = "code"
+    if "@shift" in section:
+        bs_generate_section(output, section["@shift"], 3)
     else:
-        shift_mode = "null"
-    bs_generate_shift_code(output, shift_mode, 3)
+        if have_reduce_code:
+            shift_mode = "code"
+        else:
+            shift_mode = "null"
+        bs_generate_shift_code(output, shift_mode, 3)
     bs_code_output(output, "elif operation_flag == \"r\":\n", 2)
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "reduce_sum = reduce_symbol_sum[operation_number]\n", 3)
@@ -261,9 +295,12 @@ def bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, outp
     bs_code_output(output, "else:\n", 3)
     bs_code_output(output, "raise Exception(\"Invalid reduce number: %d\" % operation_number)\n", 4)
     bs_code_output(output, "elif operation_flag == \"a\":\n", 2)
-    if have_reduce_code:
-        bs_code_output(output, "return boson_stack[0]\n", 3)
-    else:
-        bs_code_output(output, "break\n", 3)
+    bs_code_output(output, "break\n", 3)
     bs_code_output(output, "else:\n", 2)
     bs_code_output(output, "raise Exception(\"Invalid action: %s\" % operation)\n", 3)
+    if "@ending" in section:
+        bs_generate_section(output, section["@ending"], 1)
+    if "@extend" in section:
+        bs_code_output(output, "\n")
+        bs_code_output(output, "\n")
+        bs_generate_section(output, section["@extend"], 0)
