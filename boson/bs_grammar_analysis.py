@@ -202,28 +202,22 @@ def bs_grammar_analyzer(token_list):
                 raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (now_state, now_non_terminal_index))
             stack.append(goto_table[now_state][now_non_terminal_index])
             if operation_number == 0:
-                # start -> grammar
                 pass
             elif operation_number == 1:
-                # derivation -> element_list
                 name_list = symbol_stack.pop()
                 symbol_stack.append((name_list, None))
             elif operation_number == 2:
-                # derivation -> element_list code
                 code = symbol_stack.pop()
                 element_list = symbol_stack.pop()
                 symbol_stack.append((element_list, code))
             elif operation_number == 3:
-                # derivation_list -> derivation
                 derivation = symbol_stack.pop()
                 symbol_stack.append([derivation])
             elif operation_number == 4:
-                # derivation_list -> derivation_list or derivation
                 derivation = symbol_stack.pop()
                 derivation_list = symbol_stack.pop()
                 symbol_stack.append(derivation_list + [derivation])
             elif operation_number == 5:
-                # element -> literal
                 literal = symbol_stack.pop()
                 literal_string = literal[1][1: -1]
                 if literal_string in literal_map:
@@ -235,26 +229,20 @@ def bs_grammar_analyzer(token_list):
                     literal_reverse_map[literal_class] = literal_string
                 symbol_stack.append((literal_class, literal_string))
             elif operation_number == 6:
-                # element -> name
                 name = symbol_stack.pop()
                 symbol_stack.append(name)
             elif operation_number == 7:
-                # element_list -> element
                 element = symbol_stack.pop()
                 symbol_stack.append([element])
             elif operation_number == 8:
-                # element_list -> element_list element
                 element = symbol_stack.pop()
                 element_list = symbol_stack.pop()
                 symbol_stack.append(element_list + [element])
             elif operation_number == 9:
-                # grammar -> grammar statement
                 pass
             elif operation_number == 10:
-                # grammar -> statement
                 pass
             elif operation_number == 11:
-                # reduction_statement -> name reduce derivation_list end
                 derivation_list = symbol_stack.pop()
                 name = symbol_stack.pop()
                 for derivation in derivation_list:
@@ -266,12 +254,10 @@ def bs_grammar_analyzer(token_list):
                     else:
                         reduce_code[sentence] = None
             elif operation_number == 12:
-                # section_statement -> section_head section_text
                 section_text = symbol_stack.pop()
                 section_head = symbol_stack.pop()
                 section[section_head[1]] = section_text[1]
             elif operation_number == 13:
-                # command_statement -> command element_list end
                 element_list = symbol_stack.pop()
                 command = symbol_stack.pop()
                 command_line = [command] + element_list
@@ -280,13 +266,10 @@ def bs_grammar_analyzer(token_list):
                     literal_command.append(each_name[1])
                 command_list.append(literal_command)
             elif operation_number == 14:
-                # statement -> command_statement
                 pass
             elif operation_number == 15:
-                # statement -> reduction_statement
                 pass
             elif operation_number == 16:
-                # statement -> section_statement
                 pass
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
@@ -295,14 +278,13 @@ def bs_grammar_analyzer(token_list):
         else:
             raise Exception("Invalid action: %s" % operation)
     data_package = {
-        "sentence set":       sentence_set,
-        "reduce code":        reduce_code,
-        "command list":       command_list,
-        "section":            section,
-        "literal map":        literal_map,
+        "sentence set":        sentence_set,
+        "reduce code":         reduce_code,
+        "command list":        command_list,
+        "section":             section,
+        "literal map":         literal_map,
         "literal reverse map": literal_reverse_map,
     }
-    print(literal_reverse_map)
     return data_package
 
 

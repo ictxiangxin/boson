@@ -1,3 +1,14 @@
+%grammar_analyzer_name simple_calculate ;
+%lexical_analyzer_name calculate_tokenize ;
+%symbol_stack_name symbol_stack ;
+
+
+@ending
+@@
+return boson_stack[0]
+@@
+
+
 start: E { $$ = $1 }
      ;
 E : E '+' T { $$ = [$2, $1, $3] }
@@ -11,9 +22,17 @@ T : T '*' F { $$ = [$2, $1, $3] }
 F : F '^' D { $$ = [$2, $1, $3] }
   | D { $$ = $1 }
   ;
-D : '(' E ')' { $$ = [$2] }
+D : '(' E ')' { $$ = $2 }
   | N { $$ = $1 }
   ;
 N : int { $$ = $1 }
   | float { $$ = $1 }
   ;
+
+
+@extend
+@@
+expr = input("expression: ")
+expr_token = calculate_tokenize(expr)
+print(simple_calculate(expr_token))
+@@
