@@ -1,5 +1,6 @@
+%ignore skip
+
 "[1-9][0-9]*"         int
-"[1-9][0-9]*\.[0-9]+" float
 "\+"                  plus
 "\-"                  minus
 "\*"                  times
@@ -7,3 +8,4 @@
 "\^"                  power
 "\("                  bl
 "\)"                  br
+"\t|\ "               skip
