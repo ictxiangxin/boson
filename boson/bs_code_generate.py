@@ -5,9 +5,38 @@ import sys
 from boson.bs_code_generator_helper import *
 
 
+grammar_analyzer_name = "boson_grammar_analysis"
+lexical_analyzer_name = "boson_lexical_analysis"
+symbol_stack_name = "boson_stack"
+generate_comment = True
+
+
+def bs_generate_command(command_list):
+    global grammar_analyzer_name
+    global lexical_analyzer_name
+    global symbol_stack_name
+    global generate_comment
+    for command in command_list:
+        if command[0] == "grammar_analyzer_name":
+            grammar_analyzer_name = command[1]
+        elif command[0] == "lexical_analyzer_name":
+            lexical_analyzer_name = command[1]
+        elif command[0] == "symbol_stack":
+            symbol_stack_name = command[1]
+        elif command[0] == "generate_comment":
+            true_or_false = command[1].lower()
+            if true_or_false == "true":
+                generate_comment = True
+            elif true_or_false == "false":
+                generate_comment = False
+            else:
+                raise Exception("Invalid generate_comment option: %s" % command[1])
+
+
 def bs_generate_shift_code(output, mode, indent=0):
+    global symbol_stack_name
     if mode == "code":
-        bs_code_output(output, "boson_stack.append(token)\n", indent)
+        bs_code_output(output, "%s.append(token)\n" % symbol_stack_name, indent)
     elif mode == "blank":
         bs_code_output(output, "\"\"\"\n", indent)
         bs_code_output(output, "Add some code for shift action here...\n", indent)
@@ -21,7 +50,7 @@ def bs_generate_shift_code(output, mode, indent=0):
 def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, indent=0):
     bs_code_output(output, "boson_sentence = []\n", indent)
     bs_code_output(output, "for boson_i in range(%d):\n" % reduce_number, indent)
-    bs_code_output(output, "boson_sentence.insert(0, boson_stack.pop())\n", indent + 1)
+    bs_code_output(output, "boson_sentence.insert(0, %s.pop())\n" % symbol_stack_name, indent + 1)
     code = code[code.index("{") + 1: code.index("}")]
     while code[0] in [" ", "\t"]:
             code = code[1:]
@@ -39,7 +68,7 @@ def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, in
         for r in range(reduce_number):
             line = line.replace("$%d" % (r + 1), "boson_sentence[%d]" % r)
         bs_code_output(output, line + "\n", indent)
-    bs_code_output(output, "boson_stack.append(boson_reduce)\n", indent)
+    bs_code_output(output, "%s.append(boson_reduce)\n" % symbol_stack_name, indent)
 
 
 def bs_generate_lexical_analyzer(output, lex, indent=0):
@@ -85,18 +114,15 @@ def bs_generate_section(output, section_text, indent):
 
 
 def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys.stdout):
-    grammar_analyzer_name = "boson_grammar_analysis"
-    lexical_analyzer_name = "boson_lexical_analysis"
-    symbol_stack_name = "boson_stack"
+    global grammar_analyzer_name
+    global lexical_analyzer_name
+    global symbol_stack_name
+    global generate_comment
     reduce_code = option_package["reduce code"]
     literal_map = option_package["literal map"]
     literal_reverse_map = option_package["literal reverse map"]
     command_list = option_package["command list"]
-    for command in command_list:
-        if command[0] == "grammar_analyzer_name":
-            grammar_analyzer_name = command[1]
-        elif command[0] == "lexical_analyzer_name":
-            lexical_analyzer_name = command[1]
+    bs_generate_command(command_list)
     section = option_package["section"]
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
@@ -286,7 +312,8 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
                 if literal_sentence[now_sentence_index] in literal_reverse_map:
                     literal_sentence[now_sentence_index] =\
                         "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
-        bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
+        if generate_comment:
+            bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
         if reduce_code[sentence_list[reduce_index]] is not None:
             bs_generate_reduce_code(output, reduce_code[sentence_list[reduce_index]], reduce_symbol_sum[reduce_index],
                                     reduce_to_non_terminal[reduce_index], 4)
