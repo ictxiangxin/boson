@@ -18,7 +18,7 @@ if __name__ == "__main__":
     command_list = data_package["command list"]
     literal = (data_package["literal map"], data_package["literal reverse map"])
     slr_tables = bs_slr_generate_table(sentence_set)
-    bs_generate_python_code(slr_tables, reduce_code, literal, lex=lex)
+    bs_generate_python_code(slr_tables, data_package, lex=lex)
     token_list = bs_token_list("test/not_slr_grammar.txt")
     data_package = bs_grammar_analyzer(token_list)
     sentence_set = data_package["sentence set"]
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     command_list = data_package["command list"]
     literal = (data_package["literal map"], data_package["literal reverse map"])
     lr_tables = bs_lr_generate_table(sentence_set)
-    bs_generate_python_code(lr_tables, reduce_code, literal, lex=lex)
+    bs_generate_python_code(lr_tables, data_package, lex=lex)
     token_list = bs_token_list("test/not_slr_grammar.txt")
     data_package = bs_grammar_analyzer(token_list)
     sentence_set = data_package["sentence set"]
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     command_list = data_package["command list"]
     literal = (data_package["literal map"], data_package["literal reverse map"])
     lalr_tables = bs_lalr_generate_table(sentence_set)
-    bs_generate_python_code(lalr_tables, reduce_code, literal, lex=lex)
+    bs_generate_python_code(lalr_tables, data_package, lex=lex)
     token_list = bs_token_list("test/literal_grammar.txt")
     data_package = bs_grammar_analyzer(token_list)
     sentence_set = data_package["sentence set"]
@@ -42,4 +42,4 @@ if __name__ == "__main__":
     command_list = data_package["command list"]
     literal = (data_package["literal map"], data_package["literal reverse map"])
     lalr_tables = bs_lalr_generate_table(sentence_set)
-    bs_generate_python_code(lalr_tables, reduce_code, literal, lex=lex)
+    bs_generate_python_code(lalr_tables, data_package, lex=lex)

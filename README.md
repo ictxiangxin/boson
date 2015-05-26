@@ -61,7 +61,45 @@ D : '(' E ')' | N ;
 N : int | float ;
 ```
 
+There are some command can add to grammar file, these commands start with "%", the form is:
+
+```
+%command argument1 argument2 ...
+```
+
+The command can be: `grammar_analyzer_name`, `lexical_analyzer_name`, `symbol_stack`, `generate_comment`.
+
+`grammar_analyzer_name`, set the grammar analyzer name.
+
+`lexical_analyzer_name`, set the lexical analyzer name.
+
+`symbol_stack`, set the symbol stack variable name.
+
+`generate_comment`, set whether generate reduce comment in code.
+
+And you can add some static code, named "section" in boson, each section have a name, and have prefix "@",
+ the code lines start with "@@" and end with "@@", the form is:
+
+```
+@section_name
+@@
+your code here
+@@
+```
+
+The section name can be the following types:
+`initial`, `ending`, `extends`.
+
+`initial`, these code will be inserted to the initial block of grammar analyzer.
+
+`ending`, these code will be inserted to the end of grammar analyzer, it is used to return some things or
+ postprocess at the end.
+
+`extends`, these code are extends code, these code will bed inserted at the end of file.
+
 Write these productions to one file.
+
+> You can consult the example at "example/arithmetic_grammar.txt"
 
 ###Easy to use
 
@@ -112,9 +150,9 @@ Example:
     >>> from boson.bs_grammar_analysis import bs_token_list
     >>> from boson.bs_lalr_generate.py import bs_lalr_generate_table
     >>> from boson.bs_code_generate import bs_generate_python_code
-    >>> sentence_set, reduce_code, literal = bs_grammar_analysis("example/arithmetic_grammar.txt")
-    >>> lalr_table = bs_lalr_generate_table(sentence_set)
-    >>> bs_generate_python_code(lalr_table, reduce_code, literal)
+    >>> data_package = bs_grammar_analysis("example/arithmetic_grammar.txt")
+    >>> lalr_table = bs_lalr_generate_table(data_package["sentence set"])
+    >>> bs_generate_python_code(lalr_table, data_package)
     *** Here you will get the code of LALR grammar analyzer of grammar, which described ***
     *** in "example/arithmetic_grammar.txt" file.                                       ***
 ```
@@ -126,20 +164,22 @@ Example:
 **bs_token_list()** function read grammar file and return a token list.
 
 ```python
-token_list, literal = bs_token_list(grammar_file)
+token_list = bs_token_list(grammar_file)
 ```
 
-**bs_grammar_analyzer()** function use token list to generate production sentence set and reduce code for each sentence.
+**bs_grammar_analyzer()** function use token list to generate production sentence set, reduce code
+ and some other content as a dict named data_package for each sentence.
 
 ```python
-sentence_set, reduce_code = bs_grammar_analyzer(token_list)
+data_package = bs_grammar_analyzer(token_list)
 ```
 
-Now, the final result of "bs_grammar_analysis.py" is sentence list.
+Now, the final result of "bs_grammar_analysis.py" is data_package, which contains many things used by generator
+ and analyzer.
 
 ####Generate analyzer table
 
-Use sentence list to generate analyer table, just import corresponding generator file of one analyzer type.
+Use sentence list to generate analyzer table, just import corresponding generator file of one analyzer type.
 
 For example, if we want to generate SLR analyzer, import "bs_slr_generate.py".
 
@@ -160,13 +200,11 @@ Each generator is a function, now, I am already finished Python3 code generator,
 
 #####Python3 code generator definition
 
-`bs_generate_python_code(analyzer_table, reduce_code, literal, lex=None, output=sys.stdout)`
+`bs_generate_python_code(analyzer_table, data_package, lex=None, output=sys.stdout)`
 
 **analyzer_table** is grammar analyzer tables, which output by SLR, LR, or LALR generator.
 
-**reduce_code** is the reduce code of each reduce sentence writen in grammar file.
-
-**literal** is the literal terminal map output by lexical analyzer.
+**data_package** is a dict contains reduce code, literal and many other things.
 
 **lex** is the simple lexical analyzer (is a Class) provided by boson, default is None.
 
