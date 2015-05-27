@@ -143,8 +143,12 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
             have_reduce_code = True
     for terminal, index in terminal_index.items():
         terminal_index_reverse_map[index] = terminal
-        if len(terminal) > max_terminal_len:
-            max_terminal_len = len(terminal)
+        if terminal in literal_map:
+            if len(literal_map[terminal]) > max_terminal_len:
+                max_terminal_len = len(literal_map[terminal])
+        else:
+            if len(terminal) > max_terminal_len:
+                max_terminal_len = len(terminal)
     for non_terminal, index in non_terminal_index.items():
         non_terminal_index_reverse_map[index] = non_terminal
         if len(non_terminal) > max_non_terminal_len:
@@ -188,7 +192,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         terminal = terminal_index_reverse_map[index]
         if terminal in literal_map:
             bs_code_output(output, "\"%s\": " % literal_map[terminal] +
-                           " " * (max_terminal_len - len(terminal)) + "%d,\n" % index, 1)
+                           " " * (max_terminal_len - len(literal_map[terminal])) + "%d,\n" % index, 1)
         else:
             bs_code_output(output, "\"%s\": " % terminal +
                            " " * (max_terminal_len - len(terminal)) + "%d,\n" % index, 1)
