@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
 
-v0.3
+v0.4
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 
@@ -217,25 +217,45 @@ And just instantiate Class BosonLexicalAnalyzer.
 It will read a lexical description file, which each line described one token and its regular expression.
 
 The format is:
+
 ```
-"regular expression here"  token_name
+"regular expression here"  token_name ;
 ```
+
+Or
+
+```
+token_name "regular expression here" ;
+```
+
+And you can use some command, the command form is:
+
+```
+%command argument1 argument2 ... ;
+```
+
+There are 2 commands can use: `ignore`, `error`.
+
+`ignore` can set the ignore set for lexical analyzer.
+
+`error` can set the error set for lexical analyzer.
 
 **For example**
 
 "lex.txt":
 
 ```
-"[_a-zA-Z][_a-zA-Z0-9]*" name
-"\r\n|\n"                newline
-" \t"                    skip
-"."                      invalid
+%ignore skip ;
+"[_a-zA-Z][_a-zA-Z0-9]*" name ;
+"\r\n|\n"                newline ;
+" \t"                    skip ;
+"."                      invalid ;
 ```
 
 When you create this file, now, you can instantiate Class BosonLexicalAnalyzer by:
 
 ```python
-mylex = BosonLexicalAnalyzer("lex.txt", ignore=("sip"), error=("invalid"))
+mylex = BosonLexicalAnalyzer("lex.txt", ignore=("skip"), error=("invalid"))
 ```
 
 `ignore` and `error` are not necessary, so you can create lexical analyzer just like this:

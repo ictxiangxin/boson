@@ -1,0 +1,21 @@
+start : block
+      ;
+
+block : block line
+      | line
+      ;
+
+line : lexical_line
+     | command_line
+     ;
+
+lexical_line : string name end
+             | name string end
+             ;
+
+command_line : command name_list end
+             ;
+
+name_list : name_list name
+          | name
+          ;
