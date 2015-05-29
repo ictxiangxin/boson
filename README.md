@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
 
+[![Join the chat at https://gitter.im/ictxiangxin/ict-boson](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ictxiangxin/ict-boson?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 v0.4
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
