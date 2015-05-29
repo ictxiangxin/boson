@@ -59,7 +59,7 @@ def bs_lr_generate_dfa(sentence_set):
     return state_list, state_transfer
 
 
-def bs_lr_generate_table(sentence_set):
+def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
@@ -97,6 +97,7 @@ def bs_lr_generate_table(sentence_set):
                 action_table[state][terminal_index[elem]] = "s%d" % next_state
             else:
                 goto_table[state][non_terminal_index[elem]] = next_state
+    have_conflict = False
     for state_index in range(len(lr_dfa_state)):
         state_set = lr_dfa_state[state_index]
         for state_sentence in state_set:
@@ -105,9 +106,21 @@ def bs_lr_generate_table(sentence_set):
                 for terminal in sentence[1]:
                     reduce_number = sentence_list.index(sentence[0])
                     if action_table[state_index][terminal_index[terminal]] != "e":
-                        raise Exception("This grammar is not LR !!!")
-                    if reduce_number == 0:
-                        action_table[state_index][terminal_index[terminal]] = "a"
+                        have_conflict = True
+                        if conflict_report:
+                            if action_table[state_index][terminal_index[terminal]][0] == "r":
+                                print("[Conflict state: %d] Reduce/Reduce Terminal: %s" % (state_index, terminal))
+                            elif action_table[state_index][terminal_index[terminal]][0] == "s":
+                                print("[Conflict state: %d] Shift/Reduce Terminal: %s" % (state_index, terminal))
+                            else:
+                                raise Exception("Invalid action: %s" %
+                                                action_table[state_index][terminal_index[terminal]])
+                            action_table[state_index][terminal_index[terminal]] += "/r%d" % reduce_number
                     else:
-                        action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
+                        if reduce_number == 0:
+                            action_table[state_index][terminal_index[terminal]] = "a"
+                        else:
+                            action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
+    if have_conflict and not force:
+        raise Exception("This grammar is not LR !!!")
     return terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list

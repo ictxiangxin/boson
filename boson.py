@@ -71,8 +71,10 @@ def main(argv):
         print("Complete!!! [%fs]" % ((global_end_time - global_start_time) / 1000))
     except Exception as e:
         print(e)
-        fp.close()
-        os.remove(code_file)
+        if code_file is not None:
+            fp.close()
+            if os.path.exists(code_file):
+                os.remove(code_file)
 
 if __name__ == "__main__":
     parse = argparse.ArgumentParser(description="%s commandline" % boson_title, formatter_class=RawTextHelpFormatter)
