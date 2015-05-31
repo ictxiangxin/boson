@@ -16,3 +16,8 @@ indent_char = " "
 indent_size = 4
 
 invalid_token_class = "boson_invalid"
+
+boson_table_sign_error = "e"
+boson_table_sign_shift = "s"
+boson_table_sign_reduce = "r"
+boson_table_sign_accept = "a"

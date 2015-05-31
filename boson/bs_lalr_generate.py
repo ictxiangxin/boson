@@ -44,7 +44,7 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     lalr_dfa_state, lalr_dfa_move = bs_lalr_generate_dfa(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
     terminal_set = bs_terminal_set(sentence_set, non_terminal_set)
-    action_table = [["e"] * (len(terminal_set) + 1) for _ in range(len(lalr_dfa_state))]
+    action_table = [[boson_table_sign_error] * (len(terminal_set) + 1) for _ in range(len(lalr_dfa_state))]
     goto_table = [[-1] * (len(non_terminal_set) - 1) for _ in range(len(lalr_dfa_state))]
     terminal_index = {}
     non_terminal_index = {}
@@ -70,7 +70,7 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     for state, move_map in lalr_dfa_move.items():
         for elem, next_state in move_map.items():
             if elem in terminal_set:
-                action_table[state][terminal_index[elem]] = "s%d" % next_state
+                action_table[state][terminal_index[elem]] = "%s%d" % (boson_table_sign_shift, next_state)
             else:
                 goto_table[state][non_terminal_index[elem]] = next_state
     have_conflict = False
@@ -81,22 +81,24 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
             if flag == len(sentence[0]):
                 for terminal in sentence[1]:
                     reduce_number = sentence_list.index(sentence[0])
-                    if action_table[state_index][terminal_index[terminal]] != "e":
+                    if action_table[state_index][terminal_index[terminal]] != boson_table_sign_error:
                         have_conflict = True
                         if conflict_report:
-                            if action_table[state_index][terminal_index[terminal]][0] == "r":
+                            if action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_reduce:
                                 print("[Conflict state: %d] Reduce/Reduce Terminal: %s" % (state_index, terminal))
-                            elif action_table[state_index][terminal_index[terminal]][0] == "s":
+                            elif action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_shift:
                                 print("[Conflict state: %d] Shift/Reduce Terminal: %s" % (state_index, terminal))
                             else:
                                 raise Exception("Invalid action: %s" %
                                                 action_table[state_index][terminal_index[terminal]])
-                            action_table[state_index][terminal_index[terminal]] += "/r%d" % reduce_number
+                            action_table[state_index][terminal_index[terminal]] += "/%s%d" % (boson_table_sign_reduce,
+                                                                                              reduce_number)
                     else:
                         if reduce_number == 0:
-                            action_table[state_index][terminal_index[terminal]] = "a"
+                            action_table[state_index][terminal_index[terminal]] = boson_table_sign_accept
                         else:
-                            action_table[state_index][terminal_index[terminal]] = "r%d" % reduce_number
+                            action_table[state_index][terminal_index[terminal]] = "%s%d" % (boson_table_sign_reduce,
+                                                                                            reduce_number)
     if have_conflict and not force:
         raise Exception("This grammar is not LALR !!!")
     return terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list

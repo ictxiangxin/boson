@@ -1,7 +1,11 @@
+%ignore skip ;
+%error invalid ;
+
 "[0-9]+"  id ;
 "\+"      plus ;
 "\-"      minus ;
 "("       bl ;
 ")"       br ;
-" \t"     skip ;
+" |\t"    skip ;
 "\r\n|\n" newline ;
+"."       invalid ;

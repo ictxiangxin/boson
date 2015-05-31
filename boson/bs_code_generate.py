@@ -281,7 +281,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
     bs_code_output(output, "operation_flag = operation[0]\n", 2)
     bs_code_output(output, "if operation_flag == \"e\":\n", 2)
     bs_code_output(output, "raise Exception(\"Grammar error: \" + \" \".join([t[1] for t in token_list]))\n", 3)
-    bs_code_output(output, "elif operation_flag == \"s\":\n", 2)
+    bs_code_output(output, "elif operation_flag == \"%s\":\n" % boson_table_sign_shift, 2)
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "stack.append(operation_number)\n", 3)
     bs_code_output(output, "token_index += 1\n", 3)
@@ -293,7 +293,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         else:
             shift_mode = "null"
         bs_generate_shift_code(output, shift_mode, 3)
-    bs_code_output(output, "elif operation_flag == \"r\":\n", 2)
+    bs_code_output(output, "elif operation_flag == \"%s\":\n" % boson_table_sign_reduce, 2)
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "reduce_sum = reduce_symbol_sum[operation_number]\n", 3)
     bs_code_output(output, "for _ in range(reduce_sum):\n", 3)
@@ -325,7 +325,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
             bs_code_output(output, "pass\n", 4)
     bs_code_output(output, "else:\n", 3)
     bs_code_output(output, "raise Exception(\"Invalid reduce number: %d\" % operation_number)\n", 4)
-    bs_code_output(output, "elif operation_flag == \"a\":\n", 2)
+    bs_code_output(output, "elif operation_flag == \"%s\":\n" % boson_table_sign_accept, 2)
     bs_code_output(output, "break\n", 3)
     bs_code_output(output, "else:\n", 2)
     bs_code_output(output, "raise Exception(\"Invalid action: %s\" % operation)\n", 3)
