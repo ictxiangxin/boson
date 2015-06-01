@@ -21,7 +21,8 @@ def bs_lalr_generate_dfa(sentence_set):
     for state in lr_state:
         state_kernel = bs_kernel_of_mark_state(state)
         state_number = slr_state.index(state_kernel)
-        sentence_postfix_mark[state_number] = {}
+        if state_number not in sentence_postfix_mark:
+            sentence_postfix_mark[state_number] = {}
         for sentence in state:
             real_sentence = (sentence[0][0], sentence[1])
             if real_sentence not in sentence_postfix_mark[state_number]:
