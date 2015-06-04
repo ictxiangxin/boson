@@ -9,7 +9,7 @@ token_tuple = [
     ("reduce",       r"\:"),
     ("or",           r"\|"),
     ("code",         r"\{.*\}"),
-    ("literal",      r"\'[^\']+\'"),
+    ("literal",      r"\'.*?[^\\]\'|\".*?[^\\]\""),
     ("comment",      r"#[^(\r\n|\n)]*"),
     ("command",      r"%[_a-zA-Z]+"),
     ("section_head", r"@[_a-zA-Z][_a-zA-Z0-9]*"),

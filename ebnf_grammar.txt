@@ -1,0 +1,27 @@
+start : ebnf_list
+      ;
+
+ebnf_list : ebnf_list ebnf
+          | ebnf
+          ;
+
+ebnf : name reduce statement_list end
+     ;
+
+statement_list : statement_list or statement
+               | statement
+               ;
+
+statement : statement concat item
+          | item
+          ;
+
+item : element
+     | option_l statement_list option_r
+     | repet_l statement_list repet_r
+     | group_l statement_list group_r
+     ;
+
+element : name
+        | literal
+        ;
