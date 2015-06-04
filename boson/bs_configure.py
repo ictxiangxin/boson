@@ -2,6 +2,7 @@ __author__ = 'ict'
 
 start_non_terminal_symbol = "start"
 end_symbol = "$"
+null_symbol = "~"
 
 literal_templet = "literal%d"
 

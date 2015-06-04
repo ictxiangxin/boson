@@ -10,6 +10,7 @@ token_tuple = [
     ("or",           r"\|"),
     ("code",         r"\{.*\}"),
     ("literal",      r"\'.*?[^\\]\'|\".*?[^\\]\""),
+    ("null",         r"~"),
     ("comment",      r"#[^(\r\n|\n)]*"),
     ("command",      r"%[_a-zA-Z]+"),
     ("section_head", r"@[_a-zA-Z][_a-zA-Z0-9]*"),
@@ -29,39 +30,41 @@ terminal_index = {
     "end":          2,
     "literal":      3,
     "name":         4,
-    "or":           5,
-    "reduce":       6,
-    "section_head": 7,
-    "section_text": 8,
-    "$":            9,
+    "null":         5,
+    "or":           6,
+    "reduce":       7,
+    "section_head": 8,
+    "section_text": 9,
+    "$":            10,
 }
 
 action_table = [
-    ["e",   "s2",  "e",   "e",   "s3",  "e",   "e",   "s5",  "e",     "e"],
-    ["e",   "r14", "e",   "e",   "r14", "e",   "e",   "r14", "e",   "r14"],
-    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "e",   "e",   "e",   "e",   "s13", "e",   "e",     "e"],
-    ["e",   "s2",  "e",   "e",   "s3",  "e",   "e",   "s5",  "e",     "a"],
-    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "r15", "e",   "e",   "r15", "e",   "e",   "r15", "e",   "r15"],
-    ["e",   "r16", "e",   "e",   "r16", "e",   "e",   "r16", "e",   "r16"],
-    ["e",   "r10", "e",   "e",   "r10", "e",   "e",   "r10", "e",   "r10"],
-    ["r6",  "e",   "r6",  "r6",  "r6",  "r6",  "e",   "e",   "e",     "e"],
-    ["r5",  "e",   "r5",  "r5",  "r5",  "r5",  "e",   "e",   "e",     "e"],
-    ["r7",  "e",   "r7",  "r7",  "r7",  "r7",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "s16", "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "r9",  "e",   "e",   "r9",  "e",   "e",   "r9",  "e",    "r9"],
-    ["e",   "r12", "e",   "e",   "r12", "e",   "e",   "r12", "e",   "r12"],
-    ["e",   "r13", "e",   "e",   "r13", "e",   "e",   "r13", "e",   "r13"],
-    ["r8",  "e",   "r8",  "r8",  "r8",  "r8",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "s21", "e",   "e",   "s22", "e",   "e",   "e",     "e"],
-    ["s23", "e",   "r1",  "s10", "s9",  "r1",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r3",  "e",   "e",   "r3",  "e",   "e",   "e",     "e"],
-    ["e",   "r11", "e",   "e",   "r11", "e",   "e",   "r11", "e",   "r11"],
-    ["e",   "e",   "e",   "s10", "s9",  "e",   "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r2",  "e",   "e",   "r2",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r4",  "e",   "e",   "r4",  "e",   "e",   "e",     "e"],
+    ["e",   "s3",  "e",   "e",   "s1",  "e",   "e",   "e",   "s2",  "e",     "e"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "s9",  "e",   "e",     "e"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "s10",   "e"],
+    ["e",   "e",   "e",   "s13", "s11", "e",   "e",   "e",   "e",   "e",     "e"],
+    ["e",   "r11", "e",   "e",   "r11", "e",   "e",   "e",   "r11", "e",   "r11"],
+    ["e",   "r16", "e",   "e",   "r16", "e",   "e",   "e",   "r16", "e",   "r16"],
+    ["e",   "s3",  "e",   "e",   "s1",  "e",   "e",   "e",   "s2",  "e",     "a"],
+    ["e",   "r17", "e",   "e",   "r17", "e",   "e",   "e",   "r17", "e",   "r17"],
+    ["e",   "r15", "e",   "e",   "r15", "e",   "e",   "e",   "r15", "e",   "r15"],
+    ["e",   "e",   "e",   "s13", "s11", "s17", "e",   "e",   "e",   "e",     "e"],
+    ["e",   "r13", "e",   "e",   "r13", "e",   "e",   "e",   "r13", "e",   "r13"],
+    ["r7",  "e",   "r7",  "r7",  "r7",  "e",   "r7",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s21", "s13", "s11", "e",   "e",   "e",   "e",   "e",     "e"],
+    ["r6",  "e",   "r6",  "r6",  "r6",  "e",   "r6",  "e",   "e",   "e",     "e"],
+    ["r8",  "e",   "r8",  "r8",  "r8",  "e",   "r8",  "e",   "e",   "e",     "e"],
+    ["e",   "r10", "e",   "e",   "r10", "e",   "e",   "e",   "r10", "e",   "r10"],
+    ["e",   "e",   "r4",  "e",   "e",   "e",   "r4",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r3",  "e",   "e",   "e",   "r3",  "e",   "e",   "e",     "e"],
+    ["s22", "e",   "r1",  "s13", "s11", "e",   "r1",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s23", "e",   "e",   "e",   "s24", "e",   "e",   "e",     "e"],
+    ["r9",  "e",   "r9",  "r9",  "r9",  "e",   "r9",  "e",   "e",   "e",     "e"],
+    ["e",   "r14", "e",   "e",   "r14", "e",   "e",   "e",   "r14", "e",   "r14"],
+    ["e",   "e",   "r2",  "e",   "e",   "e",   "r2",  "e",   "e",   "e",     "e"],
+    ["e",   "r12", "e",   "e",   "r12", "e",   "e",   "e",   "r12", "e",   "r12"],
+    ["e",   "e",   "e",   "s13", "s11", "s17", "e",   "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r5",  "e",   "e",   "e",   "r5",  "e",   "e",   "e",     "e"],
 ]
 
 non_terminal_index = {
@@ -77,30 +80,31 @@ non_terminal_index = {
 }
 
 goto_table = [
-    [1,  -1, -1, -1, -1, 4,  6,  7,   8],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 11, 12, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [1,  -1, -1, -1, -1, -1, 6,  7,  14],
+    [8,  -1, -1, -1, -1, 6,  5,  7,   4],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 14, 12, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [8,  -1, -1, -1, -1, -1, 5,  7,  15],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 16, 19, 14, 18, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 17, -1, -1, -1, -1, -1],
-    [-1, 20, 18, 11, 19, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 20, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 17, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 20, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, 24, -1, 11, 19, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 25, -1, 14, 18, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
@@ -109,39 +113,41 @@ reduce_symbol_sum = {
     1:  1,
     2:  2,
     3:  1,
-    4:  3,
-    5:  1,
+    4:  1,
+    5:  3,
     6:  1,
     7:  1,
-    8:  2,
+    8:  1,
     9:  2,
-    10: 1,
-    11: 4,
-    12: 2,
-    13: 3,
-    14: 1,
+    10: 2,
+    11: 1,
+    12: 4,
+    13: 2,
+    14: 3,
     15: 1,
     16: 1,
+    17: 1,
 }
 
 reduce_to_non_terminal = {
     0:  "start",
     1:  "derivation",
     2:  "derivation",
-    3:  "derivation_list",
+    3:  "derivation",
     4:  "derivation_list",
-    5:  "element",
+    5:  "derivation_list",
     6:  "element",
-    7:  "element_list",
+    7:  "element",
     8:  "element_list",
-    9:  "grammar",
+    9:  "element_list",
     10: "grammar",
-    11: "reduction_statement",
-    12: "section_statement",
-    13: "command_statement",
-    14: "statement",
+    11: "grammar",
+    12: "reduction_statement",
+    13: "section_statement",
+    14: "command_statement",
     15: "statement",
     16: "statement",
+    17: "statement",
 }
 
 
@@ -211,13 +217,15 @@ def bs_grammar_analyzer(token_list):
                 element_list = symbol_stack.pop()
                 symbol_stack.append((element_list, code))
             elif operation_number == 3:
+                symbol_stack.append((null_symbol, ""))
+            elif operation_number == 4:
                 derivation = symbol_stack.pop()
                 symbol_stack.append([derivation])
-            elif operation_number == 4:
+            elif operation_number == 5:
                 derivation = symbol_stack.pop()
                 derivation_list = symbol_stack.pop()
                 symbol_stack.append(derivation_list + [derivation])
-            elif operation_number == 5:
+            elif operation_number == 6:
                 literal = symbol_stack.pop()
                 literal_string = literal[1][1: -1]
                 if literal_string in literal_map:
@@ -228,21 +236,20 @@ def bs_grammar_analyzer(token_list):
                     literal_map[literal_string] = literal_class
                     literal_reverse_map[literal_class] = literal_string
                 symbol_stack.append((literal_class, literal_string))
-            elif operation_number == 6:
-                name = symbol_stack.pop()
-                symbol_stack.append(name)
             elif operation_number == 7:
+                pass
+            elif operation_number == 8:
                 element = symbol_stack.pop()
                 symbol_stack.append([element])
-            elif operation_number == 8:
+            elif operation_number == 9:
                 element = symbol_stack.pop()
                 element_list = symbol_stack.pop()
                 symbol_stack.append(element_list + [element])
-            elif operation_number == 9:
-                pass
             elif operation_number == 10:
                 pass
             elif operation_number == 11:
+                pass
+            elif operation_number == 12:
                 derivation_list = symbol_stack.pop()
                 name = symbol_stack.pop()
                 for derivation in derivation_list:
@@ -253,11 +260,11 @@ def bs_grammar_analyzer(token_list):
                         reduce_code[sentence] = derivation[1][1]
                     else:
                         reduce_code[sentence] = None
-            elif operation_number == 12:
+            elif operation_number == 13:
                 section_text = symbol_stack.pop()
                 section_head = symbol_stack.pop()
                 section[section_head[1]] = section_text[1]
-            elif operation_number == 13:
+            elif operation_number == 14:
                 element_list = symbol_stack.pop()
                 command = symbol_stack.pop()
                 command_line = [command] + element_list
@@ -265,11 +272,11 @@ def bs_grammar_analyzer(token_list):
                 for each_name in command_line[1:]:
                     literal_command.append(each_name[1])
                 command_list.append(literal_command)
-            elif operation_number == 14:
-                pass
             elif operation_number == 15:
                 pass
             elif operation_number == 16:
+                pass
+            elif operation_number == 17:
                 pass
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
