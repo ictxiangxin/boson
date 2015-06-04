@@ -217,7 +217,7 @@ def bs_grammar_analyzer(token_list):
                 element_list = symbol_stack.pop()
                 symbol_stack.append((element_list, code))
             elif operation_number == 3:
-                symbol_stack.append((null_symbol, ""))
+                symbol_stack.append(([(null_symbol, null_symbol)], None))
             elif operation_number == 4:
                 derivation = symbol_stack.pop()
                 symbol_stack.append([derivation])
