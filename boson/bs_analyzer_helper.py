@@ -28,15 +28,26 @@ def bs_non_terminal_first_set(sentence_set):
     while continue_loop:
         continue_loop = False
         for sentence in sentence_set:
-            if sentence[0] not in first_set:
-                first_set[sentence[0]] = set()
-            if sentence[1] in non_terminal_set:
-                if sentence[1] not in first_set:
-                    first_set[sentence[1]] = set()
+            left = sentence[0]
+            if left not in first_set:
+                first_set[left] = set()
+            scan_index = 1
+            while True:
+                target = sentence[scan_index]
+                if target in non_terminal_set:
+                    if target not in first_set:
+                        first_set[target] = set()
+                    else:
+                        first_set[left] |= first_set[target]
                 else:
-                    first_set[sentence[0]] |= first_set[sentence[1]]
-            else:
-                first_set[sentence[0]].add(sentence[1])
+                    first_set[left].add(target)
+                if target in non_terminal_set and null_symbol in first_set[target]:
+                    scan_index += 1
+                else:
+                    break
+                if scan_index >= len(sentence):
+                    first_set[left].add(null_symbol)
+                    break
         for non_terminal in non_terminal_set:
             if len(first_set[non_terminal]) != old_set_size[non_terminal]:
                 old_set_size[non_terminal] = len(first_set[non_terminal])
@@ -56,26 +67,44 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
     while continue_loop:
         continue_loop = False
         for sentence in sentence_set:
-            if sentence[0] in non_terminal_set and sentence[0] not in follow_set:
-                follow_set[sentence[0]] = set()
+            left = sentence[0]
+            if left in non_terminal_set and left not in follow_set:
+                follow_set[left] = set()
             scan_index = 1
             while scan_index < len(sentence):
-                if sentence[scan_index] in non_terminal_set:
-                    if sentence[scan_index] in non_terminal_set and sentence[scan_index] not in follow_set:
-                        follow_set[sentence[scan_index]] = set()
+                current_symbol = sentence[scan_index]
+                if current_symbol in non_terminal_set:
+                    if current_symbol in non_terminal_set and current_symbol not in follow_set:
+                        follow_set[current_symbol] = set()
                     if scan_index != len(sentence) - 1:
-                        next_symbol = sentence[scan_index + 1]
-                        if next_symbol in non_terminal_set:
-                            if next_symbol in non_terminal_set and next_symbol not in follow_set:
-                                follow_set[next_symbol] = set()
+                        next_symbol_list = sentence[scan_index + 1:]
+                        next_symbol_first = set()
+                        sub_scan_index = 0
+                        while True:
+                            target = next_symbol_list[sub_scan_index]
+                            if target in non_terminal_set:
+                                next_symbol_first |= first_set[target]
                             else:
-                                follow_set[sentence[scan_index]] |= first_set[next_symbol]
-                        else:
-                            follow_set[sentence[scan_index]].add(next_symbol)
+                                next_symbol_first.add(target)
+                            if target in non_terminal_set and null_symbol in first_set[target]:
+                                sub_scan_index += 1
+                            else:
+                                break
+                            if sub_scan_index >= len(next_symbol_list):
+                                next_symbol_first.add(null_symbol)
+                                break
+                        temp_symbol_first = copy.copy(next_symbol_first)
+                        if null_symbol in temp_symbol_first:
+                            temp_symbol_first.remove(null_symbol)
+                        follow_set[current_symbol] |= temp_symbol_first
+                        if null_symbol in next_symbol_first:
+                            if left in non_terminal_set and left not in follow_set:
+                                follow_set[left] = set()
+                            follow_set[current_symbol] |= follow_set[left]
                     else:
-                        if sentence[0] in non_terminal_set and sentence[0] not in follow_set:
-                            follow_set[sentence[0]] = set()
-                        follow_set[sentence[scan_index]] |= follow_set[sentence[0]]
+                        if left in non_terminal_set and left not in follow_set:
+                            follow_set[left] = set()
+                        follow_set[current_symbol] |= follow_set[left]
                 scan_index += 1
         for non_terminal in non_terminal_set:
             if len(follow_set[non_terminal]) != old_set_size[non_terminal]:
