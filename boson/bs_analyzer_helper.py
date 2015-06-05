@@ -14,6 +14,7 @@ def bs_terminal_set(sentence_set, non_terminal_set=None):
         non_terminal_set = bs_non_terminal_set(sentence_set)
     else:
         non_terminal_set = copy.deepcopy(non_terminal_set)
+    non_terminal_set.add(null_symbol)
     all_elem = set()
     for sentence in sentence_set:
         all_elem |= set([elem for elem in sentence])
@@ -38,7 +39,10 @@ def bs_non_terminal_first_set(sentence_set):
                     if target not in first_set:
                         first_set[target] = set()
                     else:
-                        first_set[left] |= first_set[target]
+                        temp_first_set = copy.copy(first_set[target])
+                        if null_symbol in temp_first_set:
+                            temp_first_set.remove(null_symbol)
+                        first_set[left] |= temp_first_set
                 else:
                     first_set[left].add(target)
                 if target in non_terminal_set and null_symbol in first_set[target]:
@@ -83,7 +87,10 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
                         while True:
                             target = next_symbol_list[sub_scan_index]
                             if target in non_terminal_set:
-                                next_symbol_first |= first_set[target]
+                                temp_first_set = copy.copy(first_set[target])
+                                if null_symbol in temp_first_set:
+                                    temp_first_set.remove(null_symbol)
+                                next_symbol_first |= temp_first_set
                             else:
                                 next_symbol_first.add(target)
                             if target in non_terminal_set and null_symbol in first_set[target]:
@@ -141,7 +148,11 @@ def bs_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
                         if flag < len(real_sentence) - 1:
                             next_symbol = real_sentence[flag + 1]
                             if next_symbol in non_terminal_set:
-                                non_terminal_mark = frozenset(first_set[next_symbol])
+                                temp_first_set = copy.copy(first_set[next_symbol])
+                                if null_symbol in temp_first_set:
+                                    temp_first_set.remove(null_symbol)
+                                    temp_first_set |= postfix_set
+                                non_terminal_mark = frozenset(temp_first_set)
                             else:
                                 non_terminal_mark = frozenset({next_symbol})
                         else:

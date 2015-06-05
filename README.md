@@ -4,7 +4,7 @@
 
 [![Join the chat at https://gitter.im/ictxiangxin/ict-boson](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ictxiangxin/ict-boson?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-v0.4
+v0.5
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 
@@ -62,6 +62,8 @@ F : F '^' D | D ;
 D : '(' E ')' | N ;
 N : int | float ;
 ```
+
+> NOTICE: The null reduce production present as "~" (without quotation marks).
 
 There are some command can add to grammar file, these commands start with "%", the form is:
 

@@ -8,7 +8,12 @@ def bs_slr_generate_dfa(sentence_set):
     non_terminal_closure = {}
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
-    first_flag_sentence_set = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
+    first_flag_sentence_set = []
+    for sentence in non_terminal_closure[start_non_terminal_symbol]:
+        if sentence[-1] == null_symbol:
+            first_flag_sentence_set.append((sentence, 2))
+        else:
+            first_flag_sentence_set.append((sentence, 1))
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
     scan_index = 0
@@ -35,7 +40,10 @@ def bs_slr_generate_dfa(sentence_set):
                         temp_closure = non_terminal_closure[move_sentence[move_index]]
                         temp_closure_set = set()
                         for temp_sentence in temp_closure:
-                            temp_closure_set.add((temp_sentence, 1))
+                            if temp_sentence[-1] == null_symbol:
+                                temp_closure_set.add((temp_sentence, 2))
+                            else:
+                                temp_closure_set.add((temp_sentence, 1))
                         new_state |= temp_closure_set
             hashable_new_state = frozenset(new_state)
             if scan_index not in state_transfer:

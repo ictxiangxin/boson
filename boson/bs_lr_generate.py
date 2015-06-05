@@ -9,7 +9,12 @@ def bs_lr_generate_dfa(sentence_set):
     non_terminal_closure = {}
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
-    first_flag_sentence_list = [(sentence, 1) for sentence in non_terminal_closure[start_non_terminal_symbol]]
+    first_flag_sentence_list = []
+    for sentence in non_terminal_closure[start_non_terminal_symbol]:
+        if sentence[-1] == null_symbol:
+            first_flag_sentence_list.append((sentence, 2))
+        else:
+            first_flag_sentence_list.append((sentence, 1))
     for flag_sentence_index in range(len(first_flag_sentence_list)):
         flag_sentence = first_flag_sentence_list[flag_sentence_index]
         if flag_sentence[0][0] == start_non_terminal_symbol:
@@ -41,7 +46,10 @@ def bs_lr_generate_dfa(sentence_set):
                         temp_closure = non_terminal_closure[move_postfix_sentence[0][move_index]]
                         temp_closure_set = set()
                         for temp_sentence in temp_closure:
-                            temp_closure_set.add((temp_sentence, 1))
+                            if temp_sentence[-1] == null_symbol:
+                                temp_closure_set.add((temp_sentence, 2))
+                            else:
+                                temp_closure_set.add((temp_sentence, 1))
                         new_state |= temp_closure_set
                 new_state = bs_mark_postfix(list(new_state), non_terminal_set, first_set)
             hashable_new_state = frozenset(new_state)
