@@ -26,6 +26,7 @@ derivation_list : derivation_list or derivation
 derivation : element_list code
            | element_list
            | null
+           |
            ;
 
 element_list : element_list element

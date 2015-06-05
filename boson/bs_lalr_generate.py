@@ -52,7 +52,10 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     reduce_symbol_sum = {}
     reduce_to_non_terminal = {}
     for sentence_index in range(len(sentence_list)):
-        reduce_symbol_sum[sentence_index] = len(sentence_list[sentence_index]) - 1
+        if sentence_list[sentence_index][-1] == null_symbol:
+            reduce_symbol_sum[sentence_index] = 0
+        else:
+            reduce_symbol_sum[sentence_index] = len(sentence_list[sentence_index]) - 1
         reduce_to_non_terminal[sentence_index] = sentence_list[sentence_index][0]
     count = 0
     terminal_list = list(terminal_set)

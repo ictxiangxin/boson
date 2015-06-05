@@ -63,7 +63,7 @@ D : '(' E ')' | N ;
 N : int | float ;
 ```
 
-> NOTICE: The null reduce production present as "~" (without quotation marks).
+> NOTICE: The null reduce production present as "~" (without quotation marks) or write nothing.
 
 There are some command can add to grammar file, these commands start with "%", the form is:
 

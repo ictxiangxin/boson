@@ -39,32 +39,32 @@ terminal_index = {
 }
 
 action_table = [
-    ["e",   "s3",  "e",   "e",   "s1",  "e",   "e",   "e",   "s2",  "e",     "e"],
-    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "s9",  "e",   "e",     "e"],
-    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "s10",   "e"],
-    ["e",   "e",   "e",   "s13", "s11", "e",   "e",   "e",   "e",   "e",     "e"],
-    ["e",   "r11", "e",   "e",   "r11", "e",   "e",   "e",   "r11", "e",   "r11"],
+    ["e",   "s3",  "e",   "e",   "s2",  "e",   "e",   "e",   "s4",  "e",     "e"],
     ["e",   "r16", "e",   "e",   "r16", "e",   "e",   "e",   "r16", "e",   "r16"],
-    ["e",   "s3",  "e",   "e",   "s1",  "e",   "e",   "e",   "s2",  "e",     "a"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "s9",  "e",   "e",     "e"],
+    ["e",   "e",   "e",   "s12", "s13", "e",   "e",   "e",   "e",   "e",     "e"],
+    ["e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "e",   "s14",   "e"],
     ["e",   "r17", "e",   "e",   "r17", "e",   "e",   "e",   "r17", "e",   "r17"],
-    ["e",   "r15", "e",   "e",   "r15", "e",   "e",   "e",   "r15", "e",   "r15"],
-    ["e",   "e",   "e",   "s13", "s11", "s17", "e",   "e",   "e",   "e",     "e"],
-    ["e",   "r13", "e",   "e",   "r13", "e",   "e",   "e",   "r13", "e",   "r13"],
-    ["r7",  "e",   "r7",  "r7",  "r7",  "e",   "r7",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "s21", "s13", "s11", "e",   "e",   "e",   "e",   "e",     "e"],
-    ["r6",  "e",   "r6",  "r6",  "r6",  "e",   "r6",  "e",   "e",   "e",     "e"],
-    ["r8",  "e",   "r8",  "r8",  "r8",  "e",   "r8",  "e",   "e",   "e",     "e"],
-    ["e",   "r10", "e",   "e",   "r10", "e",   "e",   "e",   "r10", "e",   "r10"],
-    ["e",   "e",   "r4",  "e",   "e",   "e",   "r4",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "r3",  "e",   "e",   "e",   "r3",  "e",   "e",   "e",     "e"],
-    ["s22", "e",   "r1",  "s13", "s11", "e",   "r1",  "e",   "e",   "e",     "e"],
-    ["e",   "e",   "s23", "e",   "e",   "e",   "s24", "e",   "e",   "e",     "e"],
-    ["r9",  "e",   "r9",  "r9",  "r9",  "e",   "r9",  "e",   "e",   "e",     "e"],
-    ["e",   "r14", "e",   "e",   "r14", "e",   "e",   "e",   "r14", "e",   "r14"],
-    ["e",   "e",   "r2",  "e",   "e",   "e",   "r2",  "e",   "e",   "e",     "e"],
     ["e",   "r12", "e",   "e",   "r12", "e",   "e",   "e",   "r12", "e",   "r12"],
-    ["e",   "e",   "e",   "s13", "s11", "s17", "e",   "e",   "e",   "e",     "e"],
+    ["e",   "s3",  "e",   "e",   "s2",  "e",   "e",   "e",   "s4",  "e",     "a"],
+    ["e",   "r18", "e",   "e",   "r18", "e",   "e",   "e",   "r18", "e",   "r18"],
+    ["e",   "e",   "r4",  "s12", "s13", "s18", "r4",  "e",   "e",   "e",     "e"],
+    ["r9",  "e",   "r9",  "r9",  "r9",  "e",   "r9",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s20", "s12", "s13", "e",   "e",   "e",   "e",   "e",     "e"],
+    ["r7",  "e",   "r7",  "r7",  "r7",  "e",   "r7",  "e",   "e",   "e",     "e"],
+    ["r8",  "e",   "r8",  "r8",  "r8",  "e",   "r8",  "e",   "e",   "e",     "e"],
+    ["e",   "r14", "e",   "e",   "r14", "e",   "e",   "e",   "r14", "e",   "r14"],
+    ["e",   "r11", "e",   "e",   "r11", "e",   "e",   "e",   "r11", "e",   "r11"],
+    ["s22", "e",   "r1",  "s12", "s13", "e",   "r1",  "e",   "e",   "e",     "e"],
     ["e",   "e",   "r5",  "e",   "e",   "e",   "r5",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r3",  "e",   "e",   "e",   "r3",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "s23", "e",   "e",   "e",   "s24", "e",   "e",   "e",     "e"],
+    ["e",   "r15", "e",   "e",   "r15", "e",   "e",   "e",   "r15", "e",   "r15"],
+    ["r10", "e",   "r10", "r10", "r10", "e",   "r10", "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r2",  "e",   "e",   "e",   "r2",  "e",   "e",   "e",     "e"],
+    ["e",   "r13", "e",   "e",   "r13", "e",   "e",   "e",   "r13", "e",   "r13"],
+    ["e",   "e",   "r4",  "s12", "s13", "s18", "r4",  "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r6",  "e",   "e",   "e",   "r6",  "e",   "e",   "e",     "e"],
 ]
 
 non_terminal_index = {
@@ -80,31 +80,31 @@ non_terminal_index = {
 }
 
 goto_table = [
-    [8,  -1, -1, -1, -1, 6,  5,  7,   4],
+    [1,  -1, -1, -1, -1, 7,  5,  8,   6],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 14, 12, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [8,  -1, -1, -1, -1, -1, 5,  7,  15],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, 16, 19, 14, 18, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 20, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 10, 11, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [1,  -1, -1, -1, -1, -1, 5,  8,  15],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 17, 19, 10, 16, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, -1, -1, 20, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 21, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, 21, -1, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
-    [-1, 25, -1, 14, 18, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 25, -1, 10, 16, -1, -1, -1, -1],
     [-1, -1, -1, -1, -1, -1, -1, -1, -1],
 ]
 
@@ -113,20 +113,21 @@ reduce_symbol_sum = {
     1:  1,
     2:  2,
     3:  1,
-    4:  1,
-    5:  3,
-    6:  1,
+    4:  0,
+    5:  1,
+    6:  3,
     7:  1,
     8:  1,
-    9:  2,
+    9:  1,
     10: 2,
-    11: 1,
-    12: 4,
-    13: 2,
-    14: 3,
-    15: 1,
+    11: 2,
+    12: 1,
+    13: 4,
+    14: 2,
+    15: 3,
     16: 1,
     17: 1,
+    18: 1,
 }
 
 reduce_to_non_terminal = {
@@ -134,20 +135,21 @@ reduce_to_non_terminal = {
     1:  "derivation",
     2:  "derivation",
     3:  "derivation",
-    4:  "derivation_list",
+    4:  "derivation",
     5:  "derivation_list",
-    6:  "element",
+    6:  "derivation_list",
     7:  "element",
-    8:  "element_list",
+    8:  "element",
     9:  "element_list",
-    10: "grammar",
+    10: "element_list",
     11: "grammar",
-    12: "reduction_statement",
-    13: "section_statement",
-    14: "command_statement",
-    15: "statement",
+    12: "grammar",
+    13: "reduction_statement",
+    14: "section_statement",
+    15: "command_statement",
     16: "statement",
     17: "statement",
+    18: "statement",
 }
 
 
@@ -188,6 +190,7 @@ def bs_grammar_analyzer(token_list):
         now_state = stack[-1]
         operation = action_table[now_state][terminal_index[token_type]]
         operation_flag = operation[0]
+        print(stack)
         if operation_flag == "e":
             raise Exception("Grammar error: " + " ".join([t[1] for t in token_list]))
         elif operation_flag == "s":
@@ -219,13 +222,15 @@ def bs_grammar_analyzer(token_list):
             elif operation_number == 3:
                 symbol_stack.append(([(null_symbol, null_symbol)], None))
             elif operation_number == 4:
+                symbol_stack.append(([(null_symbol, null_symbol)], None))
+            elif operation_number == 5:
                 derivation = symbol_stack.pop()
                 symbol_stack.append([derivation])
-            elif operation_number == 5:
+            elif operation_number == 6:
                 derivation = symbol_stack.pop()
                 derivation_list = symbol_stack.pop()
                 symbol_stack.append(derivation_list + [derivation])
-            elif operation_number == 6:
+            elif operation_number == 7:
                 literal = symbol_stack.pop()
                 literal_string = literal[1][1: -1]
                 if literal_string in literal_map:
@@ -236,20 +241,20 @@ def bs_grammar_analyzer(token_list):
                     literal_map[literal_string] = literal_class
                     literal_reverse_map[literal_class] = literal_string
                 symbol_stack.append((literal_class, literal_string))
-            elif operation_number == 7:
-                pass
             elif operation_number == 8:
+                pass
+            elif operation_number == 9:
                 element = symbol_stack.pop()
                 symbol_stack.append([element])
-            elif operation_number == 9:
+            elif operation_number == 10:
                 element = symbol_stack.pop()
                 element_list = symbol_stack.pop()
                 symbol_stack.append(element_list + [element])
-            elif operation_number == 10:
-                pass
             elif operation_number == 11:
                 pass
             elif operation_number == 12:
+                pass
+            elif operation_number == 13:
                 derivation_list = symbol_stack.pop()
                 name = symbol_stack.pop()
                 for derivation in derivation_list:
@@ -260,11 +265,11 @@ def bs_grammar_analyzer(token_list):
                         reduce_code[sentence] = derivation[1][1]
                     else:
                         reduce_code[sentence] = None
-            elif operation_number == 13:
+            elif operation_number == 14:
                 section_text = symbol_stack.pop()
                 section_head = symbol_stack.pop()
                 section[section_head[1]] = section_text[1]
-            elif operation_number == 14:
+            elif operation_number == 15:
                 element_list = symbol_stack.pop()
                 command = symbol_stack.pop()
                 command_line = [command] + element_list
@@ -272,11 +277,11 @@ def bs_grammar_analyzer(token_list):
                 for each_name in command_line[1:]:
                     literal_command.append(each_name[1])
                 command_list.append(literal_command)
-            elif operation_number == 15:
-                pass
             elif operation_number == 16:
                 pass
             elif operation_number == 17:
+                pass
+            elif operation_number == 18:
                 pass
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
