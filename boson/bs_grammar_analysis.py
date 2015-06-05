@@ -190,7 +190,6 @@ def bs_grammar_analyzer(token_list):
         now_state = stack[-1]
         operation = action_table[now_state][terminal_index[token_type]]
         operation_flag = operation[0]
-        print(stack)
         if operation_flag == "e":
             raise Exception("Grammar error: " + " ".join([t[1] for t in token_list]))
         elif operation_flag == "s":

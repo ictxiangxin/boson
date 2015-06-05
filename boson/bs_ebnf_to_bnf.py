@@ -1,28 +1,29 @@
 __author__ = 'ict'
 
 import re
+import sys
 
 from boson.bs_configure import *
 
 
 token_tuple = [
-    ("name",         r"[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("literal",      r"\'.*?[^\\]\'|\".*?[^\\]\""),
-    ("reduce",       r"="),
-    ("concat",       r","),
-    ("or",           r"\|"),
-    ("repet_l",      r"\{"),
-    ("repet_r",      r"\}"),
-    ("option_l",     r"\["),
-    ("option_r",     r"\]"),
-    ("group_l",      r"\("),
-    ("group_r",      r"\)"),
-    ("command",      r"%[_a-zA-Z]+"),
-    ("comment",      r"#[^(\r\n|\n)]*"),
-    ("end",          r"\;"),
-    ("skip",         r"[ \t]+"),
-    ("newline",      r"\n|\r\n"),
-    ("invalid",      r"."),
+    ("name",     r"[_a-zA-Z][_a-zA-Z0-9]*"),
+    ("literal",  r"\'.*?[^\\]\'|\".*?[^\\]\""),
+    ("reduce",   r"="),
+    ("concat",   r","),
+    ("or",       r"\|"),
+    ("repet_l",  r"\{"),
+    ("repet_r",  r"\}"),
+    ("option_l", r"\["),
+    ("option_r", r"\]"),
+    ("group_l",  r"\("),
+    ("group_r",  r"\)"),
+    ("command",  r"%[_a-zA-Z]+"),
+    ("comment",  r"#[^(\r\n|\n)]*"),
+    ("end",      r"\;"),
+    ("skip",     r"[ \t]+"),
+    ("newline",  r"\n|\r\n"),
+    ("invalid",  r"."),
 ]
 
 token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
@@ -242,3 +243,102 @@ def bs_ebnf_grammar_analyzer(token_list):
             return ast_list
         else:
             raise Exception("Invalid action: %s" % operation)
+
+
+def bs_convert_to_bnf(ast_list):
+    setence_list = []
+    non_terminal_sub = {}
+    for ast in ast_list:
+        left = ast[0]
+        non_terminal_sub[left] = 0
+        production_list = ast[1]
+        for production in production_list:
+            setence_list.append([left] + production)
+    new_sentence_list = setence_list
+    continue_loop = True
+    while continue_loop:
+        continue_loop = False
+        setence_list = new_sentence_list
+        new_sentence_list = []
+        for sentence in setence_list:
+            left = sentence[0]
+            is_special = False
+            for index in range(1, len(sentence)):
+                if isinstance(sentence[index], list):
+                    is_special = True
+                    if sentence[index][0][0] == "<" and sentence[index][0][-1] == ">":
+                        sub_sentence = sentence[index][1]
+                        ebnf_type = sentence[index][0][1: -1]
+                        if len(sub_sentence) == 1:
+                            symbol = sub_sentence[0]
+                        else:
+                            symbol = left + "_%d" % non_terminal_sub[left]
+                            non_terminal_sub[left] += 1
+                            new_sentence_list.append([symbol] + sub_sentence)
+                        if ebnf_type == "repet":
+                            replace_symbol = left + "_%d" % non_terminal_sub[left]
+                            non_terminal_sub[left] += 1
+                            sentence[index] = replace_symbol
+                            new_sentence_list.append([replace_symbol, replace_symbol, symbol])
+                            new_sentence_list.append([replace_symbol, null_symbol])
+                        elif ebnf_type == "option":
+                            sentence[index] = symbol
+                            new_sentence_list.append([symbol, null_symbol])
+                        elif ebnf_type == "group":
+                            sentence[index] = symbol
+                        new_sentence_list.append(sentence)
+                    else:
+                        new_sentence_list.append([left] + sentence[index])
+            if not is_special:
+                new_sentence_list.append(sentence)
+            else:
+                continue_loop = True
+    production_dict = {}
+    for sentence in new_sentence_list:
+        left = sentence[0]
+        if left not in production_dict:
+            production_dict[left] = set()
+        production_dict[left].add(tuple(sentence[1:]))
+    collision_dict = {}
+    for non_terminal, production_set in production_dict.items():
+        frozen_production = frozenset(production_set)
+        if frozen_production not in collision_dict:
+            collision_dict[frozen_production] = {non_terminal}
+        collision_dict[frozen_production].add(non_terminal)
+    production_dict = {}
+    name_map = {}
+    for production_set, non_terminal_set in collision_dict.items():
+        non_terminal_list = list(non_terminal_set)
+        non_terminal_list.sort()
+        non_terminal = non_terminal_list[0]
+        for each_non_terminal in non_terminal_list:
+            name_map[each_non_terminal] = non_terminal
+        production_dict[non_terminal] = set(production_set)
+    bnf_list = []
+    for non_terminal, production_set in production_dict.items():
+        temp_production_list = []
+        for production in production_set:
+            temp_list = []
+            for elem in production:
+                if elem in name_map:
+                    temp_list.append(name_map[elem])
+                else:
+                    temp_list.append(elem)
+            temp_production_list.append(temp_list)
+        bnf_list.append([non_terminal, temp_production_list])
+    return bnf_list
+
+
+def bs_ebnf_to_bnf(filename, output=sys.stdout):
+    token_list = bs_ebnf_token_list(filename)
+    ast_list = bs_ebnf_grammar_analyzer(token_list)
+    bnf_list = bs_convert_to_bnf(ast_list)
+    for bnf in bnf_list:
+        left = bnf[0]
+        production_list = bnf[1]
+        left_len = len(left)
+        output.write(left + " : ")
+        for production_index in range(len(production_list) - 1):
+            output.write(" ".join(production_list[production_index]) + "\n" + " " * left_len + " | ")
+        output.write(" ".join(production_list[-1]) + "\n" + " " * left_len + " ;")
+        output.write("\n\n")

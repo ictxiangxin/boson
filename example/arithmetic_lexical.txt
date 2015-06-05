@@ -1,11 +1,11 @@
 %ignore skip ;
 
-"[1-9][0-9]*"         int ;
-"\+"                  plus ;
-"\-"                  minus ;
-"\*"                  times ;
-"\/"                  dive ;
-"\^"                  power ;
-"\("                  bl ;
-"\)"                  br ;
-"\t|\ "               skip ;
+"[1-9][0-9]*" int ;
+"\+"          plus ;
+"\-"          minus ;
+"\*"          times ;
+"\/"          dive ;
+"\^"          power ;
+"\("          bl ;
+"\)"          br ;
+"\t|\ "       skip ;

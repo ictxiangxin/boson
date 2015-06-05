@@ -7,6 +7,7 @@ from boson.bs_lr_generate import bs_lr_generate_table
 from boson.bs_lalr_generate import bs_lalr_generate_table
 from boson.bs_code_generate import bs_generate_python_code
 from boson.bs_lexcial_analyzer import BosonLexicalAnalyzer
+from boson.bs_ebnf_to_bnf import bs_ebnf_to_bnf
 
 
 if __name__ == "__main__":
@@ -43,3 +44,4 @@ if __name__ == "__main__":
     literal = (data_package["literal map"], data_package["literal reverse map"])
     lalr_tables = bs_lalr_generate_table(sentence_set)
     bs_generate_python_code(lalr_tables, data_package, lex=lex)
+    bs_ebnf_to_bnf("test/ebnf.txt")
