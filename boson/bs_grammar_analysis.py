@@ -168,8 +168,8 @@ def bs_token_list(filename):
             elif token_class == "invalid":
                 raise RuntimeError("[Line: %d] Invalid token: %s" % (line_number, token_string))
             else:
-                token_list.append((token_class, token_string))
-    token_list.append((end_symbol, ""))
+                token_list.append((token_class, token_string, line_number))
+    token_list.append((end_symbol, "", line_number))
     return token_list
 
 
@@ -181,17 +181,32 @@ def bs_grammar_analyzer(token_list):
     literal_map = {}
     literal_reverse_map = {}
     literal_number = 1
+    line_start_record = {}
     symbol_stack = []
     stack = [0]
     token_index = 0
     while token_index < len(token_list):
         token = token_list[token_index]
         token_type = token[0]
+        token_line = token[2]
+        if token_line not in line_start_record:
+            line_start_record[token_line] = token_index
         now_state = stack[-1]
         operation = action_table[now_state][terminal_index[token_type]]
         operation_flag = operation[0]
         if operation_flag == "e":
-            raise Exception("Grammar error: " + " ".join([t[1] for t in token_list]))
+            error_line = token[2]
+            error_code = ""
+            offset = 0
+            for i in range(line_start_record[error_line], len(token_list)):
+                if token_list[i][2] == error_line:
+                    error_code += " " + token_list[i][1]
+                    if i < token_index:
+                        offset += len(token_list[i][1]) + 1
+            error_message_head = "\nGrammar error [line %d]:" % error_line
+            error_message = error_message_head + error_code + "\n"
+            error_message += " " * (len(error_message_head) + offset) + "^" * len(token[1])
+            raise Exception(error_message)
         elif operation_flag == "s":
             operation_number = int(operation[1:])
             stack.append(operation_number)

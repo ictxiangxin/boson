@@ -148,7 +148,6 @@ reduce_to_non_terminal = {
 
 def bs_ebnf_token_list(filename):
     with open(filename, "r") as fp:
-
         text = fp.read()
         token_list = list()
         line_number = 1
