@@ -111,6 +111,8 @@ def bs_slr_generate_table(sentence_set, conflict_report=False, force=False):
                 for terminal in follow_set[sentence[0]]:
                     reduce_number = sentence_list.index(sentence)
                     if action_table[state_index][terminal_index[terminal]] != boson_table_sign_error:
+                        if not have_conflict:
+                            print()
                         have_conflict = True
                         if conflict_report:
                             if action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_reduce:

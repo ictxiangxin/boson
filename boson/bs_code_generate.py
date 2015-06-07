@@ -122,8 +122,8 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
     literal_map = option_package["literal map"]
     literal_reverse_map = option_package["literal reverse map"]
     command_list = option_package["command list"]
-    bs_generate_command(command_list)
     section = option_package["section"]
+    bs_generate_command(command_list)
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
     terminal_index_reverse_map = {}

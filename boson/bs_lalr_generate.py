@@ -86,6 +86,8 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
                 for terminal in sentence[1]:
                     reduce_number = sentence_list.index(sentence[0])
                     if action_table[state_index][terminal_index[terminal]] != boson_table_sign_error:
+                        if not have_conflict:
+                            print()
                         have_conflict = True
                         if conflict_report:
                             if action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_reduce:

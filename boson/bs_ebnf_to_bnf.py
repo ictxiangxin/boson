@@ -328,10 +328,26 @@ def bs_convert_to_bnf(ast_list):
     return bnf_list
 
 
-def bs_ebnf_to_bnf(filename, output=sys.stdout):
+def bs_bnf_list(filename):
     token_list = bs_ebnf_token_list(filename)
     ast_list = bs_ebnf_grammar_analyzer(token_list)
     bnf_list = bs_convert_to_bnf(ast_list)
+    return bnf_list
+
+
+def bs_ebnf_to_sentence_set(filename):
+    sentence_set = set()
+    bnf_list = bs_bnf_list(filename)
+    for bnf in bnf_list:
+        left = bnf[0]
+        production_list = bnf[1]
+        for production in production_list:
+            sentence_set.add(tuple([left] + production))
+    return sentence_set
+
+
+def bs_ebnf_to_bnf(filename, output=sys.stdout):
+    bnf_list = bs_bnf_list(filename)
     for bnf in bnf_list:
         left = bnf[0]
         production_list = bnf[1]
