@@ -9,6 +9,7 @@ token_tuple = [
     ("name",         r"[_a-zA-Z][_a-zA-Z0-9]*"),
     ("string",       r"\".*?[^\\]\"|\"\""),
     ("command",      r"%[_a-zA-Z]+"),
+    ("comment",      r"#[^(\r\n|\n)]*"),
     ("end",          r";"),
     ("skip",         r"[ \t]+"),
     ("newline",      r"\\r\n|\n"),
@@ -106,6 +107,8 @@ class BosonLexicalAnalyzer:
         self.__token_tuple = []
         self.__skip_type = set()
         self.__invalid_type = set()
+        self.__newline = ""
+        self.__have_newline = False
         if ignore is None:
             self.__ignore = set()
         else:
@@ -115,29 +118,48 @@ class BosonLexicalAnalyzer:
         else:
             self.__error = set(error)
         token_list = []
+        line_number = 1
         have_invalid = False
         with open(filename, "r") as fp:
             text = fp.read()
             for one_token in re.finditer(token_regular_expression, text):
                 token_class = one_token.lastgroup
                 token_string = one_token.group(token_class)
-                if token_class in ["skip", "newline"]:
+                if token_class in ["skip", "comment"]:
                     pass
+                elif token_class == "newline":
+                    line_number += 1
                 elif token_class == "invalid":
                     raise RuntimeError("Invalid token: %s" % token_string)
                 else:
-                    token_list.append((token_class, token_string))
+                    token_list.append((token_class, token_string, line_number))
+            token_list.append((end_symbol, "", line_number))
         symbol_stack = []
         stack = [0]
         token_index = 0
+        line_start_record = {}
         while token_index < len(token_list):
             token = token_list[token_index]
             token_type = token[0]
+            token_line = token[2]
+            if token_line not in line_start_record:
+                line_start_record[token_line] = token_index
             now_state = stack[-1]
             operation = action_table[now_state][terminal_index[token_type]]
             operation_flag = operation[0]
             if operation_flag == "e":
-                raise Exception("Grammar error: " + " ".join([t[1] for t in token_list]))
+                error_line = token[2]
+                error_code = ""
+                offset = 0
+                for i in range(line_start_record[error_line], len(token_list)):
+                    if token_list[i][2] == error_line:
+                        error_code += " " + token_list[i][1]
+                        if i < token_index:
+                            offset += len(token_list[i][1]) + 1
+                error_message_head = "\nGrammar error [line %d]:" % error_line
+                error_message = error_message_head + error_code + "\n"
+                error_message += " " * (len(error_message_head) + offset) + "^" * len(token[1])
+                raise Exception(error_message)
             elif operation_flag == "s":
                 operation_number = int(operation[1:])
                 stack.append(operation_number)
@@ -153,7 +175,8 @@ class BosonLexicalAnalyzer:
                 now_non_terminal_index = non_terminal_index[reduce_to_non_terminal[operation_number]]
                 goto_next_state = goto_table[now_state][now_non_terminal_index]
                 if goto_next_state == -1:
-                    raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (now_state, now_non_terminal_index))
+                    raise Exception("Invalid goto action: state=%d, non-terminal=%d" %
+                                    (now_state, now_non_terminal_index))
                 stack.append(goto_table[now_state][now_non_terminal_index])
                 if operation_number == 0:
                     pass
@@ -166,6 +189,9 @@ class BosonLexicalAnalyzer:
                         self.__ignore |= set(name_list)
                     elif command == "%error":
                         self.__error |= set(name_list)
+                    elif command == "%newline":
+                        self.__newline = str(name_list[0])
+                        self.__have_newline = True
                     else:
                         raise Exception("Invalid command: %s" % command)
                 elif operation_number == 3:
@@ -204,24 +230,39 @@ class BosonLexicalAnalyzer:
             self.__token_tuple.append((invalid_token_class, "."))
         self.__token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in self.__token_tuple)
 
-    def tokenize(self, filename, ignore=None, error=None):
+    def tokenize(self, filename, ignore=None, error=None, newline=None):
         if ignore is None:
             ignore = self.__ignore
         if error is None:
             error = self.__error
+        if newline is None:
+            newline = self.__newline
+            have_newline = self.__have_newline
+        else:
+            have_newline = True
         token_list = []
         with open(filename, "r") as fp:
             text = fp.read()
+            line_number = 1
             for one_token in re.finditer(self.__token_regular_expression, text):
                 token_class = one_token.lastgroup
                 token_string = one_token.group(token_class)
                 if ignore is not None:
                     if token_class in ignore:
                         continue
-                if token_class in error:
+                elif have_newline and token_class == newline:
+                    line_number += 1
+                elif token_class in error:
                     raise Exception("Invalid token: (%s, \"%s\")" % (token_class, token_string))
-                token_list.append((token_class, token_string))
-            token_list.append((end_symbol, ""))
+                else:
+                    if have_newline:
+                        token_list.append((token_class, token_string, line_number))
+                    else:
+                        token_list.append((token_class, token_string))
+            if have_newline:
+                token_list.append((end_symbol, "", line_number))
+            else:
+                token_list.append((end_symbol, ""))
         return token_list
 
     def get_token_tuple(self):
@@ -238,3 +279,12 @@ class BosonLexicalAnalyzer:
 
     def get_error(self):
         return self.__error
+
+    def set_newline(self, newline):
+        self.__newline = str(newline)
+
+    def get_newline(self):
+        return self.__newline
+
+    def have_newline(self):
+        return self.__have_newline

@@ -9,6 +9,16 @@ grammar_analyzer_name = "boson_grammar_analysis"
 lexical_analyzer_name = "boson_lexical_analysis"
 symbol_stack_name = "boson_stack"
 generate_comment = True
+have_line_number = True
+
+
+def bs_generate_true_or_false(bool_string):
+    if bool_string == "true":
+        return True
+    elif bool_string == "false":
+        return False
+    else:
+        raise Exception("Invalid generate_comment option: %s" % bool_string)
 
 
 def bs_generate_command(command_list):
@@ -16,6 +26,7 @@ def bs_generate_command(command_list):
     global lexical_analyzer_name
     global symbol_stack_name
     global generate_comment
+    global have_line_number
     for command in command_list:
         if command[0] == "grammar_analyzer_name":
             grammar_analyzer_name = command[1]
@@ -24,13 +35,9 @@ def bs_generate_command(command_list):
         elif command[0] == "symbol_stack":
             symbol_stack_name = command[1]
         elif command[0] == "generate_comment":
-            true_or_false = command[1].lower()
-            if true_or_false == "true":
-                generate_comment = True
-            elif true_or_false == "false":
-                generate_comment = False
-            else:
-                raise Exception("Invalid generate_comment option: %s" % command[1])
+            generate_comment = bs_generate_true_or_false(command[1].lower())
+        elif command[0] == "have_line_number":
+            have_line_number = bs_generate_true_or_false(command[1].lower())
 
 
 def bs_generate_shift_code(output, mode, indent=0):
@@ -248,15 +255,27 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
     if lex is not None:
         bs_code_output(output, "def %s(text):\n" % lexical_analyzer_name)
         bs_code_output(output, "boson_token_list = []\n", 1)
+        if lex.have_newline():
+            bs_code_output(output, "line_number = 1\n", 1)
         bs_code_output(output, "for one_token in re.finditer(boson_token_regular_expression, text):\n", 1)
         bs_code_output(output, "token_class = one_token.lastgroup\n", 2)
         bs_code_output(output, "token_text = one_token.group(token_class)\n", 2)
         bs_code_output(output, "if token_class in boson_ignore:\n", 2)
         bs_code_output(output, "continue\n", 3)
-        bs_code_output(output, "if token_class in boson_error:\n", 2)
+        if lex.have_newline():
+            bs_code_output(output, "elif token_class == \"%s\":\n" % lex.get_newline(), 2)
+            bs_code_output(output, "line_number += 1\n", 3)
+        bs_code_output(output, "elif token_class in boson_error:\n", 2)
         bs_code_output(output, "raise Exception(\"Invalid token: (%s, \\\"%s\\\")\" % (token_class, token_text))\n", 3)
-        bs_code_output(output, "boson_token_list.append((token_class, token_text))\n", 2)
-        bs_code_output(output, "boson_token_list.append((\"%s\", \"\"))\n" % end_symbol, 1)
+        bs_code_output(output, "else:\n", 2)
+        if lex.have_newline():
+            bs_code_output(output, "boson_token_list.append((token_class, token_text, line_number))\n", 3)
+        else:
+            bs_code_output(output, "boson_token_list.append((token_class, token_text))\n", 3)
+        if lex.have_newline():
+            bs_code_output(output, "boson_token_list.append((\"%s\", \"\", line_number))\n" % end_symbol, 1)
+        else:
+            bs_code_output(output, "boson_token_list.append((\"%s\", \"\"))\n" % end_symbol, 1)
         bs_code_output(output, "return boson_token_list\n", 1)
         bs_code_output(output, "\n")
         bs_code_output(output, "\n")
@@ -265,6 +284,8 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_generate_section(output, section["@initial"], 1)
     if have_reduce_code:
         bs_code_output(output, "%s = []\n" % symbol_stack_name, 1)
+    if have_line_number:
+        bs_code_output(output, "line_start_record = {}\n", 1)
     bs_code_output(output, "stack = [0]\n", 1)
     bs_code_output(output, "token_index = 0\n", 1)
     bs_code_output(output, "while token_index < len(token_list):\n", 1)
@@ -276,11 +297,29 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_code_output(output, "token_type = token[0]\n", 3)
     else:
         bs_code_output(output, "token_type = token[0]\n", 2)
+    if have_line_number:
+        bs_code_output(output, "token_line = token[2]\n", 2)
+        bs_code_output(output, "if token_line not in line_start_record:\n", 2)
+        bs_code_output(output, "line_start_record[token_line] = token_index\n", 3)
     bs_code_output(output, "now_state = stack[-1]\n", 2)
     bs_code_output(output, "operation = action_table[now_state][terminal_index[token_type]]\n", 2)
     bs_code_output(output, "operation_flag = operation[0]\n", 2)
     bs_code_output(output, "if operation_flag == \"e\":\n", 2)
-    bs_code_output(output, "raise Exception(\"Grammar error: \" + \" \".join([t[1] for t in token_list]))\n", 3)
+    if have_line_number:
+        bs_code_output(output, "error_line = token[2]\n", 3)
+        bs_code_output(output, "error_code = \"\"\n", 3)
+        bs_code_output(output, "offset = 0\n", 3)
+        bs_code_output(output, "for i in range(line_start_record[error_line], len(token_list)):\n", 3)
+        bs_code_output(output, "if token_list[i][2] == error_line:\n", 4)
+        bs_code_output(output, "error_code += \" \" + token_list[i][1]\n", 5)
+        bs_code_output(output, "if i < token_index:\n", 5)
+        bs_code_output(output, "offset += len(token_list[i][1]) + 1\n", 6)
+        bs_code_output(output, "error_message_head = \"\\nGrammar error [line %d]:\" % error_line\n", 3)
+        bs_code_output(output, "error_message = error_message_head + error_code + \"\\n\"\n", 3)
+        bs_code_output(output, "error_message += \" \" * (len(error_message_head) + offset) + \"^\" * len(token[1])\n", 3)
+        bs_code_output(output, "raise Exception(error_message)\n", 3)
+    else:
+        bs_code_output(output, "raise Exception(\"Grammar error: \" + \" \".join([t[1] for t in token_list]))\n", 3)
     bs_code_output(output, "elif operation_flag == \"%s\":\n" % boson_table_sign_shift, 2)
     bs_code_output(output, "operation_number = int(operation[1:])\n", 3)
     bs_code_output(output, "stack.append(operation_number)\n", 3)
