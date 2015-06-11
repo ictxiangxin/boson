@@ -1,6 +1,5 @@
 __author__ = 'ict'
 
-start_non_terminal_symbol = "start"
 end_symbol = "$"
 null_symbol = "~"
 
@@ -13,12 +12,20 @@ boson_title = "%s v%d.%d" % (boson_name, boson_version_main, boson_version_sub)
 boson_author = "ict"
 boson_author_email = "ictxiangxin@gmail.com"
 
-indent_char = " "
-indent_size = 4
-
 invalid_token_class = "boson_invalid"
 
 boson_table_sign_error = "e"
 boson_table_sign_shift = "s"
 boson_table_sign_reduce = "r"
 boson_table_sign_accept = "a"
+
+configure = {
+    "start_symbol":          "start",
+    "grammar_analyzer_name": "boson_grammar_analysis",
+    "lexical_analyzer_name": "boson_lexical_analysis",
+    "symbol_stack_name":     "boson_stack",
+    "generate_comment":      True,
+    "have_line_number":      True,
+    "indent_string":         " ",
+    "indent_number":         4,
+}

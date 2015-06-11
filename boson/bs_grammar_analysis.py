@@ -3,6 +3,7 @@ __author__ = 'ict'
 import re
 
 from boson.bs_configure import *
+from boson.bs_command import bs_command_execute
 
 token_tuple = [
     ("name",         r"[_a-zA-Z][_a-zA-Z0-9]*"),
@@ -317,4 +318,6 @@ def bs_grammar_analyzer(token_list):
 def bs_grammar_analysis(filename):
     token_list = bs_token_list(filename)
     data_package = bs_grammar_analyzer(token_list)
+    bs_command_execute(data_package["command list"])
+    del data_package["command list"]
     return data_package

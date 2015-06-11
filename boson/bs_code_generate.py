@@ -5,45 +5,9 @@ import sys
 from boson.bs_code_generator_helper import *
 
 
-grammar_analyzer_name = "boson_grammar_analysis"
-lexical_analyzer_name = "boson_lexical_analysis"
-symbol_stack_name = "boson_stack"
-generate_comment = True
-have_line_number = True
-
-
-def bs_generate_true_or_false(bool_string):
-    if bool_string == "true":
-        return True
-    elif bool_string == "false":
-        return False
-    else:
-        raise Exception("Invalid generate_comment option: %s" % bool_string)
-
-
-def bs_generate_command(command_list):
-    global grammar_analyzer_name
-    global lexical_analyzer_name
-    global symbol_stack_name
-    global generate_comment
-    global have_line_number
-    for command in command_list:
-        if command[0] == "grammar_analyzer_name":
-            grammar_analyzer_name = command[1]
-        elif command[0] == "lexical_analyzer_name":
-            lexical_analyzer_name = command[1]
-        elif command[0] == "symbol_stack":
-            symbol_stack_name = command[1]
-        elif command[0] == "generate_comment":
-            generate_comment = bs_generate_true_or_false(command[1].lower())
-        elif command[0] == "have_line_number":
-            have_line_number = bs_generate_true_or_false(command[1].lower())
-
-
 def bs_generate_shift_code(output, mode, indent=0):
-    global symbol_stack_name
     if mode == "code":
-        bs_code_output(output, "%s.append(token)\n" % symbol_stack_name, indent)
+        bs_code_output(output, "%s.append(token)\n" % configure["symbol_stack_name"], indent)
     elif mode == "blank":
         bs_code_output(output, "\"\"\"\n", indent)
         bs_code_output(output, "Add some code for shift action here...\n", indent)
@@ -57,7 +21,7 @@ def bs_generate_shift_code(output, mode, indent=0):
 def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, indent=0):
     bs_code_output(output, "boson_sentence = []\n", indent)
     bs_code_output(output, "for boson_i in range(%d):\n" % reduce_number, indent)
-    bs_code_output(output, "boson_sentence.insert(0, %s.pop())\n" % symbol_stack_name, indent + 1)
+    bs_code_output(output, "boson_sentence.insert(0, %s.pop())\n" % configure["symbol_stack_name"], indent + 1)
     code = code[code.index("{") + 1: code.index("}")]
     while code[0] in [" ", "\t"]:
             code = code[1:]
@@ -75,7 +39,7 @@ def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, in
         for r in range(reduce_number):
             line = line.replace("$%d" % (r + 1), "boson_sentence[%d]" % r)
         bs_code_output(output, line + "\n", indent)
-    bs_code_output(output, "%s.append(boson_reduce)\n" % symbol_stack_name, indent)
+    bs_code_output(output, "%s.append(boson_reduce)\n" % configure["symbol_stack_name"], indent)
 
 
 def bs_generate_lexical_analyzer(output, lex, indent=0):
@@ -121,16 +85,10 @@ def bs_generate_section(output, section_text, indent):
 
 
 def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys.stdout):
-    global grammar_analyzer_name
-    global lexical_analyzer_name
-    global symbol_stack_name
-    global generate_comment
     reduce_code = option_package["reduce code"]
     literal_map = option_package["literal map"]
     literal_reverse_map = option_package["literal reverse map"]
-    command_list = option_package["command list"]
     section = option_package["section"]
-    bs_generate_command(command_list)
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
     terminal_index_reverse_map = {}
@@ -253,7 +211,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_code_output(output, "\n")
     bs_code_output(output, "\n")
     if lex is not None:
-        bs_code_output(output, "def %s(text):\n" % lexical_analyzer_name)
+        bs_code_output(output, "def %s(text):\n" % configure["lexical_analyzer_name"])
         bs_code_output(output, "boson_token_list = []\n", 1)
         if lex.have_newline():
             bs_code_output(output, "line_number = 1\n", 1)
@@ -279,12 +237,12 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_code_output(output, "return boson_token_list\n", 1)
         bs_code_output(output, "\n")
         bs_code_output(output, "\n")
-    bs_code_output(output, "def %s(token_list):\n" % grammar_analyzer_name)
+    bs_code_output(output, "def %s(token_list):\n" % configure["grammar_analyzer_name"])
     if "@initial" in section:
         bs_generate_section(output, section["@initial"], 1)
     if have_reduce_code:
-        bs_code_output(output, "%s = []\n" % symbol_stack_name, 1)
-    if have_line_number:
+        bs_code_output(output, "%s = []\n" % configure["symbol_stack_name"], 1)
+    if configure["have_line_number"]:
         bs_code_output(output, "line_start_record = {}\n", 1)
     bs_code_output(output, "stack = [0]\n", 1)
     bs_code_output(output, "token_index = 0\n", 1)
@@ -297,7 +255,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_code_output(output, "token_type = token[0]\n", 3)
     else:
         bs_code_output(output, "token_type = token[0]\n", 2)
-    if have_line_number:
+    if configure["have_line_number"]:
         bs_code_output(output, "token_line = token[2]\n", 2)
         bs_code_output(output, "if token_line not in line_start_record:\n", 2)
         bs_code_output(output, "line_start_record[token_line] = token_index\n", 3)
@@ -305,7 +263,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
     bs_code_output(output, "operation = action_table[now_state][terminal_index[token_type]]\n", 2)
     bs_code_output(output, "operation_flag = operation[0]\n", 2)
     bs_code_output(output, "if operation_flag == \"e\":\n", 2)
-    if have_line_number:
+    if configure["have_line_number"]:
         bs_code_output(output, "error_line = token[2]\n", 3)
         bs_code_output(output, "error_code = \"\"\n", 3)
         bs_code_output(output, "offset = 0\n", 3)
@@ -355,7 +313,7 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
                 if literal_sentence[now_sentence_index] in literal_reverse_map:
                     literal_sentence[now_sentence_index] =\
                         "'" + literal_reverse_map[literal_sentence[now_sentence_index]] + "'"
-        if generate_comment:
+        if configure["generate_comment"]:
             bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
         if reduce_code[sentence_list[reduce_index]] is not None:
             bs_generate_reduce_code(output, reduce_code[sentence_list[reduce_index]], reduce_symbol_sum[reduce_index],

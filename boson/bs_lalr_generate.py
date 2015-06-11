@@ -40,7 +40,7 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
-        if sentence_list[sentence_index][0] == start_non_terminal_symbol:
+        if sentence_list[sentence_index][0] == configure["start_symbol"]:
             sentence_list[sentence_index], sentence_list[0] = sentence_list[0], sentence_list[sentence_index]
     lalr_dfa_state, lalr_dfa_move = bs_lalr_generate_dfa(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
@@ -68,7 +68,7 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     non_terminal_list = list(non_terminal_set)
     non_terminal_list.sort()
     for non_terminal in non_terminal_list:
-        if non_terminal != start_non_terminal_symbol:
+        if non_terminal != configure["start_symbol"]:
             non_terminal_index[non_terminal] = count
             count += 1
     for state, move_map in lalr_dfa_move.items():

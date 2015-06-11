@@ -10,14 +10,14 @@ def bs_lr_generate_dfa(sentence_set):
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     first_flag_sentence_list = []
-    for sentence in non_terminal_closure[start_non_terminal_symbol]:
+    for sentence in non_terminal_closure[configure["start_symbol"]]:
         if sentence[-1] == null_symbol:
             first_flag_sentence_list.append((sentence, 2))
         else:
             first_flag_sentence_list.append((sentence, 1))
     for flag_sentence_index in range(len(first_flag_sentence_list)):
         flag_sentence = first_flag_sentence_list[flag_sentence_index]
-        if flag_sentence[0][0] == start_non_terminal_symbol:
+        if flag_sentence[0][0] == configure["start_symbol"]:
             first_flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset({end_symbol})), flag_sentence[1])
     first_flag_sentence_set = bs_mark_postfix(first_flag_sentence_list, non_terminal_set, first_set)
     state_list = [frozenset(first_flag_sentence_set)]
@@ -71,7 +71,7 @@ def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
-        if sentence_list[sentence_index][0] == start_non_terminal_symbol:
+        if sentence_list[sentence_index][0] == configure["start_symbol"]:
             sentence_list[sentence_index], sentence_list[0] = sentence_list[0], sentence_list[sentence_index]
     lr_dfa_state, lr_dfa_move = bs_lr_generate_dfa(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
@@ -99,7 +99,7 @@ def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
     non_terminal_list = list(non_terminal_set)
     non_terminal_list.sort()
     for non_terminal in non_terminal_list:
-        if non_terminal != start_non_terminal_symbol:
+        if non_terminal != configure["start_symbol"]:
             non_terminal_index[non_terminal] = count
             count += 1
     for state, move_map in lr_dfa_move.items():
