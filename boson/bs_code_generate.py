@@ -1,6 +1,7 @@
 __author__ = 'ict'
 
 import sys
+import copy
 
 from boson.bs_code_generator_helper import *
 
@@ -8,38 +9,71 @@ from boson.bs_code_generator_helper import *
 def bs_generate_shift_code(output, mode, indent=0):
     if mode == "code":
         bs_code_output(output, "%s.append(token)\n" % configure["symbol_stack_name"], indent)
-    elif mode == "blank":
-        bs_code_output(output, "\"\"\"\n", indent)
-        bs_code_output(output, "Add some code for shift action here...\n", indent)
-        bs_code_output(output, "\"\"\"\n", indent)
+    elif mode == "symbol":
+        symbol_type = configure["symbol_type"]
+        if symbol_type is not None:
+            symbol_type_set_string = ", ".join(["\"" + item + "\"" for item in symbol_type])
+            bs_code_output(output, "if symbol_type in {%s}:\n" % symbol_type_set_string, indent)
+            bs_code_output(output, "%s.append(token)\n" % configure["symbol_stack_name"], indent + 1)
     elif mode == "null":
         pass
     else:
         raise Exception("Invalid shift code mode: %s" % mode)
 
 
-def bs_generate_reduce_code(output, code, reduce_number, reduce_non_terminal, indent=0):
+def bs_generate_common_reduce_code(output, code_dict, sentence, indent=0):
+    reduce_number = len(sentence) - 1
+    code = code_dict[sentence]
     bs_code_output(output, "boson_sentence = []\n", indent)
     bs_code_output(output, "for boson_i in range(%d):\n" % reduce_number, indent)
     bs_code_output(output, "boson_sentence.insert(0, %s.pop())\n" % configure["symbol_stack_name"], indent + 1)
     code = code[code.index("{") + 1: code.index("}")]
-    while code[0] in [" ", "\t"]:
+    while code[0] in [" ", "\t", "\n", "\r\n"]:
             code = code[1:]
-    while code[-1] in [" ", "\t"]:
+    while code[-1] in [" ", "\t", "\n", "\r\n"]:
         code = code[: -1]
     if "\r\n" in code:
         code_list = code.split("\r\n")
     else:
         code_list = code.split("\n")
+    have_reduce_symbol = False
     for line in code_list:
         if "$$" in line:
             line = line.replace("$$", "boson_reduce")
-        else:
-            bs_code_output(output, "boson_reduce = (\"non-terminal\", \"%s\")\n" % reduce_non_terminal, indent)
+            have_reduce_symbol = True
         for r in range(reduce_number):
             line = line.replace("$%d" % (r + 1), "boson_sentence[%d]" % r)
         bs_code_output(output, line + "\n", indent)
-    bs_code_output(output, "%s.append(boson_reduce)\n" % configure["symbol_stack_name"], indent)
+    if have_reduce_symbol:
+        bs_code_output(output, "%s.append(boson_reduce)\n" % configure["symbol_stack_name"], indent)
+
+
+def bs_generate_symbol_reduce_code(output, code_dict, sentence, non_terminal_set, indent=0):
+    reduce_number = len(sentence) - 1
+    code = code_dict[sentence]
+    symbol_type = configure["symbol_type"] | non_terminal_set
+    for i in reversed(range(1, len(sentence))):
+        if sentence[i] in symbol_type:
+            bs_code_output(output, "%s = %s.pop()\n" % (sentence[i], configure["symbol_stack_name"]), indent)
+    code = code[code.index("{") + 1: code.index("}")]
+    while code[0] in [" ", "\t", "\n", "\r\n"]:
+            code = code[1:]
+    while code[-1] in [" ", "\t", "\n", "\r\n"]:
+        code = code[: -1]
+    if "\r\n" in code:
+        code_list = code.split("\r\n")
+    else:
+        code_list = code.split("\n")
+    have_reduce_symbol = False
+    for line in code_list:
+        if "$$" in line:
+            line = line.replace("$$", "boson_reduce")
+            have_reduce_symbol = True
+        for r in range(reduce_number):
+            line = line.replace("$%d" % (r + 1), sentence[r + 1])
+        bs_code_output(output, line + "\n", indent)
+    if have_reduce_symbol:
+        bs_code_output(output, "%s.append(boson_reduce)\n" % configure["symbol_stack_name"], indent)
 
 
 def bs_generate_lexical_analyzer(output, lex, indent=0):
@@ -286,7 +320,10 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         bs_generate_section(output, section["@shift"], 3)
     else:
         if have_reduce_code:
-            shift_mode = "code"
+            if configure["reduce_mode"] == "symbol":
+                shift_mode = "symbol"
+            else:
+                shift_mode = "code"
         else:
             shift_mode = "null"
         bs_generate_shift_code(output, shift_mode, 3)
@@ -316,8 +353,12 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
         if configure["generate_comment"]:
             bs_code_output(output, "# %s -> %s\n" % (literal_sentence[0], " ".join(literal_sentence[1:])), 4)
         if reduce_code[sentence_list[reduce_index]] is not None:
-            bs_generate_reduce_code(output, reduce_code[sentence_list[reduce_index]], reduce_symbol_sum[reduce_index],
-                                    reduce_to_non_terminal[reduce_index], 4)
+            if configure["reduce_mode"] == "common":
+                bs_generate_common_reduce_code(output, reduce_code, sentence_list[reduce_index], 4)
+            elif configure["reduce_mode"] == "symbol":
+                bs_generate_symbol_reduce_code(output, reduce_code, sentence_list[reduce_index], set(non_terminal_index), 4)
+            else:
+                raise Exception("Invalid reduce mode: %s" % configure["reduce_mode"])
         else:
             bs_code_output(output, "pass\n", 4)
     bs_code_output(output, "else:\n", 3)

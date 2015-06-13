@@ -28,4 +28,6 @@ configure = {
     "have_line_number":      True,
     "indent_string":         " ",
     "indent_number":         4,
+    "symbol_type":           None,
+    "reduce_mode":           "common",
 }

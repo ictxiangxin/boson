@@ -26,5 +26,8 @@ def bs_command_execute(command_list):
             configure["generate_comment"] = bs_command_true_or_false(command[1].lower())
         elif command[0] == "have_line_number":
             configure["have_line_number"] = bs_command_true_or_false(command[1].lower())
+        elif command[0] == "symbol_type":
+            configure["symbol_type"] = set(command[1:])
+            configure["reduce_mode"] = "symbol"
         else:
             raise Exception("Invalid command: %s" % " ".join(command))
