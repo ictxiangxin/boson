@@ -1,7 +1,6 @@
 __author__ = 'ict'
 
 import sys
-import copy
 
 from boson.bs_code_generator_helper import *
 
@@ -123,6 +122,11 @@ def bs_generate_python_code(analyzer_table, option_package, lex=None, output=sys
     literal_map = option_package["literal map"]
     literal_reverse_map = option_package["literal reverse map"]
     section = option_package["section"]
+    if lex is not None:
+        if lex.have_newline():
+            configure["have_line_number"] = True
+        else:
+            configure["have_line_number"] = False
     terminal_index, non_terminal_index, action_table, goto_table, reduce_symbol_sum, reduce_to_non_terminal, sentence_list = \
         analyzer_table
     terminal_index_reverse_map = {}

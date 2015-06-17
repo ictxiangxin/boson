@@ -1,5 +1,5 @@
 """
-    Boson v0.3
+    Boson v0.5
     By: ict
     Email: ictxiangxin@gmail.com
 
@@ -35,54 +35,54 @@ boson_token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in boson_
 
 
 terminal_index = {
-    "literal6":   0,
-    "literal7":   1,
-    "literal3":   2,
-    "literal1":   3,
-    "literal2":   4,
-    "literal4":   5,
-    "literal5":   6,
-    "int": 7,
-    "$":   8,
+    "literal6": 0,
+    "literal7": 1,
+    "literal3": 2,
+    "literal1": 3,
+    "literal2": 4,
+    "literal4": 5,
+    "literal5": 6,
+    "int":      7,
+    "$":        8,
 }
 
 action_table = [
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["e",   "e",   "s8",  "r4",  "r4",  "s7",  "e",   "e",    "r4"],
-    ["e",   "e",   "r7",  "r7",  "r7",  "r7",  "s9",  "e",    "r7"],
-    ["e",   "e",   "r5",  "r5",  "r5",  "r5",  "r5",  "e",    "r5"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "e",   "e",   "s16", "s17", "e",   "e",   "e",     "a"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["e",   "e",   "e",   "s8",  "s7",  "e",   "e",   "e",     "a"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
     ["e",   "e",   "r1",  "r1",  "r1",  "r1",  "r1",  "e",    "r1"],
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["e",   "r4",  "s22", "r4",  "r4",  "s21", "e",   "e",     "e"],
-    ["e",   "r7",  "r7",  "r7",  "r7",  "r7",  "s23", "e",     "e"],
-    ["e",   "r5",  "r5",  "r5",  "r5",  "r5",  "r5",  "e",     "e"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "s26", "e",   "s25", "s27", "e",   "e",   "e",     "e"],
+    ["e",   "e",   "r5",  "r5",  "r5",  "r5",  "r5",  "e",    "r5"],
+    ["e",   "e",   "s15", "r4",  "r4",  "s16", "e",   "e",    "r4"],
+    ["e",   "e",   "r8",  "r8",  "r8",  "r8",  "s17", "e",    "r8"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["e",   "s21", "e",   "s22", "s20", "e",   "e",   "e",     "e"],
+    ["e",   "r4",  "s23", "r4",  "r4",  "s24", "e",   "e",     "e"],
     ["e",   "r1",  "r1",  "r1",  "r1",  "r1",  "r1",  "e",     "e"],
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["s4",  "e",   "e",   "e",   "e",   "e",   "e",   "s6",    "e"],
-    ["e",   "e",   "r9",  "r9",  "r9",  "r9",  "s9",  "e",    "r9"],
-    ["e",   "e",   "r8",  "r8",  "r8",  "r8",  "s9",  "e",    "r8"],
+    ["e",   "r5",  "r5",  "r5",  "r5",  "r5",  "r5",  "e",     "e"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["e",   "r8",  "r8",  "r8",  "r8",  "r8",  "s26", "e",     "e"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["s2",  "e",   "e",   "e",   "e",   "e",   "e",   "s3",    "e"],
+    ["e",   "e",   "s15", "r3",  "r3",  "s16", "e",   "e",    "r3"],
+    ["e",   "e",   "s15", "r2",  "r2",  "s16", "e",   "e",    "r2"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["e",   "r7",  "r7",  "r7",  "r7",  "r7",  "r7",  "e",    "r7"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["e",   "s34", "e",   "s22", "s20", "e",   "e",   "e",     "e"],
+    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s11",   "e"],
+    ["e",   "e",   "r9",  "r9",  "r9",  "r9",  "s17", "e",    "r9"],
+    ["e",   "e",   "r10", "r10", "r10", "r10", "s17", "e",   "r10"],
     ["e",   "e",   "r6",  "r6",  "r6",  "r6",  "r6",  "e",    "r6"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "s33", "e",   "s25", "s27", "e",   "e",   "e",     "e"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "r10", "r10", "r10", "r10", "r10", "r10", "e",   "r10"],
-    ["s13", "e",   "e",   "e",   "e",   "e",   "e",   "s15",   "e"],
-    ["e",   "e",   "s8",  "r2",  "r2",  "s7",  "e",   "e",    "r2"],
-    ["e",   "e",   "s8",  "r3",  "r3",  "s7",  "e",   "e",    "r3"],
-    ["e",   "r9",  "r9",  "r9",  "r9",  "r9",  "s23", "e",     "e"],
-    ["e",   "r8",  "r8",  "r8",  "r8",  "r8",  "s23", "e",     "e"],
+    ["e",   "r3",  "s23", "r3",  "r3",  "s24", "e",   "e",     "e"],
+    ["e",   "r2",  "s23", "r2",  "r2",  "s24", "e",   "e",     "e"],
+    ["e",   "r9",  "r9",  "r9",  "r9",  "r9",  "s26", "e",     "e"],
+    ["e",   "r10", "r10", "r10", "r10", "r10", "s26", "e",     "e"],
+    ["e",   "r7",  "r7",  "r7",  "r7",  "r7",  "r7",  "e",     "e"],
     ["e",   "r6",  "r6",  "r6",  "r6",  "r6",  "r6",  "e",     "e"],
-    ["e",   "r10", "r10", "r10", "r10", "r10", "r10", "e",     "e"],
-    ["e",   "r2",  "s22", "r2",  "r2",  "s21", "e",   "e",     "e"],
-    ["e",   "r3",  "s22", "r3",  "r3",  "s21", "e",   "e",     "e"],
 ]
 
 non_terminal_index = {
@@ -93,34 +93,34 @@ non_terminal_index = {
 }
 
 goto_table = [
-    [3,  5,  2,   1],
+    [4,  1,  6,   5],
+    [-1, -1, -1, -1],
+    [12, 9,  14, 10],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
-    [12, 14, 11, 10],
     [-1, -1, -1, -1],
-    [-1, -1, -1, -1],
-    [3,  -1, 18, -1],
-    [3,  -1, 19, -1],
-    [20, -1, -1, -1],
+    [4,  -1, 6,  18],
+    [4,  -1, 6,  19],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
-    [12, 24, 11, 10],
+    [-1, -1, -1, -1],
+    [12, 25, 14, 10],
+    [-1, -1, -1, -1],
+    [4,  -1, 27, -1],
+    [4,  -1, 28, -1],
+    [29, -1, -1, -1],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
-    [3,  -1, 2,  28],
-    [3,  -1, 2,  29],
+    [12, -1, 14, 30],
     [-1, -1, -1, -1],
+    [12, -1, 14, 31],
+    [12, -1, 32, -1],
+    [12, -1, 33, -1],
     [-1, -1, -1, -1],
+    [35, -1, -1, -1],
     [-1, -1, -1, -1],
-    [12, -1, 30, -1],
-    [12, -1, 31, -1],
-    [32, -1, -1, -1],
-    [-1, -1, -1, -1],
-    [12, -1, 11, 34],
-    [-1, -1, -1, -1],
-    [12, -1, 11, 35],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
     [-1, -1, -1, -1],
@@ -139,34 +139,34 @@ reduce_symbol_sum = {
     4:  1,
     5:  1,
     6:  3,
-    7:  1,
-    8:  3,
+    7:  3,
+    8:  1,
     9:  3,
     10: 3,
 }
 
 reduce_to_non_terminal = {
-    0:  "start",
+    0:  "S",
     1:  "D",
     2:  "E",
     3:  "E",
     4:  "E",
     5:  "F",
     6:  "F",
-    7:  "T",
+    7:  "D",
     8:  "T",
     9:  "T",
-    10: "D",
+    10: "T",
 }
 
 literal_map = {
-    "/": "literal4",
-    "^": "literal5",
     "*": "literal3",
-    "-": "literal2",
-    "+": "literal1",
     "(": "literal6",
+    "-": "literal2",
+    "^": "literal5",
+    "/": "literal4",
     ")": "literal7",
+    "+": "literal1",
 }
 
 
@@ -177,15 +177,16 @@ def calculate_tokenize(text):
         token_text = one_token.group(token_class)
         if token_class in boson_ignore:
             continue
-        if token_class in boson_error:
+        elif token_class in boson_error:
             raise Exception("Invalid token: (%s, \"%s\")" % (token_class, token_text))
-        boson_token_list.append((token_class, token_text))
+        else:
+            boson_token_list.append((token_class, token_text))
     boson_token_list.append(("$", ""))
     return boson_token_list
 
 
 def simple_calculate(token_list):
-    boson_stack = []
+    symbol_stack = []
     stack = [0]
     token_index = 0
     while token_index < len(token_list):
@@ -203,7 +204,7 @@ def simple_calculate(token_list):
             operation_number = int(operation[1:])
             stack.append(operation_number)
             token_index += 1
-            boson_stack.append(token)
+            symbol_stack.append(token)
         elif operation_flag == "r":
             operation_number = int(operation[1:])
             reduce_sum = reduce_symbol_sum[operation_number]
@@ -216,89 +217,89 @@ def simple_calculate(token_list):
                 raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (now_state, now_non_terminal_index))
             stack.append(goto_table[now_state][now_non_terminal_index])
             if operation_number == 0:
-                # start -> E
+                # S -> E
                 boson_sentence = []
                 for boson_i in range(1):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = boson_sentence[0]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 1:
                 # D -> int
                 boson_sentence = []
                 for boson_i in range(1):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = boson_sentence[0][1]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 2:
                 # E -> E + T
                 boson_sentence = []
                 for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 3:
                 # E -> E - T
                 boson_sentence = []
                 for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 4:
                 # E -> T
                 boson_sentence = []
                 for boson_i in range(1):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = boson_sentence[0]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 5:
                 # F -> D
                 boson_sentence = []
                 for boson_i in range(1):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = boson_sentence[0]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 6:
                 # F -> F ^ D
                 boson_sentence = []
                 for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
             elif operation_number == 7:
-                # T -> F
-                boson_sentence = []
-                for boson_i in range(1):
-                    boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = boson_sentence[0]
-                boson_stack.append(boson_reduce)
-            elif operation_number == 8:
-                # T -> T * F
-                boson_sentence = []
-                for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
-                boson_stack.append(boson_reduce)
-            elif operation_number == 9:
-                # T -> T / F
-                boson_sentence = []
-                for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
-                boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
-                boson_stack.append(boson_reduce)
-            elif operation_number == 10:
                 # D -> ( E )
                 boson_sentence = []
                 for boson_i in range(3):
-                    boson_sentence.insert(0, boson_stack.pop())
+                    boson_sentence.insert(0, symbol_stack.pop())
                 boson_reduce = boson_sentence[1]
-                boson_stack.append(boson_reduce)
+                symbol_stack.append(boson_reduce)
+            elif operation_number == 8:
+                # T -> F
+                boson_sentence = []
+                for boson_i in range(1):
+                    boson_sentence.insert(0, symbol_stack.pop())
+                boson_reduce = boson_sentence[0]
+                symbol_stack.append(boson_reduce)
+            elif operation_number == 9:
+                # T -> T * F
+                boson_sentence = []
+                for boson_i in range(3):
+                    boson_sentence.insert(0, symbol_stack.pop())
+                boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
+                symbol_stack.append(boson_reduce)
+            elif operation_number == 10:
+                # T -> T / F
+                boson_sentence = []
+                for boson_i in range(3):
+                    boson_sentence.insert(0, symbol_stack.pop())
+                boson_reduce = [boson_sentence[1][1], boson_sentence[0], boson_sentence[2]]
+                symbol_stack.append(boson_reduce)
             else:
                 raise Exception("Invalid reduce number: %d" % operation_number)
         elif operation_flag == "a":
             break
         else:
             raise Exception("Invalid action: %s" % operation)
-    return boson_stack[0]
+    return symbol_stack[0]
 
 
 expr = input("expression: ")
