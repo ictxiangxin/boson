@@ -71,7 +71,8 @@ There are some command can add to grammar file, these commands start with "%", t
 %command argument1 argument2 ...
 ```
 
-The command can be: `grammar_analyzer_name`, `lexical_analyzer_name`, `symbol_stack`, `generate_comment`.
+The command can be: `grammar_analyzer_name`, `lexical_analyzer_name`, `symbol_stack`, `generate_comment`, `start_symbol`,
+ `have_line_number`, `symbol_type`.
 
 `grammar_analyzer_name`, set the grammar analyzer name.
 
@@ -80,6 +81,12 @@ The command can be: `grammar_analyzer_name`, `lexical_analyzer_name`, `symbol_st
 `symbol_stack`, set the symbol stack variable name.
 
 `generate_comment`, set whether generate reduce comment in code.
+
+`start_symbol`, set the start non-terminal literal.
+
+`have_line_number`, tell boson lexer can give line number.
+
+`symbol_type`, set symbol type which will shift to symbol stack.
 
 And you can add some static code, named "section" in boson, each section have a name, and have prefix "@",
  the code lines start with "@@" and end with "@@", the form is:
