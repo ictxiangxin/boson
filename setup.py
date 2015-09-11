@@ -13,7 +13,7 @@ with open('README.md') as fp:
 
 # TODO: add more specific information about boson.
 setup(name='boson',
-      version='0.1',
+      version='0.5',
       author='ict',
       author_email='ictxiangxin@gmail.com',
       maintainer='ict',

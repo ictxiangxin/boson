@@ -12,7 +12,7 @@ token_tuple = [
     ("code",         r"\{.*\}"),
     ("literal",      r"\'.*?[^\\]\'|\".*?[^\\]\""),
     ("null",         r"~"),
-    ("comment",      r"#[^(\r\n|\n)]*"),
+    ("comment",      r"#[^\r\n]*"),
     ("command",      r"%[_a-zA-Z]+"),
     ("section_head", r"@[_a-zA-Z][_a-zA-Z0-9]*"),
     ("section_text", r"@@\n[^@]*\n@@"),
@@ -168,6 +168,7 @@ def bs_token_list(filename):
             token_class = one_token.lastgroup
             token_string = one_token.group(token_class)
             if token_class in ["skip", "comment"]:
+                print(token_string)
                 pass
             elif token_class == "newline":
                 line_number += 1
