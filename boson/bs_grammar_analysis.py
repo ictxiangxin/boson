@@ -168,7 +168,6 @@ def bs_token_list(filename):
             token_class = one_token.lastgroup
             token_string = one_token.group(token_class)
             if token_class in ["skip", "comment"]:
-                print(token_string)
                 pass
             elif token_class == "newline":
                 line_number += 1
