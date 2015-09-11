@@ -275,7 +275,6 @@ def bs_grammar_analyzer(token_list):
             elif operation_number == 12:
                 pass
             elif operation_number == 13:
-                # grammar -> statement
                 pass
             elif operation_number == 14:
                 derivation_list = symbol_stack.pop()
