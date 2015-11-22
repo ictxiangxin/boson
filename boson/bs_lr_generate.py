@@ -121,9 +121,10 @@ def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
                             print()
                         have_conflict = True
                         if conflict_report:
-                            if action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_reduce:
+                            old_sign = action_table[state_index][terminal_index[terminal]][0]
+                            if old_sign in [boson_table_sign_reduce, boson_table_sign_accept]:
                                 print("[Conflict state: %d] Reduce/Reduce Terminal: %s" % (state_index, terminal))
-                            elif action_table[state_index][terminal_index[terminal]][0] == boson_table_sign_shift:
+                            elif old_sign == boson_table_sign_shift:
                                 print("[Conflict state: %d] Shift/Reduce Terminal: %s" % (state_index, terminal))
                             else:
                                 raise Exception("Invalid action: %s" %
