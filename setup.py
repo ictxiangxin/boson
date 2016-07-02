@@ -16,7 +16,7 @@ if __name__ == "__main__":
           platforms=['MS Windows', 'Mac X', 'Unix/Linux'],
           keywords=['boson', 'grammar analyzer generator'],
           packages=['boson'],
-          packages_data={"boson", ["templates/*.template"]},
+          packages_data={"boson": ["templates/*.template"]},
           classifiers=['Natural Language :: English',
                        'Programming Language :: Python',
                        'Operating System :: Microsoft :: Windows',
