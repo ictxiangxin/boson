@@ -1,5 +1,5 @@
 import boson.bs_configure as configure
-from distutils.core import setup
+from setuptools import setup
 
 extras_require = {
     "jinja": ["jinja2"],
