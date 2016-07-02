@@ -1,6 +1,10 @@
 import boson.bs_configure as configure
 from distutils.core import setup
 
+extras_require = {
+    "jinja": ["jinja2"],
+}
+
 if __name__ == "__main__":
     with open('README.md') as fp:
         long_description = fp.read()
@@ -17,6 +21,7 @@ if __name__ == "__main__":
           keywords=['boson', 'grammar analyzer generator'],
           packages=['boson'],
           packages_data={"boson": ["templates/*.template"]},
+          extras_require=extras_require,
           classifiers=['Natural Language :: English',
                        'Programming Language :: Python',
                        'Operating System :: Microsoft :: Windows',
