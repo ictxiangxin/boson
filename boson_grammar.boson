@@ -1,3 +1,5 @@
+%analyzer_class_name BosonBNFAnalyzer;
+
 start : grammar
       ;
 
@@ -6,24 +8,21 @@ grammar : grammar statement
         ;
 
 statement : command_statement
+          | lexical_statement
           | reduction_statement
-          | section_statement
           ;
 
-command_statement : command element_list end
+command_statement : command element_list end ($@, $0, $1)
                   ;
 
-reduction_statement : name reduce derivation_list end
+reduction_statement : name reduce derivation_list end ($@, $0, $2)
                     ;
 
-section_statement : section_head section_text
-                  ;
-
-derivation_list : derivation_list or derivation
+derivation_list : derivation_list or derivation ($@, $0, $2)
                 | derivation
                 ;
 
-derivation : derivation_body code
+derivation : derivation_body grammar_tuple
            | derivation_body
            ;
 
@@ -31,6 +30,13 @@ derivation_body : element_list
                 | null
                 |
                 ;
+
+grammar_tuple : bracket_l node_list bracket_r ($@, $1)
+              ;
+
+node_list : node_list comma node ($@, $0, $2)
+          | node
+          ;
 
 element_list : element_list element
              | element

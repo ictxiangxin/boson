@@ -1,5 +1,3 @@
-__author__ = 'ict'
-
 import re
 
 from boson.bs_configure import *

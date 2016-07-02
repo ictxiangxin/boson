@@ -1,0 +1,20 @@
+%start_symbol S ;
+%analyzer_class_name CalculateAnalyzer ;
+
+
+S : E
+  ;
+E : E '+' T ($1, $0, $2)
+  | E '-' T ($1, $0, $2)
+  | T
+  ;
+T : T '*' F ($1, $0, $2)
+  | T '/' F ($1, $0, $2)
+  | F
+  ;
+F : F '^' D ($1, $0, $2)
+  | D
+  ;
+D : '(' E ')' ($@, $1)
+  | int
+  ;

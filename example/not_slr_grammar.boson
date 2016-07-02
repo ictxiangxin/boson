@@ -1,8 +1,10 @@
-start : L eq R
+start : L '=' R
       | R
       ;
-L : times R
+
+L : '*' R
   | id
   ;
+
 R : L
   ;

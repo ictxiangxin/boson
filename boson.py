@@ -1,24 +1,15 @@
-__author__ = 'ict'
-
 import os
 import sys
 import argparse
 import time
 from argparse import RawTextHelpFormatter
-
-from boson.bs_configure import *
+import boson.bs_configure as configure
+from boson.bs_command import bs_command_execute
 from boson.bs_grammar_analysis import bs_grammar_analysis
-from boson.bs_lexcial_analyzer import BosonLexicalAnalyzer
 from boson.bs_slr_generate import bs_slr_generate_table
 from boson.bs_lr_generate import bs_lr_generate_table
 from boson.bs_lalr_generate import bs_lalr_generate_table
-from boson.bs_code_generate import bs_generate_python_code
-from boson.bs_ebnf_to_bnf import bs_ebnf_to_bnf
-from boson.bs_ebnf_to_bnf import bs_ebnf_to_sentence_set
-
-code_generator = {
-    "python3": bs_generate_python_code
-}
+from boson.bs_code_generator import bs_generate_code
 
 grammar_generate_table = {
     "slr":  bs_slr_generate_table,
@@ -28,10 +19,10 @@ grammar_generate_table = {
 
 
 def welcome():
-    print("======== %s ========" % boson_title)
-    print("Author: " + boson_author)
-    print("Email: " + boson_author_email)
-    print()
+    print("======== %s ========" % configure.boson_title, flush=True)
+    print("Author: %s" % configure.boson_author, flush=True)
+    print("Email: %s" % configure.boson_author_email, flush=True)
+    print(flush=True)
 
 
 def main(argv):
@@ -39,131 +30,72 @@ def main(argv):
     grammar_file = argv.grammar_file
     file_type = argv.type
     code_file = argv.output
-    lex_file = argv.lexical
     analyzer = argv.analyzer
     language = argv.code
-    ebnf_mode = argv.mode
     conflict_report = argv.report
     force_generate = argv.force
-    lex = None
-    if code_file is not None:
-        fp = open(code_file, "w")
-        end_string = ""
-    else:
-        fp = sys.stdout
-        end_string = "\n\n"
+    fp = None
     try:
+        if code_file is not None:
+            fp = open(code_file, "w")
+            end_string = ""
+        else:
+            fp = sys.stdout
+            end_string = "\n\n"
         if file_type == "bnf":
-            print("[Generate grammar analyzer code]")
-            print("Parse grammar file...", end="")
+            print("[Generate grammar analyzer code]", flush=True)
+            print("    Parse grammar file...", end="", flush=True)
             start_time = time.time()
             global_start_time = start_time
-            data_package = bs_grammar_analysis(grammar_file)
-            sentence_set = data_package["sentence set"]
+            grammar_package = bs_grammar_analysis(grammar_file)
+            bs_command_execute(grammar_package.command_list)
             end_time = time.time()
-            print("Done [%fs]" % ((end_time - start_time) / 1000))
-            if lex_file is not None:
-                print("Parse lexical file...", end="")
-                start_time = time.time()
-                lex = BosonLexicalAnalyzer(lex_file)
-                print("Done [%fs]" % ((end_time - start_time) / 1000))
-            print("Generate %s grammar analysis table..." % analyzer.upper(), end="")
+            print("Done [%fs]" % (end_time - start_time), flush=True)
+            print("    Generate %s grammar analysis table..." % analyzer.upper(), end="", flush=True)
             start_time = time.time()
-            analyzer_table = grammar_generate_table[analyzer](sentence_set, conflict_report, force_generate)
+            analyzer_table = grammar_generate_table[analyzer](grammar_package.sentence_set, conflict_report, force_generate)
             end_time = time.time()
-            print("Done [%fs]" % ((end_time - start_time) / 1000))
-            print("Generate analyzer %s code..." % language.upper(), end=end_string)
+            print("Done [%fs]" % (end_time - start_time), flush=True)
+            print("    Generate analyzer %s code..." % language.upper(), end=end_string, flush=True)
             start_time = time.time()
-            code_generator[language](analyzer_table, data_package, lex=lex, output=fp)
+            text = bs_generate_code(language, analyzer_table, grammar_package)
+            fp.write(text)
             end_time = time.time()
-            print(end_string + "Done [%fs]" % ((end_time - start_time) / 1000))
+            print(end_string + "Done [%fs]" % (end_time - start_time), flush=True)
             if code_file is not None:
                 fp.close()
             global_end_time = time.time()
-            print("Complete!!! [%fs]" % ((global_end_time - global_start_time) / 1000))
+            print("    Complete!!! [%fs]" % (global_end_time - global_start_time))
         elif file_type == "ebnf":
-            if ebnf_mode == "translate":
-                print("[Translate EBNF to BNF]")
-                print("Parse grammar file and translate...", end=end_string)
-                start_time = time.time()
-                global_start_time = start_time
-                bs_ebnf_to_bnf(grammar_file, output=fp)
-                end_time = time.time()
-                if code_file is not None:
-                    fp.close()
-                print(end_string + "Done [%fs]" % ((end_time - start_time) / 1000))
-                global_end_time = time.time()
-                print("Complete!!! [%fs]" % ((global_end_time - global_start_time) / 1000))
-            elif ebnf_mode == "compile":
-                print("[Generate grammar analyzer code]")
-                print("Parse grammar file...", end="")
-                start_time = time.time()
-                global_start_time = start_time
-                sentence_set = bs_ebnf_to_sentence_set(grammar_file)
-                end_time = time.time()
-                print("Done [%fs]" % ((end_time - start_time) / 1000))
-                print("Generate %s grammar analysis table..." % analyzer.upper(), end="")
-                start_time = time.time()
-                analyzer_table = grammar_generate_table[analyzer](sentence_set, conflict_report, force_generate)
-                end_time = time.time()
-                print("Done [%fs]" % ((end_time - start_time) / 1000))
-                print("Generate analyzer %s code..." % language.upper(), end=end_string)
-                start_time = time.time()
-                reduce_code = {}
-                for sentence in sentence_set:
-                    reduce_code[tuple(sentence)] = None
-                data_package = {
-                    "sentence set":        sentence_set,
-                    "reduce code":         reduce_code,
-                    "command list":        [],
-                    "section":             {},
-                    "literal map":         {},
-                    "literal reverse map": {},
-                }
-                code_generator[language](analyzer_table, data_package, lex=lex, output=fp)
-                end_time = time.time()
-                print(end_string + "Done [%fs]" % ((end_time - start_time) / 1000))
-                if code_file is not None:
-                    fp.close()
-                global_end_time = time.time()
-                print("Complete!!! [%fs]" % ((global_end_time - global_start_time) / 1000))
-            else:
-                raise Exception("Invalid ebnf mode: %s" % ebnf_mode)
+            print("Not support now")
         else:
             raise Exception("Invalid file type: %s" % file_type)
     except Exception as e:
-        print(e)
+        print(e, file=sys.stderr, flush=True)
+    finally:
         if code_file is not None:
             fp.close()
             if os.path.exists(code_file):
                 os.remove(code_file)
 
 if __name__ == "__main__":
-    parse = argparse.ArgumentParser(description="%s commandline" % boson_title, formatter_class=RawTextHelpFormatter)
+    parse = argparse.ArgumentParser(description="%s commandline" % configure.boson_title, formatter_class=RawTextHelpFormatter)
     parse.add_argument("grammar_file",
                        help="Inpute grammar description file."
                        )
     parse.add_argument("-t", "--type", default="bnf", choices=["bnf", "ebnf"],
                        help="Input file type (default is BNF).\n"
-                            "bnf  - BNF grammar file, to generate grammar analyzer code.\n"
-                            "ebnf - EBNF grammar file, to generate BNF.\n"
-                       )
-    parse.add_argument("-m", "--mode", default="translate", choices=["translate", "compile"],
-                       help="EBNF operate mode (default is translate).\n"
-                            "translate - Translate EBNF to BNF.\n"
-                            "compile   - Compile EBNF to grammar analyzer.\n"
+                            "bnf  - BNF grammar file, can define special grammar tuple.\n"
+                            "ebnf - EBNF grammar file, can not define special grammar tuple.\n"
                        )
     parse.add_argument("-o", "--output",
                        help="Output grammar analyzer code."
                        )
-    parse.add_argument("-l", "--lexical",
-                       help="Lexical analysis file."
-                       )
     parse.add_argument("-a", "--analyzer", default="lalr", choices=["slr", "lr", "lalr"],
                        help="Analyzer type (default is LALR).\n"
-                            "slr  - SLR(Simple LR)\n"
-                            "lr   - LR(Canonical LR)\n"
-                            "lalr - LALR(Look-Ahead LR)\n"
+                            "slr  - SLR (Simple LR)\n"
+                            "lr   - LR (Canonical LR)\n"
+                            "lalr - LALR (Look-Ahead LR)\n"
                        )
     parse.add_argument("-c", "--code", default="python3", choices=["python3"],
                        help="Generate code language (default is Python3).\n"
