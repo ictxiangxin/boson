@@ -1,30 +1,33 @@
 import boson.bs_configure as configure
 from setuptools import setup
 
-extras_require = {
-    "jinja": ["jinja2"],
-}
+install_requires = [
+    "jinja2>=2.7",
+]
 
 if __name__ == "__main__":
-    with open('README.md') as fp:
+    with open("README.md") as fp:
         long_description = fp.read()
 
     setup(name=configure.boson_package_name,
-          version='%d.%d' % (configure.boson_version_main, configure.boson_version_sub),
-          author='ict',
-          author_email='ictxiangxin@gmail.com',
-          maintainer='ict',
-          maintainer_email='ictxiangxin@gmail.com',
-          description='Grammar analyzer generator',
+          version="%d.%d" % (configure.boson_version_main, configure.boson_version_sub),
+          url=configure.boson_url,
+          license=configure.boson_license,
+          author=configure.boson_author,
+          author_email=configure.boson_author_email,
+          maintainer=configure.boson_author,
+          maintainer_email=configure.boson_author_email,
+          description=configure.boson_description,
           long_description=long_description,
-          platforms=['MS Windows', 'Mac X', 'Unix/Linux'],
-          keywords=['boson', 'grammar analyzer generator'],
-          packages=['boson'],
-          packages_data={"boson": ["templates/*.template"]},
-          extras_require=extras_require,
-          classifiers=['Natural Language :: English',
-                       'Programming Language :: Python',
-                       'Operating System :: Microsoft :: Windows',
-                       'Operating System :: Unix',
-                       'Operating System :: MacOS',
-                       'Programming Language :: Python :: 3'], )
+          platforms=["MS Windows", "Mac X", "Unix/Linux"],
+          keywords=[configure.boson_package_name, configure.boson_description],
+          packages=[configure.boson_package_name],
+          package_data={configure.boson_package_name: ["%s/*%s" % (configure.boson_template_directory, configure.boson_template_postfix)]},
+          install_requires=install_requires,
+          entry_points={"console_scripts": ["boson = boson.boson:boson_main"]},
+          classifiers=["Natural Language :: English",
+                       "Programming Language :: Python",
+                       "Operating System :: Microsoft :: Windows",
+                       "Operating System :: Unix",
+                       "Operating System :: MacOS",
+                       "Programming Language :: Python :: 3"], )

@@ -10,6 +10,7 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
     none_grammar_tuple_reduce = list(map(str, none_grammar_tuple_reduce))
     template_data = {
         "title": configure.boson_title,
+        "description": configure.boson_description,
         "author": configure.boson_author,
         "email": configure.boson_author_email,
         "table_sign_error": configure.boson_table_sign_error,

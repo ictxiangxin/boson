@@ -19,21 +19,44 @@ grammar_generate_table = {
 
 
 def welcome():
-    print("======== %s ========" % configure.boson_title, flush=True)
-    print("Author: %s" % configure.boson_author, flush=True)
-    print("Email: %s" % configure.boson_author_email, flush=True)
+    print("%s - %s" % (configure.boson_title, configure.boson_description), flush=True)
+    print("    Author: %s" % configure.boson_author, flush=True)
+    print("    Email:  %s" % configure.boson_author_email, flush=True)
     print(flush=True)
 
 
-def main(argv):
+def boson_main():
+    parse = argparse.ArgumentParser(description="%s - %s" % (configure.boson_title, configure.boson_description),
+                                    formatter_class=RawTextHelpFormatter)
+    parse.add_argument("grammar_file",
+                       help="Inpute grammar description file.")
+    parse.add_argument("-t", "--type", default="bnf", choices=["bnf", "ebnf"],
+                       help="Input file type (default is BNF).\n"
+                            "  bnf  - BNF grammar file, can define special grammar tuple.\n"
+                            "  ebnf - EBNF grammar file, can not define special grammar tuple.\n")
+    parse.add_argument("-o", "--output",
+                       help="Output grammar analyzer code.")
+    parse.add_argument("-a", "--analyzer", default="lalr", choices=["slr", "lr", "lalr"],
+                       help="Analyzer type (default is LALR).\n"
+                            "  slr  - SLR (Simple LR)\n"
+                            "  lr   - LR (Canonical LR)\n"
+                            "  lalr - LALR (Look-Ahead LR)\n")
+    parse.add_argument("-c", "--code", default="python3", choices=["python3"],
+                       help="Generate code language (default is Python3).\n"
+                            "  python3 - Python3 code.\n")
+    parse.add_argument("-r", "--report", action="store_true",
+                       help="Report conflict when create grammar analyzer.")
+    parse.add_argument("-f", "--force", action="store_true",
+                       help="Force generate code when exist conflict.")
+    arguments = parse.parse_args()
     welcome()
-    grammar_file = argv.grammar_file
-    file_type = argv.type
-    code_file = argv.output
-    analyzer = argv.analyzer
-    language = argv.code
-    conflict_report = argv.report
-    force_generate = argv.force
+    grammar_file = arguments.grammar_file
+    file_type = arguments.type
+    code_file = arguments.output
+    analyzer = arguments.analyzer
+    language = arguments.code
+    conflict_report = arguments.report
+    force_generate = arguments.force
     fp = None
     try:
         if code_file is not None:
@@ -71,41 +94,8 @@ def main(argv):
         else:
             raise Exception("Invalid file type: %s" % file_type)
     except Exception as e:
-        print(e, file=sys.stderr, flush=True)
-    finally:
+        print("\n%s" % str(e), file=sys.stderr, flush=True)
         if code_file is not None:
             fp.close()
             if os.path.exists(code_file):
                 os.remove(code_file)
-
-if __name__ == "__main__":
-    parse = argparse.ArgumentParser(description="%s commandline" % configure.boson_title, formatter_class=RawTextHelpFormatter)
-    parse.add_argument("grammar_file",
-                       help="Inpute grammar description file."
-                       )
-    parse.add_argument("-t", "--type", default="bnf", choices=["bnf", "ebnf"],
-                       help="Input file type (default is BNF).\n"
-                            "bnf  - BNF grammar file, can define special grammar tuple.\n"
-                            "ebnf - EBNF grammar file, can not define special grammar tuple.\n"
-                       )
-    parse.add_argument("-o", "--output",
-                       help="Output grammar analyzer code."
-                       )
-    parse.add_argument("-a", "--analyzer", default="lalr", choices=["slr", "lr", "lalr"],
-                       help="Analyzer type (default is LALR).\n"
-                            "slr  - SLR (Simple LR)\n"
-                            "lr   - LR (Canonical LR)\n"
-                            "lalr - LALR (Look-Ahead LR)\n"
-                       )
-    parse.add_argument("-c", "--code", default="python3", choices=["python3"],
-                       help="Generate code language (default is Python3).\n"
-                            "python3 - Python3 code.\n"
-                       )
-    parse.add_argument("-r", "--report", action="store_true",
-                       help="Report conflict when create grammar analyzer."
-                       )
-    parse.add_argument("-f", "--force", action="store_true",
-                       help="Force generate code when exist conflict."
-                       )
-    args = parse.parse_args()
-    main(args)
