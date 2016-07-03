@@ -1,5 +1,8 @@
 import boson.bs_configure as configure
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 install_requires = [
     "jinja2>=2.7",
