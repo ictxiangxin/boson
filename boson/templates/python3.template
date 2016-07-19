@@ -125,7 +125,7 @@ class {{ analyzer_class_name }}:
                         temp_grammar_tuple_list.insert(0, symbol_stack.pop())
                     for i in [
                               {%- for node in grammar_tuple -%}
-                              {%- if not node.isdigit() %}"{{ node }}"{% else %}{{ node }}{% endif -%}
+                              {%- if node.isdigit() %}{{ node }}{% elif node[-1] == "*" %}{{ node[:-1] }}.5{% else %}"{{ node }}"{% endif -%}
                               {%- if not loop.last %}, {% endif -%}
                               {%- endfor -%}
                              ]:
@@ -141,9 +141,15 @@ class {{ analyzer_class_name }}:
                         el
                         {%- endif -%}
                         se:
-                            real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
+                            if isinstance(i, float):
+                                real_temp_grammar_tuple_list += temp_grammar_tuple_list[int(i)]
+                            else:
+                                real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
                         {%- else %}
-                        real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
+                        if isinstance(i, float):
+                            real_temp_grammar_tuple_list += temp_grammar_tuple_list[int(i)]
+                        else:
+                            real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
                         {%- endif %}
                     symbol_stack.append(tuple(real_temp_grammar_tuple_list))
                 {%- endfor %}

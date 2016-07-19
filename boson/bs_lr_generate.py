@@ -99,9 +99,8 @@ def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
     non_terminal_list = list(non_terminal_set)
     non_terminal_list.sort()
     for non_terminal in non_terminal_list:
-        if non_terminal != configure.option["start_symbol"]:
-            non_terminal_index[non_terminal] = count
-            count += 1
+        non_terminal_index[non_terminal] = count
+        count += 1
     for state, move_map in lr_dfa_move.items():
         for elem, next_state in move_map.items():
             if elem in terminal_set:

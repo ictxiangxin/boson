@@ -68,9 +68,8 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
     non_terminal_list = list(non_terminal_set)
     non_terminal_list.sort()
     for non_terminal in non_terminal_list:
-        if non_terminal != configure.option["start_symbol"]:
-            non_terminal_index[non_terminal] = count
-            count += 1
+        non_terminal_index[non_terminal] = count
+        count += 1
     for state, move_map in lalr_dfa_move.items():
         for elem, next_state in move_map.items():
             if elem in terminal_set:
@@ -108,7 +107,9 @@ def bs_lalr_generate_table(sentence_set, conflict_report=False, force=False):
         raise Exception("This grammar is not LALR !!!")
     reduce_symbol_sum = []
     reduce_to_non_terminal_index = []
-    for reduce_number in range(1, len(reduce_symbol_sum_dict)):
+    print(reduce_to_non_terminal)
+    print(non_terminal_index)
+    for reduce_number in range(len(reduce_symbol_sum_dict)):
         reduce_symbol_sum.append(reduce_symbol_sum_dict[reduce_number])
         reduce_to_non_terminal_index.append(non_terminal_index.get(reduce_to_non_terminal[reduce_number], 0))
     analyzer_table = AnalyzerTable()
