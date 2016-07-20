@@ -47,6 +47,20 @@ There is a convention which must exist a non-terminal named "start"
 * `$@`, the number of this production.
 * `$0 $1 $2 ...`, the index of element of this production(base-0).
 
+You can unpack one non-terminal by `*`.
+Example:
+```
+list : packed text ($0, $1);
+packed : text text ($0, $1);
+```
+This well parse `'1' '2' '3'` as AST like (('1', '2'), '3')
+
+```
+list : packed text ($0*, $1);
+packed : text text ($0, $1);
+```
+This well parse `'1' '2' '3'` as AST like ('1', '2', '3')
+
 A example of arithmetic grammar like this:
 
 ```
