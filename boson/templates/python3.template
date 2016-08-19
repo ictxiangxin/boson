@@ -125,7 +125,7 @@ class {{ analyzer_class_name }}:
                         temp_grammar_tuple_list.insert(0, symbol_stack.pop())
                     for i in [
                               {%- for node in grammar_tuple -%}
-                              {%- if node.isdigit() %}{{ node }}{% elif node[-1] == "*" %}{{ node[:-1] }}.5{% else %}"{{ node }}"{% endif -%}
+                              {%- if node.isdigit() %}{{ node }}{% elif node[-1] == "*" %}{{ node[:-1] }}.0{% else %}"{{ node }}"{% endif -%}
                               {%- if not loop.last %}, {% endif -%}
                               {%- endfor -%}
                              ]:
