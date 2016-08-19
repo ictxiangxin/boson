@@ -1,4 +1,4 @@
-%analyzer_class_name BosonBNFAnalyzer;
+%analyzer_class_name BosonEBNFAnalyzer;
 
 start : grammar
       ;
