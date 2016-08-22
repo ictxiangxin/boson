@@ -12,8 +12,12 @@ statement : command_statement
           | reduction_statement
           ;
 
-command_statement : command element_list end ($@, $0, $1)
+command_statement : command text_list end ($@, $0, $1)
                   ;
+
+text_list : text_list text
+          | text
+          ;
 
 reduction_statement : name reduce derivation_list end ($@, $0, $2)
                     ;
@@ -33,10 +37,14 @@ element_list : element_list element_closure
 
 element_closure : element positive_closure
                 | element colin_closure
+                | element optional
                 | element
                 ;
 
-element : name
-        | literal
+element : text
         | bracket_l node_list bracket_r ($@, $1)
         ;
+
+text : name
+     | literal
+     ;
