@@ -1,5 +1,5 @@
-from boson.bs_analyzer_helper import bs_terminal_set, bs_non_terminal_set, bs_non_terminal_first_set, bs_non_terminal_closure, bs_mark_postfix
-from boson.bs_data_package import AnalyzerTable
+from boson.bs_analyzer_helper import bs_non_terminal_set, bs_non_terminal_first_set, bs_non_terminal_closure, bs_mark_postfix
+from boson.bs_generate_helper import bs_generate_table
 import boson.bs_configure as configure
 
 
@@ -67,85 +67,7 @@ def bs_lr_generate_dfa(sentence_set):
     return state_list, state_transfer
 
 
-def bs_lr_generate_table(sentence_set, conflict_report=False, force=False):
-    sentence_list = list(sentence_set)
-    sentence_list.sort()
-    for sentence_index in range(len(sentence_list)):
-        if sentence_list[sentence_index][0] == configure.option["start_symbol"]:
-            sentence_list[sentence_index], sentence_list[0] = sentence_list[0], sentence_list[sentence_index]
+def bs_lr_generate_table(sentence_set):
     lr_dfa_state, lr_dfa_move = bs_lr_generate_dfa(sentence_set)
-    non_terminal_set = bs_non_terminal_set(sentence_set)
-    terminal_set = bs_terminal_set(sentence_set, non_terminal_set)
-    action_table = [[configure.boson_table_sign_error] * (len(terminal_set) + 1) for _ in range(len(lr_dfa_state))]
-    goto_table = [[-1] * (len(non_terminal_set) - 1) for _ in range(len(lr_dfa_state))]
-    terminal_index = {}
-    non_terminal_index = {}
-    reduce_symbol_sum_dict = {}
-    reduce_to_non_terminal = {}
-    for sentence_index in range(len(sentence_list)):
-        if sentence_list[sentence_index][-1] == configure.null_symbol:
-            reduce_symbol_sum_dict[sentence_index] = 0
-        else:
-            reduce_symbol_sum_dict[sentence_index] = len(sentence_list[sentence_index]) - 1
-        reduce_to_non_terminal[sentence_index] = sentence_list[sentence_index][0]
-    count = 0
-    terminal_list = list(terminal_set)
-    terminal_list.sort()
-    for terminal in terminal_list:
-        terminal_index[terminal] = count
-        count += 1
-    terminal_index[configure.end_symbol] = count
-    count = 0
-    non_terminal_list = list(non_terminal_set)
-    non_terminal_list.sort()
-    for non_terminal in non_terminal_list:
-        non_terminal_index[non_terminal] = count
-        count += 1
-    for state, move_map in lr_dfa_move.items():
-        for elem, next_state in move_map.items():
-            if elem in terminal_set:
-                action_table[state][terminal_index[elem]] = "%s%d" % (configure.boson_table_sign_shift, next_state)
-            else:
-                goto_table[state][non_terminal_index[elem]] = next_state
-    have_conflict = False
-    for state_index in range(len(lr_dfa_state)):
-        state_set = lr_dfa_state[state_index]
-        for state_sentence in state_set:
-            sentence, flag = state_sentence
-            if flag == len(sentence[0]):
-                for terminal in sentence[1]:
-                    reduce_number = sentence_list.index(sentence[0])
-                    if action_table[state_index][terminal_index[terminal]] != configure.boson_table_sign_error:
-                        if not have_conflict:
-                            print()
-                        have_conflict = True
-                        if conflict_report:
-                            old_sign = action_table[state_index][terminal_index[terminal]][0]
-                            if old_sign in [configure.boson_table_sign_reduce, configure.boson_table_sign_accept]:
-                                print("[Conflict state: %d] Reduce/Reduce Terminal: %s" % (state_index, terminal))
-                            elif old_sign == configure.boson_table_sign_shift:
-                                print("[Conflict state: %d] Shift/Reduce Terminal: %s" % (state_index, terminal))
-                            else:
-                                raise Exception("Invalid action: %s" %
-                                                action_table[state_index][terminal_index[terminal]])
-                            action_table[state_index][terminal_index[terminal]] += "/%s%d" % (configure.boson_table_sign_reduce, reduce_number)
-                    else:
-                        if reduce_number == 0:
-                            action_table[state_index][terminal_index[terminal]] = configure.boson_table_sign_accept
-                        else:
-                            action_table[state_index][terminal_index[terminal]] = "%s%d" % (configure.boson_table_sign_reduce, reduce_number)
-    if have_conflict and not force:
-        raise Exception("This grammar is not LR !!!")
-    reduce_symbol_sum = []
-    reduce_to_non_terminal_index = []
-    for reduce_number in range(len(reduce_symbol_sum_dict)):
-        reduce_symbol_sum.append(reduce_symbol_sum_dict[reduce_number])
-        reduce_to_non_terminal_index.append(non_terminal_index.get(reduce_to_non_terminal[reduce_number], 0))
-    analyzer_table = AnalyzerTable()
-    analyzer_table.terminal_index = terminal_index
-    analyzer_table.action_table = action_table
-    analyzer_table.goto_table = goto_table
-    analyzer_table.reduce_symbol_sum = reduce_symbol_sum
-    analyzer_table.reduce_to_non_terminal_index = reduce_to_non_terminal_index
-    analyzer_table.sentence_list = sentence_list
+    analyzer_table = bs_generate_table(sentence_set, lr_dfa_state, lr_dfa_move)
     return analyzer_table

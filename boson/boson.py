@@ -50,52 +50,56 @@ def boson_main():
                        help="Force generate code when exist conflict.")
     arguments = parse.parse_args()
     welcome()
-    grammar_file = arguments.grammar_file
-    file_type = arguments.type
-    code_file = arguments.output
-    analyzer = arguments.analyzer
-    language = arguments.code
-    conflict_report = arguments.report
-    force_generate = arguments.force
     fp = None
     try:
-        if code_file is not None:
-            fp = open(code_file, "w")
-            end_string = ""
-        else:
-            fp = sys.stdout
-            end_string = "\n\n"
-        if file_type == "bnf":
+        if arguments.type == "bnf":
             print("[Generate grammar analyzer code]", flush=True)
             print("    Parse grammar file...", end="", flush=True)
             start_time = time.time()
             global_start_time = start_time
-            grammar_package = bs_grammar_analysis(grammar_file)
+            grammar_package = bs_grammar_analysis(arguments.grammar_file)
             bs_command_execute(grammar_package.command_list)
             end_time = time.time()
             print("Done [%fs]" % (end_time - start_time), flush=True)
-            print("    Generate %s grammar analysis table..." % analyzer.upper(), end="", flush=True)
+            print("    Generate %s grammar analysis table..." % arguments.analyzer.upper(), end="", flush=True)
             start_time = time.time()
-            analyzer_table = grammar_generate_table[analyzer](grammar_package.sentence_set, conflict_report, force_generate)
+            analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)
             end_time = time.time()
             print("Done [%fs]" % (end_time - start_time), flush=True)
-            print("    Generate analyzer %s code..." % language.upper(), end=end_string, flush=True)
+            if arguments.report and len(analyzer_table.conflict_list):
+                conflict_type_text = {
+                    configure.boson_conflict_reduce_reduce: "Reduce/Reduce",
+                    configure.boson_conflict_shift_reduce: "Shift/Reduce"
+                }
+                print("[Conflict information]", flush=True)
+                for state_number, confict_type, terminal in analyzer_table.conflict_list:
+                    print("    [Conflict state: %d] %s Terminal: %s" % (state_number, conflict_type_text[confict_type], terminal), flush=True)
+                if not arguments.force:
+                    return
+            print("    Generate analyzer %s code..." % arguments.code.upper(), end="", flush=True)
             start_time = time.time()
-            text = bs_generate_code(language, analyzer_table, grammar_package)
+            if arguments.output is not None:
+                fp = open(arguments.output, "w")
+                end_string = ""
+            else:
+                fp = sys.stdout
+                end_string = "\n\n"
+            text = bs_generate_code(arguments.code, analyzer_table, grammar_package)
             fp.write(text)
             end_time = time.time()
             print(end_string + "Done [%fs]" % (end_time - start_time), flush=True)
-            if code_file is not None:
+            if arguments.output is not None:
                 fp.close()
             global_end_time = time.time()
             print("    Complete!!! [%fs]" % (global_end_time - global_start_time))
-        elif file_type == "ebnf":
+        elif arguments.type == "ebnf":
             print("Not support now")
         else:
-            raise Exception("Invalid file type: %s" % file_type)
+            raise Exception("Invalid file type: %s" % arguments.type)
     except Exception as e:
         print("\n%s" % str(e), file=sys.stderr, flush=True)
-        if code_file is not None:
-            fp.close()
-            if os.path.exists(code_file):
-                os.remove(code_file)
+        if arguments.output is not None:
+            if fp is not None:
+                fp.close()
+            if os.path.exists(arguments.output):
+                os.remove(arguments.output)

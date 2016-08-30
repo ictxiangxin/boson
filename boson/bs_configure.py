@@ -24,6 +24,9 @@ boson_table_sign_shift = "s"
 boson_table_sign_reduce = "r"
 boson_table_sign_accept = "a"
 
+boson_conflict_reduce_reduce = 0
+boson_conflict_shift_reduce = 1
+
 option = {
     "start_symbol":        "start",
     "analyzer_class_name": "BosonGrammarAnalyzer",
