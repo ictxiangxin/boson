@@ -237,6 +237,7 @@ class AnalyzerTable:
         self.reduce_symbol_sum = None
         self.reduce_to_non_terminal_index = None
         self.sentence_list = None
+        self.conflict_list = None
 ```
 
 ###SLR - Simple LR
