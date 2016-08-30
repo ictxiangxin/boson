@@ -38,7 +38,7 @@ def bs_lalr_generate_dfa(sentence_set):
         temp_state = set()
         for sentence in slr_state[state_number]:
             real_sentence = (sentence[0][0], sentence[1])
-            temp_state.add(((sentence[0], frozenset(sentence_postfix_mark[state_number][real_sentence])), sentence[1]))
+            temp_state.add(((sentence[0][0], frozenset(sentence_postfix_mark[state_number][real_sentence])), sentence[1]))
         lalr_state.append(frozenset(temp_state))
     return lalr_state, lalr_transfer
 
