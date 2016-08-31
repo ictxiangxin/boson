@@ -4,20 +4,21 @@ import boson.bs_configure as configure
 
 
 def bs_lr_generate_dfa(sentence_set):
+    sentence_set.add((configure.boson_augmented_start, configure.option["start_symbol"]))
     non_terminal_set = bs_non_terminal_set(sentence_set)
     first_set = bs_non_terminal_first_set(sentence_set)
     non_terminal_closure = {}
     for non_terminal in non_terminal_set:
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     first_flag_sentence_list = []
-    for sentence in non_terminal_closure[configure.option["start_symbol"]]:
+    for sentence in non_terminal_closure[configure.boson_augmented_start]:
         if sentence[-1] == configure.null_symbol:
             first_flag_sentence_list.append((sentence, 2))
         else:
             first_flag_sentence_list.append((sentence, 1))
     for flag_sentence_index in range(len(first_flag_sentence_list)):
         flag_sentence = first_flag_sentence_list[flag_sentence_index]
-        if flag_sentence[0][0] == configure.option["start_symbol"]:
+        if flag_sentence[0][0] == configure.boson_augmented_start:
             first_flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset({configure.end_symbol})), flag_sentence[1])
     first_flag_sentence_set = bs_mark_postfix(first_flag_sentence_list, non_terminal_set, first_set)
     state_list = [frozenset(first_flag_sentence_set)]

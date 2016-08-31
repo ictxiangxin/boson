@@ -1,9 +1,7 @@
-%start_symbol S ;
+%start_symbol E ;
 %analyzer_class_name CalculateAnalyzer ;
 
 
-S : E
-  ;
 E : E '+' T ($1, $0, $2)
   | E '-' T ($1, $0, $2)
   | T

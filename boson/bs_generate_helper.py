@@ -7,7 +7,7 @@ def bs_normalize_sentence_list(sentence_set):
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
-        if sentence_list[sentence_index][0] == configure.option["start_symbol"]:
+        if sentence_list[sentence_index][0] == configure.boson_augmented_start:
             sentence_list = [sentence_list[sentence_index]] + sentence_list[:sentence_index] + sentence_list[sentence_index + 1:]
             break
     return sentence_list
@@ -31,7 +31,7 @@ def bs_reduce_information(sentence_list, non_terminal_index):
         else:
             reduce_symbol_sum.append(len(sentence) - 1)
             reduce_to_non_terminal_index.append(non_terminal_index[sentence[0]])
-    return reduce_symbol_sum, reduce_to_non_terminal_index
+    return reduce_symbol_sum[1:], reduce_to_non_terminal_index[1:]
 
 
 def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_index, dfa_state, dfa_move):
@@ -82,6 +82,6 @@ def bs_generate_table(sentence_set, dfa_state, dfa_move):
     analyzer_table.goto_table = goto_table
     analyzer_table.reduce_symbol_sum = reduce_symbol_sum
     analyzer_table.reduce_to_non_terminal_index = reduce_to_non_terminal_index
-    analyzer_table.sentence_list = sentence_list
+    analyzer_table.sentence_list = sentence_list[1:]
     analyzer_table.conflict_list = conflict_list
     return analyzer_table

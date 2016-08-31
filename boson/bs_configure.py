@@ -1,7 +1,7 @@
 end_symbol = "$"
 null_symbol = "~"
 
-literal_template = "literal_%d"
+literal_template = "$L$_%d"
 
 boson_name = "Boson"
 boson_package_name = "boson"
@@ -26,6 +26,8 @@ boson_table_sign_accept = "a"
 
 boson_conflict_reduce_reduce = 0
 boson_conflict_shift_reduce = 1
+
+boson_augmented_start = "$S$"
 
 option = {
     "start_symbol":        "start",

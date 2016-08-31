@@ -61,7 +61,7 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
         first_set = bs_non_terminal_first_set(sentence_set)
     else:
         first_set = copy.deepcopy(first_set)
-    follow_set = {configure.option["start_symbol"]: {configure.end_symbol}}
+    follow_set = {configure.boson_augmented_start: {configure.end_symbol}}
     non_terminal_set = set([sentence[0] for sentence in sentence_set])
     old_set_size = {non_terminal: 0 for non_terminal in non_terminal_set}
     continue_loop = True

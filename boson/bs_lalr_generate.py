@@ -1,6 +1,7 @@
 from boson.bs_generate_helper import bs_generate_table
 from boson.bs_slr_generate import bs_slr_generate_dfa
 from boson.bs_lr_generate import bs_lr_generate_dfa
+import boson.bs_configure as configure
 
 
 def bs_kernel_of_state(state):
@@ -19,6 +20,7 @@ def bs_search_index(slr_state, state_kernel):
 
 
 def bs_lalr_generate_dfa(sentence_set):
+    sentence_set.add((configure.boson_augmented_start, configure.option["start_symbol"]))
     sentence_postfix_mark = {}
     slr_state, slr_transfer = bs_slr_generate_dfa(sentence_set)
     lr_state, lr_transfer = bs_lr_generate_dfa(sentence_set)
