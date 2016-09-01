@@ -15,6 +15,14 @@ statement : command_statement
 command_statement : command element_list end ($@, $0, $1)
                   ;
 
+lexical_statement : literal define regular description end ($@, $0, $2, $3)
+                  | literal define regular end ($@, $0, $2)
+                  ;
+
+description : skip
+            | newline
+            ;
+
 reduction_statement : name reduce derivation_list end ($@, $0, $2)
                     ;
 
