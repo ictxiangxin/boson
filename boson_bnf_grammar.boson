@@ -10,21 +10,20 @@ grammar : grammar statement
 statement : command_statement
           | lexical_statement
           | reduction_statement
+          | code_statement
           ;
 
 command_statement : command element_list end ($@, $0, $1)
                   ;
 
-lexical_statement : literal define regular description end ($@, $0, $2, $3)
-                  | literal define regular end ($@, $0, $2)
+lexical_statement : name define string description end ($@, $0, $2, $3)
+                  | name define string end ($@, $0, $2)
                   ;
-
-description : skip
-            | newline
-            ;
 
 reduction_statement : name reduce derivation_list end ($@, $0, $2)
                     ;
+
+code_statement : section code;
 
 derivation_list : derivation_list or derivation ($@, $0, $2)
                 | derivation
@@ -32,6 +31,8 @@ derivation_list : derivation_list or derivation ($@, $0, $2)
 
 derivation : derivation_body grammar_tuple
            | derivation_body
+           | derivation_body grammar_tuple code
+           | derivation_body code
            ;
 
 derivation_body : element_list
@@ -51,5 +52,5 @@ element_list : element_list element
              ;
 
 element : name
-        | literal
+        | string
         ;
