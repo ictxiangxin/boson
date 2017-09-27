@@ -30,7 +30,7 @@ def bs_reduce_information(sentence_list, non_terminal_index):
             reduce_symbol_sum.append(0)
         else:
             reduce_symbol_sum.append(len(sentence) - 1)
-            reduce_to_non_terminal_index.append(non_terminal_index[sentence[0]])
+        reduce_to_non_terminal_index.append(non_terminal_index[sentence[0]])
     return reduce_symbol_sum[1:], reduce_to_non_terminal_index[1:]
 
 

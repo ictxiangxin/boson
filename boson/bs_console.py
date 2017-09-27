@@ -21,11 +21,12 @@ grammar_generate_table = {
 def welcome():
     print("%s - %s" % (configure.boson_title, configure.boson_description), flush=True)
     print("    Author: %s" % configure.boson_author, flush=True)
-    print("    Email:  %s" % configure.boson_author_email, flush=True)
+    print("    Email:  %s" % configure.boson_email, flush=True)
+    print("    Site:   %s" % configure.boson_url, flush=True)
     print(flush=True)
 
 
-def boson_main():
+def console_main():
     parse = argparse.ArgumentParser(description="%s - %s" % (configure.boson_title, configure.boson_description),
                                     formatter_class=RawTextHelpFormatter)
     parse.add_argument("grammar_file",

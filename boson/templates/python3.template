@@ -97,17 +97,17 @@ class {{ analyzer_class_name }}:
                 grammar.error_index = token_index
                 return grammar
             elif operation_flag == "{{ table_sign_shift }}":
-                operation_number = int(operation[1:])
-                analysis_stack.append(operation_number)
+                state_number = int(operation[1:])
+                analysis_stack.append(state_number)
                 token_index += 1
                 symbol_stack.append(token.text)
             elif operation_flag == "{{ table_sign_reduce }}":
-                operation_number = int(operation[1:])
-                reduce_sum = self.__reduce_symbol_sum[operation_number]
+                statement_index = int(operation[1:]) - 1
+                reduce_sum = self.__reduce_symbol_sum[statement_index]
                 for _ in range(reduce_sum):
                     analysis_stack.pop()
                 current_state = analysis_stack[-1]
-                current_non_terminal_index = self.__reduce_to_non_terminal_index[operation_number]
+                current_non_terminal_index = self.__reduce_to_non_terminal_index[statement_index]
                 goto_next_state = self.__goto_table[current_state][current_non_terminal_index]
                 if goto_next_state == -1:
                     raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (current_state, current_non_terminal_index))
@@ -115,9 +115,9 @@ class {{ analyzer_class_name }}:
                 {%- for sentence, grammar_tuple in grammar_tuple_map.items() %}
                 {%- set reduce_number = sentence_list.index(sentence) %}
                 {%- if loop.first %}
-                if operation_number == {{ reduce_number }}:
+                if statement_index == {{ reduce_number }}:
                 {%- else %}
-                elif operation_number == {{ reduce_number }}:
+                elif statement_index == {{ reduce_number }}:
                 {%- endif %}
                     temp_grammar_tuple_list = []
                     real_temp_grammar_tuple_list = []
@@ -155,18 +155,18 @@ class {{ analyzer_class_name }}:
                 {%- endfor %}
                 {%- if have_default_reduce_tuple %}
                 {%- if no_special_generate %}
-                if operation_number in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
+                if statement_index in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
                 {%- else %}
-                elif operation_number in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
+                elif statement_index in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
                 {%- endif %}
                     temp_grammar_tuple_list = []
                     for _ in range(reduce_sum):
                         temp_grammar_tuple_list.insert(0, symbol_stack.pop())
-                    temp_grammar_tuple_list.insert(0, operation_number)
+                    temp_grammar_tuple_list.insert(0, statement_index)
                     symbol_stack.append(tuple(temp_grammar_tuple_list))
                 {%- endif %}
                 else:
-                    raise Exception("Invalid reduce number: reduce=%d" % operation_number)
+                    raise Exception("Invalid reduce number: reduce=%d" % statement_index)
             elif operation_flag == "{{ table_sign_accept }}":
                 grammar.grammar_tree = symbol_stack[0]
                 return grammar

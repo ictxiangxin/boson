@@ -12,7 +12,7 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
         "title": configure.boson_title,
         "description": configure.boson_description,
         "author": configure.boson_author,
-        "email": configure.boson_author_email,
+        "email": configure.boson_email,
         "table_sign_error": configure.boson_table_sign_error,
         "table_sign_shift": configure.boson_table_sign_shift,
         "table_sign_reduce": configure.boson_table_sign_reduce,

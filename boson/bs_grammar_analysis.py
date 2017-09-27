@@ -34,26 +34,23 @@ class LexicalToken:
 
     line = property(get_line, set_line)
 
+
 token_tuple = [
-    ("name",        r"[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("reduce",      r"\:"),
-    ("or",          r"\|"),
-    ("comma",       r"\,"),
-    ("bracket_l",   r"\("),
-    ("bracket_r",   r"\)"),
-    ("node",        r"\$[0-9]+\*{0,1}|\$\@|\$\$"),
-    ("string",      r"\'.*?[^\\]\'|\".*?[^\\]\""),
-    ("null",        r"~"),
-    ("comment",     r"#[^\r\n]*"),
-    ("command",     r"%[_a-zA-Z]+"),
-    ("end",         r"\;"),
-    ("skip",        r"[ \t]+"),
-    ("define",      r":="),
-    ("description", r"\!newline|\!skip"),
-    ("code",        r"\{\%.*?\%\}"),
-    ("section",     r"\@[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("newline",     r"\n|\r\n"),
-    ("invalid",     r"."),
+    ("name",      r"[_a-zA-Z][_a-zA-Z0-9]*"),
+    ("reduce",    r"\:"),
+    ("or",        r"\|"),
+    ("comma",     r"\,"),
+    ("bracket_l", r"\("),
+    ("bracket_r", r"\)"),
+    ("node",      r"\$[0-9]+\*{0,1}|\$\@|\$\$"),
+    ("literal",   r"\'.*?[^\\]\'|\".*?[^\\]\""),
+    ("null",      r"~"),
+    ("comment",   r"#[^\r\n]*"),
+    ("command",   r"%[_a-zA-Z]+"),
+    ("end",       r"\;"),
+    ("skip",      r"[ \t]+"),
+    ("newline",   r"\n|\r\n"),
+    ("invalid",   r"."),
 ]
 
 token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
@@ -109,7 +106,13 @@ class BosonScriptAnalyzer:
         grammar_tuple = grammar_tree[1:]
         grammar_tuple = tuple(map(self.__get_value, grammar_tuple))
         if reduce_number == 0:
-            return grammar_tuple[0]
+            command = grammar_tuple[0]
+            arguments = grammar_tuple[1]
+            literal_command = [command[1:]]
+            for each_name in arguments:
+                literal_command.append(each_name)
+            self.__command_list.append(literal_command)
+            return None
         elif reduce_number == 1:
             return grammar_tuple[0], None
         elif reduce_number == 2:
@@ -164,18 +167,10 @@ class BosonScriptAnalyzer:
                     self.__grammar_tuple_map[sentence] = grammar_tuple
             return None
         elif reduce_number == 18:
-            command = grammar_tuple[0]
-            arguments = grammar_tuple[1]
-            literal_command = [command[1:]]
-            for each_name in arguments:
-                literal_command.append(each_name)
-            self.__command_list.append(literal_command)
-            return None
+            return grammar_tuple[0]
         elif reduce_number == 19:
             return grammar_tuple[0]
         elif reduce_number == 20:
-            return grammar_tuple[0]
-        elif reduce_number == 21:
             return grammar_tuple[0]
 
     def grammar_analysis(self, token_list):
