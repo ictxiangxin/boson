@@ -20,7 +20,7 @@ def bs_search_index(slr_state, state_kernel):
 
 
 def bs_lalr_generate_dfa(sentence_set):
-    sentence_set.add((configure.boson_augmented_start, configure.option["start_symbol"]))
+    sentence_set.add((configure.boson_augmented_start, configure.option['start_symbol']))
     sentence_postfix_mark = {}
     slr_state, slr_transfer = bs_slr_generate_dfa(sentence_set)
     lr_state, lr_transfer = bs_lr_generate_dfa(sentence_set)

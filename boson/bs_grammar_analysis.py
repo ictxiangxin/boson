@@ -56,26 +56,24 @@ token_tuple = [
 token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
 
 
-def bs_token_list(filename):
-    with open(filename, "r") as fp:
-        text = fp.read()
-        token_list = list()
-        line = 1
-        for one_token in re.finditer(token_regular_expression, text):
-            symbol = one_token.lastgroup
-            text = one_token.group(symbol)
-            if symbol in ["skip", "comment"]:
-                pass
-            elif symbol == "newline":
-                line += 1
-            elif symbol == "invalid":
-                raise RuntimeError("[Line: %d] Invalid token: %s" % (line, text))
-            else:
-                token = LexicalToken()
-                token.symbol = symbol
-                token.text = text
-                token.line = line
-                token_list.append(token)
+def bs_token_list(text: str):
+    token_list = list()
+    line = 1
+    for one_token in re.finditer(token_regular_expression, text):
+        symbol = one_token.lastgroup
+        text = one_token.group(symbol)
+        if symbol in ["skip", "comment"]:
+            pass
+        elif symbol == "newline":
+            line += 1
+        elif symbol == "invalid":
+            raise RuntimeError("[Line: %d] Invalid token: %s" % (line, text))
+        else:
+            token = LexicalToken()
+            token.symbol = symbol
+            token.text = text
+            token.line = line
+            token_list.append(token)
     token = LexicalToken()
     token.symbol = configure.end_symbol
     token.text = ""

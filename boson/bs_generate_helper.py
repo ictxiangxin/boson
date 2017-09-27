@@ -40,7 +40,7 @@ def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_in
     for state, move_map in dfa_move.items():
         for element, next_state in move_map.items():
             if element in terminal_index:
-                action_table[state][terminal_index[element]] = "%s%d" % (configure.boson_table_sign_shift, next_state)
+                action_table[state][terminal_index[element]] = '{}{}'.format(configure.boson_table_sign_shift, next_state)
             else:
                 goto_table[state][non_terminal_index[element]] = next_state
     conflict_list = []
@@ -58,13 +58,13 @@ def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_in
                         elif old_sign == configure.boson_table_sign_shift:
                             conflict_list.append((state_index, configure.boson_conflict_shift_reduce, terminal))
                         else:
-                            raise Exception("Invalid action: %s" % action_table[state_index][terminal_index[terminal]])
-                        action_table[state_index][terminal_index[terminal]] += "/%s%d" % (configure.boson_table_sign_reduce, reduce_number)
+                            raise ValueError('Invalid action: {}'.format(action_table[state_index][terminal_index[terminal]]))
+                        action_table[state_index][terminal_index[terminal]] += '/{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
                     else:
                         if reduce_number == 0:
                             action_table[state_index][terminal_index[terminal]] = configure.boson_table_sign_accept
                         else:
-                            action_table[state_index][terminal_index[terminal]] = "%s%d" % (configure.boson_table_sign_reduce, reduce_number)
+                            action_table[state_index][terminal_index[terminal]] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
     return action_table, goto_table, conflict_list
 
 

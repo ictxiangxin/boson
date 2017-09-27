@@ -4,7 +4,7 @@ import boson.bs_configure as configure
 
 
 def bs_lr_generate_dfa(sentence_set):
-    sentence_set.add((configure.boson_augmented_start, configure.option["start_symbol"]))
+    sentence_set.add((configure.boson_augmented_start, configure.option['start_symbol']))
     non_terminal_set = bs_non_terminal_set(sentence_set)
     first_set = bs_non_terminal_first_set(sentence_set)
     non_terminal_closure = {}

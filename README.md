@@ -133,7 +133,7 @@ You can input `boson.py -h` to get the full help.
 use "example/arithmetic_grammar.txt" to generate "example/arithmetic_grammar_code.py":
 
 ```
-boson.py example/arithmetic_grammar.txt -a SLR -l Python -o example/arithmetic_grammar_code.py
+> boson example/arithmetic_grammar.txt -a SLR -l Python -o example/arithmetic_grammar_code.py
 ```
 
 ### Use boson as library
