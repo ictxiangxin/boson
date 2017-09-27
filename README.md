@@ -1,10 +1,10 @@
-#Boson  - grammar analyzer generator
+# Boson  - grammar analyzer generator
 
 [![Build Status](https://travis-ci.org/ictxiangxin/boson.svg?branch=master)](https://travis-ci.org/ictxiangxin/boson)
 
 [![Join the chat at https://gitter.im/ictxiangxin/ict-boson](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ictxiangxin/ict-boson?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-v0.5
+v0.8
 
 Boson can use production sentences given by the user to generate grammar analyzer code.
 
@@ -12,7 +12,7 @@ Boson can use production sentences given by the user to generate grammar analyze
 
 * * *
 
-##How to install boson?
+## How to install boson?
 
 You just need download the ZIP file, and unZIP it, type the command:
  `python3 setup.py install` or `sudo python3 setup.py install`
@@ -23,7 +23,7 @@ Or Clone it from Github:
 
 * * *
 
-##Usage
+## Usage
 
 Boson read file contains a set of productions, and each production form is:
 
@@ -99,7 +99,7 @@ The command can be: `start_symbol`, `analyzer_class_name`, `grammar_class_name`
 
 > You can consult the example at "example/arithmetic_grammar.txt"
 
-###Easy to use
+### Easy to use
 
 > Use boson.py to generate code.
 
@@ -128,7 +128,7 @@ boson.py [grammar file]
 
 You can input `boson.py -h` to get the full help.
 
-####Example
+#### Example
 
 use "example/arithmetic_grammar.txt" to generate "example/arithmetic_grammar_code.py":
 
@@ -136,7 +136,7 @@ use "example/arithmetic_grammar.txt" to generate "example/arithmetic_grammar_cod
 boson.py example/arithmetic_grammar.txt -a SLR -l Python -o example/arithmetic_grammar_code.py
 ```
 
-###Use boson as library
+### Use boson as library
 
 You can use boson as library, just import boson code file.
 
@@ -154,7 +154,7 @@ Example:
     >>> print(code)
 ```
 
-####Parse grammar file
+#### Parse grammar file
 
 "bs_grammar_analysis.py" file contains functions are used to parse grammar file.
 
@@ -187,7 +187,7 @@ class GrammarPackage:
 Now, the final result of "bs_grammar_analysis.py" is data_package, which contains many things used by generator
  and analyzer.
 
-####Generate analyzer table
+#### Generate analyzer table
 
 Use sentence list to generate analyzer table, just import corresponding generator file of one analyzer type.
 
@@ -200,7 +200,7 @@ It returns a tuple, which contains these tables.
 tables_tuple = bs_slr_generate_table(sentence_list)
 ```
 
-####Generate analyzer code
+#### Generate analyzer code
 
 All code generator use analyzer table to generate code of grammar analyzer.
 
@@ -208,7 +208,7 @@ All code generator use analyzer table to generate code of grammar analyzer.
 
 Each generator is a function, now, I am already finished Python3 code generator, and it definition is:
 
-#####Python3 code generator definition
+##### Python3 code generator definition
 
 `bs_generate_python3_code(analyzer_table: AnalyzerTable, grammar_package: GrammarPackage)`
 
@@ -216,7 +216,7 @@ Each generator is a function, now, I am already finished Python3 code generator,
 
 **grammar_package** is a class contains reduce code, literal and many other things.
 
-##Reference
+## Reference
 
 Boson can generate SLR, LR, LALR analyzer.
 
@@ -240,7 +240,7 @@ class AnalyzerTable:
         self.conflict_list = None
 ```
 
-###SLR - Simple LR
+### SLR - Simple LR
 
 SLR in boson means SLR(1), it is fast and simple, but it only can recognize a few grammars.
 
@@ -250,7 +250,7 @@ SLR in boson means SLR(1), it is fast and simple, but it only can recognize a fe
 
 `bs_slr_generate_table(sentence_set)` function can generate SLR table.
 
-###LR - canonical LR
+### LR - canonical LR
 
 LR in boson means LR(1), it is slower than SLR, but can recognize more grammar. And its table will bigger than SLR.
 
@@ -260,7 +260,7 @@ LR in boson means LR(1), it is slower than SLR, but can recognize more grammar. 
 
 `bs_lr_generate_table(sentence_set)` function can generate LR table.
 
-###LALR - Look-Ahead LR
+### LALR - Look-Ahead LR
 
 LALR in boson means LALR(1), it is slow like LR, and can recognize more grammar than SLR, but less than LR.
 The feature is that its table size is the same as SLR.
@@ -273,7 +273,7 @@ The feature is that its table size is the same as SLR.
 
 * * *
 
-##Author
+## Author
 
 Author: ict
 

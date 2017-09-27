@@ -116,7 +116,16 @@ class BosonScriptAnalyzer:
         elif reduce_number == 1:
             return grammar_tuple[0], None
         elif reduce_number == 2:
-            return grammar_tuple
+            node_list = []
+            for node_text in grammar_tuple[1]:
+                if node_text[-1] == '*':
+                    node_list.append('u' + node_text[:-1])
+                else:
+                    if node_text.isdigit():
+                        node_list.append('p' + node_text)
+                    else:
+                        node_list.append(node_text)
+            return grammar_tuple[0], node_list
         elif reduce_number == 3:
             return grammar_tuple[0]
         elif reduce_number == 4:

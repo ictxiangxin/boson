@@ -70,6 +70,15 @@ class {{ analyzer_class_name }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
+        self.__node_table = {
+            {%- for sentence, grammar_tuple in grammar_tuple_map.items() %}
+            {{ sentence_list.index(sentence) }}: [{%- for node in grammar_tuple -%}
+                                  '{{ node }}'
+                                  {%- if not loop.last %}, {% endif -%}
+                                  {%- endfor -%}]
+                                  {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
         self.__reduce_symbol_sum = [
                                     {%- for index in reduce_symbol_sum -%}
                                     {{ index }}
@@ -110,54 +119,32 @@ class {{ analyzer_class_name }}:
                 current_non_terminal_index = self.__reduce_to_non_terminal_index[statement_index]
                 goto_next_state = self.__goto_table[current_state][current_non_terminal_index]
                 if goto_next_state == -1:
-                    raise Exception("Invalid goto action: state=%d, non-terminal=%d" % (current_state, current_non_terminal_index))
+                    raise ValueError("Invalid goto action: state={}, non-terminal={}".format(current_state, current_non_terminal_index))
                 analysis_stack.append(goto_next_state)
-                {%- for sentence, grammar_tuple in grammar_tuple_map.items() %}
-                {%- set reduce_number = sentence_list.index(sentence) %}
-                {%- if loop.first %}
-                if statement_index == {{ reduce_number }}:
-                {%- else %}
-                elif statement_index == {{ reduce_number }}:
-                {%- endif %}
+                {%- if have_special_generate %}
+                if statement_index in self.__node_table:
                     temp_grammar_tuple_list = []
                     real_temp_grammar_tuple_list = []
                     for _ in range(reduce_sum):
                         temp_grammar_tuple_list.insert(0, symbol_stack.pop())
-                    for i in [
-                              {%- for node in grammar_tuple -%}
-                              {%- if node.isdigit() %}{{ node }}{% elif node[-1] == "*" %}{{ node[:-1] }}.0{% else %}"{{ node }}"{% endif -%}
-                              {%- if not loop.last %}, {% endif -%}
-                              {%- endfor -%}
-                             ]:
-                        {%- if "@" in grammar_tuple or "$" in grammar_tuple %}
-                        {%- if "@" in grammar_tuple %}
+                    for i in self.__node_table[statement_index]:
                         if i == "@":
-                            real_temp_grammar_tuple_list.append({{ reduce_number }})
-                        el
-                        {%- endif -%}
-                        {%- if "$" in grammar_tuple %}
-                        if i == "$":
-                            real_temp_grammar_tuple_list.append("${{ sentence[0] }}")
-                        el
-                        {%- endif -%}
-                        se:
-                            if isinstance(i, float):
-                                real_temp_grammar_tuple_list += temp_grammar_tuple_list[int(i)]
-                            else:
-                                real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
-                        {%- else %}
-                        if isinstance(i, float):
-                            real_temp_grammar_tuple_list += temp_grammar_tuple_list[int(i)]
+                            real_temp_grammar_tuple_list.append(statement_index)
                         else:
-                            real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[i])
-                        {%- endif %}
+                            real_i = int(i[1:])
+                            if i[0] == 'u':
+                                real_temp_grammar_tuple_list += temp_grammar_tuple_list[real_i]
+                            elif i[0] == 'p':
+                                real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[real_i])
+                            else:
+                                ValueError('Invalid node type: node={}'.format(i))
                     symbol_stack.append(tuple(real_temp_grammar_tuple_list))
-                {%- endfor %}
+                {%- endif %}
                 {%- if have_default_reduce_tuple %}
-                {%- if no_special_generate %}
-                if statement_index in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
-                {%- else %}
+                {%- if have_special_generate %}
                 elif statement_index in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
+                {%- else %}
+                if statement_index in [{{ ", ".join(none_grammar_tuple_reduce) }}]:
                 {%- endif %}
                     temp_grammar_tuple_list = []
                     for _ in range(reduce_sum):
@@ -165,12 +152,14 @@ class {{ analyzer_class_name }}:
                     temp_grammar_tuple_list.insert(0, statement_index)
                     symbol_stack.append(tuple(temp_grammar_tuple_list))
                 {%- endif %}
+                {%- if have_special_generate and have_default_reduce_tuple %}
                 else:
-                    raise Exception("Invalid reduce number: reduce=%d" % statement_index)
+                    raise ValueError("Invalid reduce number: reduce={}".format(statement_index))
+                {%- endif %}
             elif operation_flag == "{{ table_sign_accept }}":
                 grammar.grammar_tree = symbol_stack[0]
                 return grammar
             else:
-                raise Exception("Invalid action: action=%s." % operation)
-        raise Exception("Analyzer unusual exit.")
+                raise ValueError("Invalid action: action={}".format(operation))
+        raise RuntimeError("Analyzer unusual exit.")
 

@@ -30,7 +30,7 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
         "literal_reverse_map": grammar_package.literal_reverse_map,
         "none_grammar_tuple_reduce": none_grammar_tuple_reduce,
         "have_default_reduce_tuple": len(grammar_package.none_grammar_tuple_set) != 0,
-        "no_special_generate": len(grammar_package.grammar_tuple_map) == 0,
+        "have_special_generate": len(grammar_package.grammar_tuple_map) != 0,
     }
     environment = jinja2.Environment(loader=jinja2.PackageLoader(configure.boson_package_name, configure.boson_template_directory))
     template = environment.get_template(language + configure.boson_template_postfix)
