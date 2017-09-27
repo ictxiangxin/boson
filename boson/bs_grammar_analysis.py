@@ -36,24 +36,24 @@ class LexicalToken:
 
 
 token_tuple = [
-    ("name",      r"[_a-zA-Z][_a-zA-Z0-9]*"),
-    ("reduce",    r"\:"),
-    ("or",        r"\|"),
-    ("comma",     r"\,"),
-    ("bracket_l", r"\("),
-    ("bracket_r", r"\)"),
-    ("node",      r"\$[0-9]+\*{0,1}|\$\@|\$\$"),
-    ("literal",   r"\'.*?[^\\]\'|\".*?[^\\]\""),
-    ("null",      r"~"),
-    ("comment",   r"#[^\r\n]*"),
-    ("command",   r"%[_a-zA-Z]+"),
-    ("end",       r"\;"),
-    ("skip",      r"[ \t]+"),
-    ("newline",   r"\n|\r\n"),
-    ("invalid",   r"."),
+    ('name',      r'[_a-zA-Z][_a-zA-Z0-9]*'),
+    ('reduce',    r'\:'),
+    ('or',        r'\|'),
+    ('comma',     r'\,'),
+    ('bracket_l', r'\('),
+    ('bracket_r', r'\)'),
+    ('node',      r'\$[0-9]+\*{0,1}|\$\@|\$\$'),
+    ('literal',   r'\'.*?[^\\]\'|\".*?[^\\]\"'),
+    ('null',      r'~'),
+    ('comment',   r'#[^\r\n]*'),
+    ('command',   r'%[_a-zA-Z]+'),
+    ('end',       r'\;'),
+    ('skip',      r'[ \t]+'),
+    ('newline',   r'\n|\r\n'),
+    ('invalid',   r'.'),
 ]
 
-token_regular_expression = "|".join("(?P<%s>%s)" % pair for pair in token_tuple)
+token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
 
 
 def bs_token_list(text: str):
@@ -62,12 +62,12 @@ def bs_token_list(text: str):
     for one_token in re.finditer(token_regular_expression, text):
         symbol = one_token.lastgroup
         text = one_token.group(symbol)
-        if symbol in ["skip", "comment"]:
+        if symbol in ['skip', 'comment']:
             pass
-        elif symbol == "newline":
+        elif symbol == 'newline':
             line += 1
-        elif symbol == "invalid":
-            raise RuntimeError("[Line: %d] Invalid token: %s" % (line, text))
+        elif symbol == 'invalid':
+            raise RuntimeError('[Line: {}] Invalid token: {}'.format(line, text))
         else:
             token = LexicalToken()
             token.symbol = symbol
@@ -76,7 +76,7 @@ def bs_token_list(text: str):
             token_list.append(token)
     token = LexicalToken()
     token.symbol = configure.end_symbol
-    token.text = ""
+    token.text = ''
     token.line = line
     token_list.append(token)
     return token_list
@@ -202,10 +202,10 @@ class BosonScriptAnalyzer:
                     break
             offset = grammar.error_index - start_index
             error_token_list = token_list[start_index + 1: end_index]
-            error_message = "\nGrammar Error [Line: %d] \n" % error_line
+            error_message = '\nGrammar Error [Line: {}] \n'.format(error_line)
             error_token_text_list = [token.text for token in error_token_list]
-            error_message += "%s\n" % (" ".join(error_token_text_list))
-            error_message += " " * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + "^" * len(error_token_text_list[offset])
+            error_message += '{}\n'.format(' '.join(error_token_text_list))
+            error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise Exception(error_message)
 
     def semantic_analysis(self, grammar_tree):
@@ -226,8 +226,8 @@ class BosonScriptAnalyzer:
         return grammar_package
 
 
-def bs_grammar_analysis(filename):
-    token_list = bs_token_list(filename)
+def bs_grammar_analysis(text: str):
+    token_list = bs_token_list(text)
     script_analyzer = BosonScriptAnalyzer()
     grammar_package = script_analyzer.parse(token_list)
     return grammar_package
