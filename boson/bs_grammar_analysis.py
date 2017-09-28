@@ -75,7 +75,7 @@ def bs_token_list(text: str):
             token.line = line
             token_list.append(token)
     token = LexicalToken()
-    token.symbol = configure.end_symbol
+    token.symbol = configure.boson_end_symbol
     token.text = ''
     token.line = line
     token_list.append(token)
@@ -127,9 +127,9 @@ class BosonScriptAnalyzer:
         elif reduce_number == 3:
             return grammar_tuple[0]
         elif reduce_number == 4:
-            return [configure.null_symbol]
+            return [configure.boson_null_symbol]
         elif reduce_number == 5:
-            return [configure.null_symbol]
+            return [configure.boson_null_symbol]
         elif reduce_number == 6:
             return [grammar_tuple[0]]
         elif reduce_number == 7:
@@ -140,7 +140,7 @@ class BosonScriptAnalyzer:
             if literal_string in self.__literal_map:
                 literal_symbol = self.__literal_map[literal_string]
             else:
-                literal_symbol = configure.literal_template % self.__literal_number
+                literal_symbol = configure.boson_literal_template.format(self.__literal_number)
                 self.__literal_number += 1
                 self.__literal_map[literal_string] = literal_symbol
                 self.__literal_reverse_map[literal_symbol] = literal_string
@@ -200,13 +200,13 @@ class BosonScriptAnalyzer:
                     continue
                 else:
                     break
-            offset = grammar.error_index - start_index
+            offset = grammar.error_index - start_index - 1
             error_token_list = token_list[start_index + 1: end_index]
             error_message = '\nGrammar Error [Line: {}] \n'.format(error_line)
             error_token_text_list = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
-            raise Exception(error_message)
+            raise ValueError(error_message)
 
     def semantic_analysis(self, grammar_tree):
         self.__init__()

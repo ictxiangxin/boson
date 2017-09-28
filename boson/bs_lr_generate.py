@@ -4,7 +4,7 @@ import boson.bs_configure as configure
 
 
 def bs_lr_generate_dfa(sentence_set):
-    sentence_set.add((configure.boson_augmented_start, configure.option['start_symbol']))
+    sentence_set.add((configure.boson_augmented_start, configure.boson_option['start_symbol']))
     non_terminal_set = bs_non_terminal_set(sentence_set)
     first_set = bs_non_terminal_first_set(sentence_set)
     non_terminal_closure = {}
@@ -12,14 +12,14 @@ def bs_lr_generate_dfa(sentence_set):
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     first_flag_sentence_list = []
     for sentence in non_terminal_closure[configure.boson_augmented_start]:
-        if sentence[-1] == configure.null_symbol:
+        if sentence[-1] == configure.boson_null_symbol:
             first_flag_sentence_list.append((sentence, 2))
         else:
             first_flag_sentence_list.append((sentence, 1))
     for flag_sentence_index in range(len(first_flag_sentence_list)):
         flag_sentence = first_flag_sentence_list[flag_sentence_index]
         if flag_sentence[0][0] == configure.boson_augmented_start:
-            first_flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset({configure.end_symbol})), flag_sentence[1])
+            first_flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset({configure.boson_end_symbol})), flag_sentence[1])
     first_flag_sentence_set = bs_mark_postfix(first_flag_sentence_list, non_terminal_set, first_set)
     state_list = [frozenset(first_flag_sentence_set)]
     state_transfer = {}
@@ -47,7 +47,7 @@ def bs_lr_generate_dfa(sentence_set):
                         temp_closure = non_terminal_closure[move_postfix_sentence[0][move_index]]
                         temp_closure_set = set()
                         for temp_sentence in temp_closure:
-                            if temp_sentence[-1] == configure.null_symbol:
+                            if temp_sentence[-1] == configure.boson_null_symbol:
                                 temp_closure_set.add((temp_sentence, 2))
                             else:
                                 temp_closure_set.add((temp_sentence, 1))

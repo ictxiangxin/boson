@@ -49,6 +49,8 @@ def console_main():
                        help='Report conflict when create grammar analyzer.')
     parse.add_argument('-f', '--force', action='store_true',
                        help='Force generate code when exist conflict.')
+    parse.add_argument('-s', '--sparse', action='store_true',
+                       help='Use sparse analyzer tables.')
     arguments = parse.parse_args()
     welcome()
     source_file = None
@@ -88,7 +90,7 @@ def console_main():
                 output_file = sys.stdout
             print('    Generate analyzer {} code... '.format(arguments.code.upper()), end='', flush=True)
             start_time = time.time()
-            text = bs_generate_code(arguments.code, analyzer_table, grammar_package)
+            text = bs_generate_code(arguments.code, analyzer_table, grammar_package, arguments.sparse)
             end_time = time.time()
             print('Done [{:.4f}s]'.format(end_time - start_time), flush=True)
             global_end_time = time.time()
@@ -99,12 +101,13 @@ def console_main():
         else:
             raise Exception('Invalid file type: {}'.format(arguments.type))
     except Exception as e:
-        print('\n[ERROR] {}'.format(e), file=sys.stderr, flush=True)
-        if arguments.output is not None:
+        print('\n\n[Error] {}'.format(e), file=sys.stderr, flush=True)
+        if arguments.output is not None and output_file is not None:
             output_file.close()
             if os.path.exists(arguments.output) or not output_file_exist:
                 os.remove(arguments.output)
     finally:
-        source_file.close()
-        if arguments.output is not None:
+        if source_file is not None:
+            source_file.close()
+        if arguments.output is not None and output_file is not None:
             output_file.close()

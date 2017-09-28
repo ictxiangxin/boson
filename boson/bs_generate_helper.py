@@ -26,7 +26,7 @@ def bs_reduce_information(sentence_list, non_terminal_index):
     reduce_symbol_sum = []
     reduce_to_non_terminal_index = []
     for sentence in sentence_list:
-        if sentence[-1] == configure.null_symbol:
+        if sentence[-1] == configure.boson_null_symbol:
             reduce_symbol_sum.append(0)
         else:
             reduce_symbol_sum.append(len(sentence) - 1)
@@ -73,7 +73,7 @@ def bs_generate_table(sentence_set, dfa_state, dfa_move):
     non_terminal_set = bs_non_terminal_set(sentence_set)
     terminal_set = bs_terminal_set(sentence_set, non_terminal_set)
     non_terminal_index = bs_numbering_element(non_terminal_set)
-    terminal_index = bs_numbering_element(terminal_set | {configure.end_symbol})
+    terminal_index = bs_numbering_element(terminal_set | {configure.boson_end_symbol})
     reduce_symbol_sum, reduce_to_non_terminal_index = bs_reduce_information(sentence_list, non_terminal_index)
     action_table, goto_table, conflict_list = bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_index, dfa_state, dfa_move)
     analyzer_table = AnalyzerTable()

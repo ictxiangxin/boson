@@ -4,7 +4,7 @@ import boson.bs_configure as configure
 
 
 def bs_slr_generate_dfa(sentence_set):
-    sentence_set.add((configure.boson_augmented_start, configure.option['start_symbol']))
+    sentence_set.add((configure.boson_augmented_start, configure.boson_option['start_symbol']))
     non_terminal_set = bs_non_terminal_set(sentence_set)
     follow_set = bs_non_terminal_follow_set(sentence_set)
     non_terminal_closure = {}
@@ -12,7 +12,7 @@ def bs_slr_generate_dfa(sentence_set):
         non_terminal_closure[non_terminal] = bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set)
     first_flag_sentence_set = []
     for sentence in non_terminal_closure[configure.boson_augmented_start]:
-        if sentence[-1] == configure.null_symbol:
+        if sentence[-1] == configure.boson_null_symbol:
             first_flag_sentence_set.append(((sentence, frozenset(follow_set[sentence[0]])), 2))
         else:
             first_flag_sentence_set.append(((sentence, frozenset(follow_set[sentence[0]])), 1))
@@ -42,7 +42,7 @@ def bs_slr_generate_dfa(sentence_set):
                         temp_closure = non_terminal_closure[move_postfix_sentence[0][move_index]]
                         temp_closure_set = set()
                         for temp_sentence in temp_closure:
-                            if temp_sentence[-1] == configure.null_symbol:
+                            if temp_sentence[-1] == configure.boson_null_symbol:
                                 temp_closure_set.add(((temp_sentence, frozenset(follow_set[temp_sentence[0]])), 2))
                             else:
                                 temp_closure_set.add(((temp_sentence, frozenset(follow_set[temp_sentence[0]])), 1))
