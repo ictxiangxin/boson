@@ -36,7 +36,7 @@ def bs_reduce_information(sentence_list, non_terminal_index):
 
 def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_index, dfa_state, dfa_move):
     action_table = [[configure.boson_table_sign_error] * (len(terminal_index) + 1) for _ in range(len(dfa_state))]
-    goto_table = [[-1] * len(non_terminal_index) for _ in range(len(dfa_state))]
+    goto_table = [[configure.boson_invalid_goto] * len(non_terminal_index) for _ in range(len(dfa_state))]
     for state, move_map in dfa_move.items():
         for element, next_state in move_map.items():
             if element in terminal_index:
