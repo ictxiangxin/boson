@@ -98,11 +98,7 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
         {%- endif %}
         self.__node_table = {
             {%- for sentence, grammar_tuple in grammar_package.grammar_tuple_map.items() %}
-            {{ analyzer_table.sentence_list.index(sentence) }}: [{%- for node in grammar_tuple -%}
-                                  '{{ node }}'
-                                  {%- if not loop.last %}, {% endif -%}
-                                  {%- endfor -%}]
-                                  {%- if not loop.last %},{% endif -%}
+            {{ analyzer_table.sentence_list.index(sentence) }}: {{ grammar_tuple }}{%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         self.__reduce_symbol_sum = [
@@ -117,6 +113,35 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
                                                {%- if not loop.last %}, {% endif -%}
                                                {%- endfor -%}
                                               ]
+
+    def __generate_grammar_tuple(self, statement_index, symbol_package):
+        grammar_tuple_list = []
+        if isinstance(statement_index, int):
+            node_tuple = self.__node_table[statement_index]
+        else:
+            node_tuple = statement_index
+            statement_index = -1
+        for i in node_tuple:
+            if isinstance(i, str):
+                if i == '$':
+                    grammar_tuple_list.append(statement_index)
+                elif i == '?':
+                    grammar_tuple_list += symbol_package
+                else:
+                    if symbol_package:
+                        if i[0] == '*':
+                            grammar_tuple_list += symbol_package[int(i[1:])]
+                        else:
+                            grammar_tuple_list.append(symbol_package[int(i)])
+            else:
+                if symbol_package:
+                    if i[0][0] == '*':
+                        for sub_symbol_package in symbol_package[int(i[0][1:])]:
+                            grammar_tuple_list += self.__generate_grammar_tuple(i[1], sub_symbol_package)
+                    else:
+                        for sub_symbol_package in symbol_package[int(i[0])]:
+                            grammar_tuple_list.append(self.__generate_grammar_tuple(i[1], sub_symbol_package))
+        return tuple(grammar_tuple_list)
 
     def grammar_analysis(self, token_list):
         grammar = {{ configure.boson_option['grammar_class_name'] }}()
@@ -157,22 +182,10 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
                 analysis_stack.append(goto_next_state)
                 {%- if have_special_generate %}
                 if statement_index in self.__node_table:
-                    temp_grammar_tuple_list = []
-                    real_temp_grammar_tuple_list = []
+                    symbol_package = []
                     for _ in range(reduce_sum):
-                        temp_grammar_tuple_list.insert(0, symbol_stack.pop())
-                    for i in self.__node_table[statement_index]:
-                        if i == '@':
-                            real_temp_grammar_tuple_list.append(statement_index)
-                        else:
-                            real_i = int(i[1:])
-                            if i[0] == 'u':
-                                real_temp_grammar_tuple_list += temp_grammar_tuple_list[real_i]
-                            elif i[0] == 'p':
-                                real_temp_grammar_tuple_list.append(temp_grammar_tuple_list[real_i])
-                            else:
-                                ValueError('Invalid node type: node={}'.format(i))
-                    symbol_stack.append(tuple(real_temp_grammar_tuple_list))
+                        symbol_package.insert(0, symbol_stack.pop())
+                    symbol_stack.append(self.__generate_grammar_tuple(statement_index, symbol_package))
                 {%- endif %}
                 {%- if have_default_reduce_tuple %}
                 {%- if have_special_generate %}

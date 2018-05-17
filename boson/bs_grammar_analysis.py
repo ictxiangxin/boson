@@ -36,27 +36,32 @@ class LexicalToken:
 
 
 token_tuple = [
-    ('name',      r'[_a-zA-Z][_a-zA-Z0-9]*'),
-    ('reduce',    r'\:'),
-    ('or',        r'\|'),
-    ('comma',     r'\,'),
-    ('bracket_l', r'\('),
-    ('bracket_r', r'\)'),
-    ('node',      r'\$[0-9]+\*{0,1}|\$\@|\$\$'),
-    ('literal',   r'\'.*?[^\\]\'|\".*?[^\\]\"'),
-    ('null',      r'~'),
-    ('comment',   r'#[^\r\n]*'),
-    ('command',   r'%[_a-zA-Z]+'),
-    ('end',       r'\;'),
-    ('skip',      r'[ \t]+'),
-    ('newline',   r'\n|\r\n'),
-    ('invalid',   r'.'),
+    ('name',          r'[_a-zA-Z][_a-zA-Z0-9]*'),
+    ('reduce',        r'\:'),
+    ('or',            r'\|'),
+    ('comma',         r'\,'),
+    ('assign',        r'\='),
+    ('plus',          r'\+'),
+    ('star',          r'\*'),
+    ('parentheses_l', r'\('),
+    ('parentheses_r', r'\)'),
+    ('bracket_l',     r'\['),
+    ('bracket_r',     r'\]'),
+    ('node',          r'\$[0-9]+\*{0,1}|\$\@|\$\$|\$\?'),
+    ('literal',       r'\'.*?[^\\]\'|\".*?[^\\]\"'),
+    ('null',          r'~'),
+    ('comment',       r'#[^\r\n]*'),
+    ('command',       r'%[_a-zA-Z]+'),
+    ('end',           r'\;'),
+    ('skip',          r'[ \t]+'),
+    ('newline',       r'\n|\r\n'),
+    ('invalid',       r'.'),
 ]
 
 token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
 
 
-def bs_token_list(text: str):
+def bs_tokenize(text: str):
     token_list = list()
     line = 1
     for one_token in re.finditer(token_regular_expression, text):
@@ -91,7 +96,10 @@ class BosonScriptAnalyzer:
         self.__command_list = []
         self.__literal_map = {}
         self.__literal_reverse_map = {}
+        self.__grammar_name_map = {}
         self.__literal_number = 1
+        self.__hidden_name_number = 0
+        self.__grammar_number = 0
 
     def __get_value(self, grammar_tree_node):
         if isinstance(grammar_tree_node, tuple) and isinstance(grammar_tree_node[0], int):
@@ -99,11 +107,60 @@ class BosonScriptAnalyzer:
         else:
             return grammar_tree_node
 
+    def __generate_hidden_name(self):
+        hidden_name = '{}{}'.format(configure.boson_hidden_name_prefix, self.__hidden_name_number)
+        self.__hidden_name_number += 1
+        return hidden_name
+
+    def __sentence_add(self, sentence, grammar_tuple=None):
+        self.__sentence_set.add(sentence)
+        if grammar_tuple is None:
+            self.__none_grammar_tuple_set.add(sentence)
+        else:
+            self.__grammar_tuple_map[sentence] = grammar_tuple
+
+    def __add_positive_closure(self, name):
+        hidden_name = self.__generate_hidden_name()
+        self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+        self.__sentence_add((hidden_name, name), ('0',))
+        return hidden_name
+
+    def __add_colin_closure(self, name):
+        hidden_name = self.__generate_hidden_name()
+        self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+        self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+        return hidden_name
+
+    def __add_optional(self, name):
+        hidden_name = self.__generate_hidden_name()
+        self.__sentence_add((hidden_name, name), ('0',))
+        self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+        return hidden_name
+
+    def __add_hidden_derivation(self, derivation):
+        hidden_name = self.__generate_hidden_name()
+        self.__sentence_add((hidden_name,) + tuple(derivation), (configure.boson_grammar_tuple_all,))
+        return hidden_name
+
     def __semantic_analysis(self, grammar_tree):
         reduce_number = grammar_tree[0]
         grammar_tuple = grammar_tree[1:]
         grammar_tuple = tuple(map(self.__get_value, grammar_tuple))
         if reduce_number == 0:
+            return grammar_tuple[0]
+        elif reduce_number == 1:
+            return grammar_tuple[0]
+        elif reduce_number == 2:
+            return [grammar_tuple[0]]
+        elif reduce_number == 3:
+            return grammar_tuple[0] + [grammar_tuple[1]]
+        elif reduce_number == 4:
+            return grammar_tuple[0]
+        elif reduce_number == 5:
+            return grammar_tuple[0]
+        elif reduce_number == 6:
+            return None
+        elif reduce_number == 7:
             command = grammar_tuple[0]
             arguments = grammar_tuple[1]
             literal_command = [command[1:]]
@@ -111,30 +168,38 @@ class BosonScriptAnalyzer:
                 literal_command.append(each_name)
             self.__command_list.append(literal_command)
             return None
-        elif reduce_number == 1:
-            return grammar_tuple[0], None
-        elif reduce_number == 2:
-            node_list = []
-            for node_text in grammar_tuple[1]:
-                if node_text[-1] == '*':
-                    node_list.append('u' + node_text[:-1])
-                else:
-                    if node_text.isdigit():
-                        node_list.append('p' + node_text)
-                    else:
-                        node_list.append(node_text)
-            return grammar_tuple[0], node_list
-        elif reduce_number == 3:
-            return grammar_tuple[0]
-        elif reduce_number == 4:
-            return [configure.boson_null_symbol]
-        elif reduce_number == 5:
-            return [configure.boson_null_symbol]
-        elif reduce_number == 6:
-            return [grammar_tuple[0]]
-        elif reduce_number == 7:
-            return grammar_tuple[0] + [grammar_tuple[1]]
         elif reduce_number == 8:
+            hidden_derivation = self.__add_hidden_derivation(grammar_tuple[0])
+            return self.__add_optional(hidden_derivation)
+        elif reduce_number == 9:
+            if grammar_tuple[1] is None:
+                return self.__add_hidden_derivation(grammar_tuple[0])
+            else:
+                hidden_derivation = self.__add_hidden_derivation(grammar_tuple[0])
+                if grammar_tuple[1] == '+':
+                    hidden_name = self.__add_positive_closure(hidden_derivation)
+                elif grammar_tuple[1] == '*':
+                    hidden_name = self.__add_colin_closure(hidden_derivation)
+                else:
+                    raise ValueError('Invalid closure symbol: {}'.format(grammar_tuple[1]))
+                return hidden_name
+        elif reduce_number == 10:
+            return grammar_tuple[0], None
+        elif reduce_number == 11:
+            return grammar_tuple
+        elif reduce_number == 12:
+            return grammar_tuple[0]
+        elif reduce_number == 13:
+            return [configure.boson_null_symbol]
+        elif reduce_number == 14:
+            return [configure.boson_null_symbol]
+        elif reduce_number == 15:
+            return [grammar_tuple[0]]
+        elif reduce_number == 16:
+            return grammar_tuple[0] + [grammar_tuple[1]]
+        elif reduce_number == 17:
+            return grammar_tuple[0]
+        elif reduce_number == 18:
             literal = grammar_tuple[0]
             literal_string = literal[1: -1]
             if literal_string in self.__literal_map:
@@ -145,23 +210,52 @@ class BosonScriptAnalyzer:
                 self.__literal_map[literal_string] = literal_symbol
                 self.__literal_reverse_map[literal_symbol] = literal_string
             return literal_symbol
-        elif reduce_number == 9:
-            return grammar_tuple[0]
-        elif reduce_number == 10:
+        elif reduce_number == 19:
+            if grammar_tuple[1] is None:
+                return grammar_tuple[0]
+            else:
+                if grammar_tuple[1] == '+':
+                    hidden_name = self.__add_positive_closure(grammar_tuple[0])
+                elif grammar_tuple[1] == '*':
+                    hidden_name = self.__add_colin_closure(grammar_tuple[0])
+                else:
+                    raise ValueError('Invalid closure symbol: {}'.format(grammar_tuple[1]))
+                return hidden_name
+        elif reduce_number == 20:
             return [grammar_tuple[0]]
-        elif reduce_number == 11:
+        elif reduce_number == 21:
             return grammar_tuple[0] + [grammar_tuple[1]]
-        elif reduce_number == 12:
+        elif reduce_number == 22:
+            return grammar_tuple[0] + [grammar_tuple[1]]
+        elif reduce_number == 23:
+            return [grammar_tuple[0]]
+        elif reduce_number == 24:
+            grammar_name = '{}{}'.format(configure.boson_grammar_name_prefix, self.__grammar_number)
+            self.__grammar_number += 1
+            if grammar_name in self.__grammar_name_map:
+                raise ValueError('Grammar name duplicate: {}'.format(grammar_name))
+            self.__grammar_name_map[grammar_name] = grammar_tuple[0]
             return grammar_tuple[0]
-        elif reduce_number == 13:
+        elif reduce_number == 25:
+            if grammar_tuple[0] in self.__grammar_name_map:
+                raise ValueError('Grammar name duplicate: {}'.format(grammar_tuple[0]))
+            self.__grammar_name_map[grammar_tuple[0]] = grammar_tuple[1]
+            return grammar_tuple[1]
+        elif reduce_number == 26:
             return grammar_tuple[0]
-        elif reduce_number == 14:
+        elif reduce_number == 27:
             return grammar_tuple[0]
-        elif reduce_number == 15:
-            return [grammar_tuple[0][1:]]
-        elif reduce_number == 16:
-            return grammar_tuple[0] + [grammar_tuple[1][1:]]
-        elif reduce_number == 17:
+        elif reduce_number == 28:
+            return grammar_tuple[0], tuple(grammar_tuple[1])
+        elif reduce_number == 29:
+            return grammar_tuple[0][1:]
+        elif reduce_number == 30:
+            return '*' + grammar_tuple[1][1:]
+        elif reduce_number == 31:
+            return [grammar_tuple[0]]
+        elif reduce_number == 32:
+            return grammar_tuple[0] + [grammar_tuple[1]]
+        elif reduce_number == 33:
             name = grammar_tuple[0]
             derivation_list = grammar_tuple[1]
             for derivation in derivation_list:
@@ -171,13 +265,11 @@ class BosonScriptAnalyzer:
                 if grammar_tuple is None:
                     self.__none_grammar_tuple_set.add(sentence)
                 else:
-                    self.__grammar_tuple_map[sentence] = grammar_tuple
+                    self.__grammar_tuple_map[sentence] = tuple(grammar_tuple)
             return None
-        elif reduce_number == 18:
+        elif reduce_number == 34:
             return grammar_tuple[0]
-        elif reduce_number == 19:
-            return grammar_tuple[0]
-        elif reduce_number == 20:
+        elif reduce_number == 35:
             return grammar_tuple[0]
 
     def grammar_analysis(self, token_list):
@@ -218,6 +310,7 @@ class BosonScriptAnalyzer:
         grammar_package.none_grammar_tuple_set = self.__none_grammar_tuple_set
         grammar_package.literal_map = self.__literal_map
         grammar_package.literal_reverse_map = self.__literal_reverse_map
+        grammar_package.grammar_name_map = self.__grammar_name_map
         return grammar_package
 
     def parse(self, token_list):
@@ -227,7 +320,7 @@ class BosonScriptAnalyzer:
 
 
 def bs_grammar_analysis(text: str):
-    token_list = bs_token_list(text)
+    token_list = bs_tokenize(text)
     script_analyzer = BosonScriptAnalyzer()
     grammar_package = script_analyzer.parse(token_list)
     return grammar_package

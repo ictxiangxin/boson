@@ -26,7 +26,15 @@ boson_invalid_goto = -1
 boson_conflict_reduce_reduce = 0
 boson_conflict_shift_reduce = 1
 
-boson_augmented_start = '$S$'
+boson_grammar_tuple_prefix = '$'
+boson_grammar_tuple_number = '$'
+boson_grammar_tuple_all = '?'
+boson_grammar_tuple_unpack = '*'
+
+boson_reserved_symbol = '!'
+boson_augmented_start = '{}start'.format(boson_reserved_symbol)
+boson_hidden_name_prefix = '{}name_'.format(boson_reserved_symbol)
+boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
 
 boson_option = {
     'start_symbol':        'start',
