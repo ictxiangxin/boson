@@ -104,22 +104,22 @@ There are some commands can add to grammar file, these commands start with "%", 
 %command argument1 argument2 ...
 ```
 
-The command can be: `start_symbol`, `analyzer_class_name`, `grammar_class_name`
+The command can be: `start_symbol`, `grammar_analyzer_class_name`, `grammar_class_name` etc.
 
 * `start_symbol`, set the start non-terminal literal.
-* `analyzer_class_name`, set the grammar analyzer name.
+* `grammar_analyzer_class_name`, set the grammar analyzer name.
 * `grammar_class_name`, set the lexical analyzer name.
 
-> You can consult the example at "example/arithmetic_grammar.txt"
+> You can consult the example at "example/arithmetic_grammar.txt" and "boson_grammar.boson" is boson itself grammar file.
 
 ### Easy to use
 
 > Use boson.py to generate code.
 
-You can execute boson.py by "python3 boson.py" in linux or "python boson.py" in windows.
-So that you can see the usage of boson.py.
+You can execute boson.py by "python3 boson.py" at Linux or "python boson.py" at Windows.
+So that you can see the usage of console command `boson`.
 
-The usage of boson.py is:
+The usage of `boson` is:
 
 ```
 usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3}] [-r] [-f]
@@ -146,7 +146,7 @@ optional arguments:
   -f, --force           Force generate code when exist conflict.
 ```
 
-You can input `boson.py -h` to get this information.
+> You can input `boson -h` to get this information.
 
 #### Example
 
