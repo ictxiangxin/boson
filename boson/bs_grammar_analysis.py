@@ -263,7 +263,7 @@ class BosonScriptAnalyzer:
             for derivation in derivation_list:
                 sentence = tuple([name] + derivation[0])
                 self.__sentence_set.add(sentence)
-                if len(sentence) < 3:
+                if len(sentence) == 1 or (len(sentence) == 2 and not sentence[0].startswith(configure.boson_grammar_name_prefix)):
                     self.__naive_sentence.add(sentence)
                 grammar_name = derivation[1]
                 if grammar_name is None:

@@ -1,8 +1,3 @@
-boson_end_symbol = '$'
-boson_null_symbol = '~'
-
-boson_literal_template = '$L$_{}'
-
 boson_name = 'Boson'
 boson_package_name = 'boson'
 boson_version_main = 0
@@ -32,6 +27,10 @@ boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
 
 boson_reserved_symbol = '!'
+boson_end_symbol = '$'
+boson_null_symbol = '~'
+
+boson_literal_template = '{}l_{}'.format(boson_reserved_symbol, '{}')
 boson_augmented_start = '{}start'.format(boson_reserved_symbol)
 boson_hidden_name_prefix = '{}name_'.format(boson_reserved_symbol)
 boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
