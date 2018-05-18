@@ -1,0 +1,75 @@
+%analyzer_class_name BosonBNFAnalyzer;
+%start_symbol grammar;
+
+
+grammar : grammar statement
+        | statement
+        ;
+
+statement : command_statement
+          | reduction_statement
+          ;
+
+command_statement : command argument_list end ($@, $0, $1)
+                  ;
+
+argument_list : argument_list argument
+              | argument
+              ;
+
+argument : name
+         | literal
+         ;
+
+reduction_statement : name reduce derivation_list end ($@, $0, $2)
+                    ;
+
+derivation_list : derivation_list or derivation ($@, $0, $2)
+                | derivation
+                ;
+
+derivation : derivation_body assign grammar_structure ($@, $0, $2)
+           | derivation_body
+           ;
+
+derivation_body : element_list
+                | null
+                |
+                ;
+
+grammar_structure : name grammar_tuple
+                  | grammar_tuple
+                  ;
+
+grammar_tuple : parentheses_l node_list parentheses_r ($@, $1)
+              ;
+
+node_list : node_list comma node_element ($@, $0, $2)
+          | node_element
+          ;
+
+node_element : node_item
+             | node_item grammar_tuple
+             ;
+
+node_item : star node
+          | node
+          ;
+
+element_list : element_list element
+             | element
+             ;
+
+element : complex_element
+        | name closure
+        | literal
+        ;
+
+complex_element : parentheses_l element_list parentheses_r closure ($@, $1, $3)
+                | bracket_l element_list bracket_r ($@, $1)
+                ;
+
+closure: plus
+       | star
+       |
+       ;
