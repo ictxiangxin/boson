@@ -41,7 +41,7 @@ def console_main():
     parse.add_argument('-l', '--language', default='python3', choices=['python3'],
                        help='Generate code language (default is Python3).\n'
                             '  python3 - Python3 code.\n')
-    parse.add_argument('-r', '--report', action='store_true',
+    parse.add_argument('-r', '--report', action='store_true', default=True,
                        help='Report conflict when create grammar analyzer.')
     parse.add_argument('-f', '--force', action='store_true',
                        help='Force generate code when exist conflict.')
@@ -73,10 +73,10 @@ def console_main():
                 configure.boson_conflict_shift_reduce: 'Shift/Reduce'
             }
             print('[Conflict information]', flush=True)
-            for state_number, confict_type, terminal in analyzer_table.conflict_list:
-                print('    [Conflict state: {}] {} Terminal: {}'.format(state_number, conflict_type_text[confict_type], terminal), flush=True)
-            if not arguments.force:
-                return
+            for state_number, conflict_type, terminal in analyzer_table.conflict_list:
+                print('    [Conflict state: {}] {} Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal), flush=True)
+        if not arguments.force and len(analyzer_table.conflict_list):
+            return
         if arguments.output is not None:
             output_file = open(arguments.output, 'w', encoding='utf-8')
         else:
