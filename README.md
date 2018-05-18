@@ -63,6 +63,7 @@ packed : text text = ($0, $1);
 This well parse `'1' '2' '3'` as AST like ('1', '2', '3')
 
 > You can write more complex grammar tuple.
+
 Example:
 ```
 function: func_name '(' arg (',' arg)* ')' = func_sign($0, $2, *$3($1));
