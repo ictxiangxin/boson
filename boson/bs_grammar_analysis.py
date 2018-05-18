@@ -97,9 +97,13 @@ class BosonScriptAnalyzer:
         self.__literal_map = {}
         self.__literal_reverse_map = {}
         self.__grammar_name_map = {}
+        self.__temp_grammar_name_map = {}
+        self.__sentence_grammar_map = {}
+        self.__naive_sentence = set()
         self.__literal_number = 1
         self.__hidden_name_number = 0
         self.__grammar_number = 0
+        self.__temp_grammar_number = 0
 
     def __get_value(self, grammar_tree_node):
         if isinstance(grammar_tree_node, tuple) and isinstance(grammar_tree_node[0], int):
@@ -230,17 +234,15 @@ class BosonScriptAnalyzer:
         elif reduce_number == 23:
             return [grammar_tuple[0]]
         elif reduce_number == 24:
-            grammar_name = '{}{}'.format(configure.boson_grammar_name_prefix, self.__grammar_number)
-            self.__grammar_number += 1
-            if grammar_name in self.__grammar_name_map:
-                raise ValueError('Grammar name duplicate: {}'.format(grammar_name))
-            self.__grammar_name_map[grammar_name] = grammar_tuple[0]
-            return grammar_tuple[0]
+            grammar_name = '{}{}'.format(configure.boson_grammar_name_prefix, self.__temp_grammar_number)
+            self.__temp_grammar_number += 1
+            self.__temp_grammar_name_map[grammar_name] = grammar_tuple[0]
+            return grammar_name
         elif reduce_number == 25:
             if grammar_tuple[0] in self.__grammar_name_map:
                 raise ValueError('Grammar name duplicate: {}'.format(grammar_tuple[0]))
             self.__grammar_name_map[grammar_tuple[0]] = grammar_tuple[1]
-            return grammar_tuple[1]
+            return grammar_tuple[0]
         elif reduce_number == 26:
             return grammar_tuple[0]
         elif reduce_number == 27:
@@ -261,11 +263,19 @@ class BosonScriptAnalyzer:
             for derivation in derivation_list:
                 sentence = tuple([name] + derivation[0])
                 self.__sentence_set.add(sentence)
-                grammar_tuple = derivation[1]
-                if grammar_tuple is None:
+                if len(sentence) < 3:
+                    self.__naive_sentence.add(sentence)
+                grammar_name = derivation[1]
+                if grammar_name is None:
+                    self.__sentence_grammar_map[sentence] = self.__grammar_number
                     self.__none_grammar_tuple_set.add(sentence)
+                elif grammar_name.startswith(configure.boson_grammar_name_prefix):
+                    self.__sentence_grammar_map[sentence] = self.__grammar_number
+                    self.__grammar_tuple_map[sentence] = self.__temp_grammar_name_map[grammar_name]
                 else:
-                    self.__grammar_tuple_map[sentence] = tuple(grammar_tuple)
+                    self.__grammar_tuple_map[sentence] = tuple(self.__grammar_name_map[grammar_name])
+                    self.__sentence_grammar_map[sentence] = grammar_name
+                self.__grammar_number += 1
             return None
         elif reduce_number == 34:
             return grammar_tuple[0]
@@ -311,6 +321,8 @@ class BosonScriptAnalyzer:
         grammar_package.literal_map = self.__literal_map
         grammar_package.literal_reverse_map = self.__literal_reverse_map
         grammar_package.grammar_name_map = self.__grammar_name_map
+        grammar_package.sentence_grammar_map = self.__sentence_grammar_map
+        grammar_package.naive_sentence = self.__naive_sentence
         return grammar_package
 
     def parse(self, token_list):

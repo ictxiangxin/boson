@@ -41,6 +41,28 @@ class {{ configure.boson_option['grammar_class_name'] }}:
     error_index = property(get_error_index, set_error_index)
 
 
+class BosonGrammarNode:
+    def __init__(self):
+        self.reduce_number = -1
+        self.__data = []
+
+    def __getitem__(self, item):
+        return self.__data[item]
+
+    def __iadd__(self, other):
+        self.__data += other
+        return self
+
+    def append(self, item):
+        self.__data.append(item)
+
+    def insert(self, index, item):
+        self.__data.insert(index, item)
+
+    def data(self):
+        return self.__data
+
+
 class {{ configure.boson_option['analyzer_class_name'] }}:
     def __init__(self):
         self.__terminal_index = {
@@ -115,7 +137,7 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
                                               ]
 
     def __generate_grammar_tuple(self, statement_index, symbol_package):
-        grammar_tuple_list = []
+        grammar_node = BosonGrammarNode()
         if isinstance(statement_index, int):
             node_tuple = self.__node_table[statement_index]
         else:
@@ -124,24 +146,25 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
         for i in node_tuple:
             if isinstance(i, str):
                 if i == '$':
-                    grammar_tuple_list.append(statement_index)
+                    grammar_node.append(statement_index)
                 elif i == '?':
-                    grammar_tuple_list += symbol_package
+                    grammar_node += symbol_package
                 else:
                     if symbol_package:
                         if i[0] == '*':
-                            grammar_tuple_list += symbol_package[int(i[1:])]
+                            grammar_node += symbol_package[int(i[1:])]
                         else:
-                            grammar_tuple_list.append(symbol_package[int(i)])
+                            grammar_node.append(symbol_package[int(i)])
             else:
                 if symbol_package:
                     if i[0][0] == '*':
-                        for sub_symbol_package in symbol_package[int(i[0][1:])]:
-                            grammar_tuple_list += self.__generate_grammar_tuple(i[1], sub_symbol_package)
+                        for node in symbol_package[int(i[0][1:])]:
+                            grammar_node += self.__generate_grammar_tuple(i[1], node)
                     else:
-                        for sub_symbol_package in symbol_package[int(i[0])]:
-                            grammar_tuple_list.append(self.__generate_grammar_tuple(i[1], sub_symbol_package))
-        return tuple(grammar_tuple_list)
+                        for node in symbol_package[int(i[0])]:
+                            grammar_node.append(self.__generate_grammar_tuple(i[1], node))
+        grammar_node.reduce_number = statement_index
+        return grammar_node
 
     def grammar_analysis(self, token_list):
         grammar = {{ configure.boson_option['grammar_class_name'] }}()
@@ -193,11 +216,11 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
                 {%- else %}
                 if statement_index in [{{ ', '.join(none_grammar_tuple_reduce) }}]:
                 {%- endif %}
-                    temp_grammar_tuple_list = []
+                    grammar_node = BosonGrammarNode()
                     for _ in range(reduce_sum):
-                        temp_grammar_tuple_list.insert(0, symbol_stack.pop())
-                    temp_grammar_tuple_list.insert(0, statement_index)
-                    symbol_stack.append(tuple(temp_grammar_tuple_list))
+                        grammar_node.insert(0, symbol_stack.pop())
+                    grammar_node.reduce_number = statement_index
+                    symbol_stack.append(grammar_node)
                 {%- endif %}
                 {%- if have_special_generate and have_default_reduce_tuple %}
                 else:
@@ -209,4 +232,70 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
             else:
                 raise ValueError('Invalid action: action={}'.format(operation))
         raise RuntimeError('Analyzer unusual exit.')
+
+
+class BosonSemanticAnalyzer:
+    def __init__(self):
+        self.__reduce_number_to_grammar_name = {
+            {%- for reduce_number, grammar_name in reduce_number_to_grammar_name.items() %}
+            {{ reduce_number }}: '{{ grammar_name }}'
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor %}
+        }
+        self.__reduce_number_to_grammar_number = {
+            {%- for reduce_number, grammar_number in reduce_number_to_grammar_number.items() %}
+            {{ reduce_number }}: {{ grammar_number }}
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor %}
+        }
+        self.__naive_reduce_number = {
+                                      {%- for reduce_number in naive_reduce_number -%}
+                                      {{ reduce_number }}
+                                      {%- if not loop.last %}, {% endif -%}
+                                      {%- endfor -%}
+                                     }
+        self.__semantic_entity = {}
+
+    @staticmethod
+    def __default_semantic_entity(grammar_entity):
+        return grammar_entity
+
+    @staticmethod
+    def __naive_semantic_entity(grammar_entity):
+        if len(grammar_entity) == 0:
+            return None
+        elif len(grammar_entity) == 1:
+            return grammar_entity[0]
+        else:
+            return grammar_entity
+
+    def __semantic_analysis(self, grammar_tree: BosonGrammarNode):
+        if grammar_tree.reduce_number in self.__reduce_number_to_grammar_name:
+            grammar_name = self.__reduce_number_to_grammar_name[grammar_tree.reduce_number]
+        elif grammar_tree.reduce_number in self.__reduce_number_to_grammar_number:
+            grammar_name = '!grammar_{}'.format(self.__reduce_number_to_grammar_number[grammar_tree.reduce_number])
+        else:
+            grammar_name = '!grammar_{}'.format('hidden')
+        grammar_entity = list(map(lambda g: self.__semantic_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
+        if grammar_name in self.__semantic_entity:
+            return self.__semantic_entity[grammar_name](grammar_entity)
+        if grammar_tree.reduce_number in self.__naive_reduce_number:
+            return self.__naive_semantic_entity(grammar_entity)
+        else:
+            return self.__default_semantic_entity(grammar_entity)
+
+    def semantic_analysis(self, grammar_tree: BosonGrammarNode):
+        return self.__semantic_analysis(grammar_tree)
+
+    def semantic_entity(self, sign):
+        def decorator(f):
+            if isinstance(sign, int):
+                name = '!grammar_{}'.format(sign)
+            elif isinstance(sign, str):
+                name = sign
+            else:
+                raise ValueError('Invalid grammar sign: {}'.format(sign))
+            self.__semantic_entity[name] = f
+            return f
+        return decorator
 
