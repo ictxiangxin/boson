@@ -115,9 +115,9 @@ The command can be: `start_symbol`, `grammar_analyzer_class_name`, `grammar_clas
 
 ### Easy to use
 
-> Use boson.py to generate code.
+> Use console command boson to generate code.
 
-You can execute boson.py by "python3 boson.py" at Linux or "python boson.py" at Windows.
+You can execute `boson` by type "boson" at console interface.
 So that you can see the usage of console command `boson`.
 
 The usage of `boson` is:
