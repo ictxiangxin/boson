@@ -28,12 +28,14 @@ Or Clone it from Github:
 Boson read file contains a set of productions, and each production form is:
 
 ```
-name : <derivation> = (grammar tuple) | <name combination> (grammar tuple) | ... ;
+name : [derivation] = [grammar name](grammar tuple) | [derivation] = [grammar name](grammar tuple) | ... ;
 ```
 
 There is a convention which must exist a non-terminal named "start"
 
-`(grammar tuple)` is the AST node structure of this production and it is not necessary.
+`derivation` looks like EBNF, but that is a little different.
+
+`(grammar tuple)` is the AST node structure of this production and it's not necessary.
 
 **Notice**
 
