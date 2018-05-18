@@ -1,3 +1,4 @@
+{% if code_comment -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -19,6 +20,7 @@
 """
 
 
+{% endif -%}
 class {{ configure.boson_option['grammar_class_name'] }}:
     def __init__(self):
         self.__grammar_tree = None
@@ -41,7 +43,7 @@ class {{ configure.boson_option['grammar_class_name'] }}:
     error_index = property(get_error_index, set_error_index)
 
 
-class BosonGrammarNode:
+class {{ configure.boson_option['grammar_node_name'] }}:
     def __init__(self):
         self.reduce_number = -1
         self.__data = []
@@ -63,7 +65,7 @@ class BosonGrammarNode:
         return self.__data
 
 
-class {{ configure.boson_option['analyzer_class_name'] }}:
+class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
     def __init__(self):
         self.__terminal_index = {
             {%- for terminal, index in analyzer_table.terminal_index.items() %}
@@ -71,7 +73,7 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        {%- if sparse %}
+        {%- if sparse_table %}
         self.__action_table = {
             {%- for i, sub_table in analyzer_table.action_table.items() %}
             {{ i }}: {
@@ -174,7 +176,7 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
         while token_index < len(token_list):
             token = token_list[token_index]
             current_state = analysis_stack[-1]
-            {%- if sparse %}
+            {%- if sparse_table %}
             operation = self.__action_table.get(current_state, {}).get(self.__terminal_index[token.symbol], '{{ configure.boson_table_sign_error }}')
             {%- else %}
             operation = self.__action_table[current_state][self.__terminal_index[token.symbol]]
@@ -195,7 +197,7 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
                     analysis_stack.pop()
                 current_state = analysis_stack[-1]
                 current_non_terminal_index = self.__reduce_to_non_terminal_index[statement_index]
-                {%- if sparse %}
+                {%- if sparse_table %}
                 goto_next_state = self.__goto_table.get(current_state, {}).get(current_non_terminal_index, {{ configure.boson_invalid_goto }})
                 {%- else %}
                 goto_next_state = self.__goto_table[current_state][current_non_terminal_index]
@@ -232,9 +234,10 @@ class {{ configure.boson_option['analyzer_class_name'] }}:
             else:
                 raise ValueError('Invalid action: action={}'.format(operation))
         raise RuntimeError('Analyzer unusual exit.')
+{%- if generate_semantics_analyzer %}
 
 
-class BosonSemanticAnalyzer:
+class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
     def __init__(self):
         self.__reduce_number_to_grammar_name = {
             {%- for reduce_number, grammar_name in reduce_number_to_grammar_name.items() %}
@@ -254,14 +257,14 @@ class BosonSemanticAnalyzer:
                                       {%- if not loop.last %}, {% endif -%}
                                       {%- endfor -%}
                                      }
-        self.__semantic_entity = {}
+        self.__semantics_entity = {}
 
     @staticmethod
-    def __default_semantic_entity(grammar_entity):
+    def __default_semantics_entity(grammar_entity):
         return grammar_entity
 
     @staticmethod
-    def __naive_semantic_entity(grammar_entity):
+    def __naive_semantics_entity(grammar_entity):
         if len(grammar_entity) == 0:
             return None
         elif len(grammar_entity) == 1:
@@ -269,25 +272,25 @@ class BosonSemanticAnalyzer:
         else:
             return grammar_entity
 
-    def __semantic_analysis(self, grammar_tree: BosonGrammarNode):
+    def __semantics_analysis(self, grammar_tree: BosonGrammarNode):
         if grammar_tree.reduce_number in self.__reduce_number_to_grammar_name:
             grammar_name = self.__reduce_number_to_grammar_name[grammar_tree.reduce_number]
         elif grammar_tree.reduce_number in self.__reduce_number_to_grammar_number:
             grammar_name = '!grammar_{}'.format(self.__reduce_number_to_grammar_number[grammar_tree.reduce_number])
         else:
             grammar_name = '!grammar_{}'.format('hidden')
-        grammar_entity = list(map(lambda g: self.__semantic_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
-        if grammar_name in self.__semantic_entity:
-            return self.__semantic_entity[grammar_name](grammar_entity)
+        grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
+        if grammar_name in self.__semantics_entity:
+            return self.__semantics_entity[grammar_name](grammar_entity)
         if grammar_tree.reduce_number in self.__naive_reduce_number:
-            return self.__naive_semantic_entity(grammar_entity)
+            return self.__naive_semantics_entity(grammar_entity)
         else:
-            return self.__default_semantic_entity(grammar_entity)
+            return self.__default_semantics_entity(grammar_entity)
 
-    def semantic_analysis(self, grammar_tree: BosonGrammarNode):
-        return self.__semantic_analysis(grammar_tree)
+    def semantics_analysis(self, grammar_tree: BosonGrammarNode):
+        return self.__semantics_analysis(grammar_tree)
 
-    def semantic_entity(self, sign):
+    def semantics_entity(self, sign):
         def decorator(f):
             if isinstance(sign, int):
                 name = '!grammar_{}'.format(sign)
@@ -295,7 +298,8 @@ class BosonSemanticAnalyzer:
                 name = sign
             else:
                 raise ValueError('Invalid grammar sign: {}'.format(sign))
-            self.__semantic_entity[name] = f
+            self.__semantics_entity[name] = f
             return f
         return decorator
+{%- endif %}
 

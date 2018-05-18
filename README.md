@@ -28,7 +28,7 @@ Or Clone it from Github:
 Boson read file contains a set of productions, and each production form is:
 
 ```
-name : <name combination> (grammar tuple) | <name combination> (grammar tuple) | ... ;
+name : <derivation> = (grammar tuple) | <name combination> (grammar tuple) | ... ;
 ```
 
 There is a convention which must exist a non-terminal named "start"
@@ -43,23 +43,34 @@ There is a convention which must exist a non-terminal named "start"
 
 `$$, $0, $1, ...` has special meaning:
 
-* `$$`, the non-terminal which this production will reduce to.
-* `$@`, the number of this production.
+* `$$`, the number of this production.
 * `$0 $1 $2 ...`, the index of element of this production(base-0).
 
-You can unpack one non-terminal by `*`.
+> You can unpack one non-terminal by `*`.
 Example:
 ```
-list : packed text ($0, $1);
-packed : text text ($0, $1);
+list : packed text = ($0, $1);
+packed : text text = ($0, $1);
 ```
 This well parse `'1' '2' '3'` as AST like (('1', '2'), '3')
 
 ```
-list : packed text ($0*, $1);
-packed : text text ($0, $1);
+list : packed text = (*$0, $1);
+packed : text text = ($0, $1);
 ```
 This well parse `'1' '2' '3'` as AST like ('1', '2', '3')
+
+> You can write more complex grammar tuple.
+Example:
+```
+function: func_name '(' arg (',' arg)* ')' = func_sign($0, $2, *$3($1));
+```
+
+Then you can get `arg (',' arg)*` as a list like `[arg, arg, arg, ...]`.
+
+The `func_sign` at before grammar tuple is grammar name, which use for semantic analyzing.
+
+### Simple example
 
 A example of arithmetic grammar like this:
 
@@ -109,21 +120,16 @@ So that you can see the usage of boson.py.
 The usage of boson.py is:
 
 ```
-usage: boson [-h] [-t {bnf,ebnf}] [-o OUTPUT] [-a {slr,lr,lalr}]
-             [-c {python3}] [-r] [-f]
+usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3}] [-r] [-f]
              grammar_file
 
-Boson v0.8 - Grammar analyzer generator
+Boson v0.9 - Grammar analyzer generator
 
 positional arguments:
   grammar_file          Inpute grammar description file.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -t {bnf,ebnf}, --type {bnf,ebnf}
-                        Input file type (default is BNF).
-                          bnf  - BNF grammar file, can define special grammar tuple.
-                          ebnf - EBNF grammar file, can not define special grammar tuple.
   -o OUTPUT, --output OUTPUT
                         Output grammar analyzer code.
   -a {slr,lr,lalr}, --analyzer {slr,lr,lalr}
@@ -131,7 +137,7 @@ optional arguments:
                           slr  - SLR (Simple LR)
                           lr   - LR (Canonical LR)
                           lalr - LALR (Look-Ahead LR)
-  -c {python3}, --code {python3}
+  -l {python3}, --language {python3}
                         Generate code language (default is Python3).
                           python3 - Python3 code.
   -r, --report          Report conflict when create grammar analyzer.
@@ -194,6 +200,8 @@ class GrammarPackage:
         self.none_grammar_tuple_set = None
         self.literal_map = None
         self.literal_reverse_map = None
+        self.sentence_grammar_map = None
+        self.naive_sentence = None
 ```
 
 Now, the final result of "bs_grammar_analysis.py" is data_package, which contains many things used by generator

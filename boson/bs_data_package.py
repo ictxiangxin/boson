@@ -17,6 +17,5 @@ class GrammarPackage:
         self.none_grammar_tuple_set = None
         self.literal_map = None
         self.literal_reverse_map = None
-        self.grammar_name_map = None
         self.sentence_grammar_map = None
         self.naive_sentence = None

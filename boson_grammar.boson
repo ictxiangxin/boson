@@ -1,75 +1,49 @@
-%analyzer_class_name BosonBNFAnalyzer;
+%grammar_analyzer_class_name BosonEBNFAnalyzer;
+%semantics_analyzer_class_name BosonSemanticsAnalyzer;
+%generate_semantics_analyzer yes;
+%code_comment no;
+%sparse_table yes;
 %start_symbol grammar;
 
 
-grammar : grammar statement
-        | statement
-        ;
+grammar : statement+ = (*$0);
 
 statement : command_statement
           | reduction_statement
           ;
 
-command_statement : command argument_list end ($@, $0, $1)
-                  ;
-
-argument_list : argument_list argument
-              | argument
-              ;
+command_statement : command argument+ end = command($0, *$1);
 
 argument : name
          | literal
          ;
 
-reduction_statement : name reduce derivation_list end ($@, $0, $2)
-                    ;
+reduction_statement : name reduce derivation_list end = reduce($0, $2);
 
-derivation_list : derivation_list or derivation ($@, $0, $2)
-                | derivation
-                ;
+derivation_list : derivation (or derivation)* = ($0, *$1($1));
 
-derivation : derivation_body assign grammar_structure ($@, $0, $2)
-           | derivation_body
-           ;
+derivation : derivation_body [assign [name] grammar_tuple] = ($0, *$1(*$1($?), $2));
 
-derivation_body : element_list
+derivation_body : element+ = (*$0)
                 | null
                 |
                 ;
 
-grammar_structure : name grammar_tuple
-                  | grammar_tuple
-                  ;
+grammar_tuple : parentheses_l node_list parentheses_r = (*$1);
 
-grammar_tuple : parentheses_l node_list parentheses_r ($@, $1)
-              ;
+node_list : node_element (comma node_element)* = ($0, *$1($1));
 
-node_list : node_list comma node_element ($@, $0, $2)
-          | node_element
-          ;
-
-node_element : node_item
-             | node_item grammar_tuple
-             ;
-
-node_item : star node
-          | node
-          ;
-
-element_list : element_list element
-             | element
-             ;
+node_element : [star] node [grammar_tuple] = grammar_node(*$0($?), $1, *$2($?));
 
 element : complex_element
-        | name closure
-        | literal
+        | name [closure] = name_closure($0, *$1($?))
+        | literal = literal($0)
         ;
 
-complex_element : parentheses_l element_list parentheses_r closure ($@, $1, $3)
-                | bracket_l element_list bracket_r ($@, $1)
+complex_element : parentheses_l element+ parentheses_r [closure] = complex_closure(*$1, *$3($?))
+                | bracket_l element+ bracket_r = complex_optional(*$1)
                 ;
 
 closure: plus
        | star
-       |
        ;

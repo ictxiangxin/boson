@@ -1,18 +1,18 @@
 %start_symbol E ;
-%analyzer_class_name CalculateAnalyzer ;
+%grammar_analyzer_class_name CalculateAnalyzer ;
 
 
-E : E '+' T ($1, $0, $2)
-  | E '-' T ($1, $0, $2)
+E : E '+' T = ($1, $0, $2)
+  | E '-' T = ($1, $0, $2)
   | T
   ;
-T : T '*' F ($1, $0, $2)
-  | T '/' F ($1, $0, $2)
+T : T '*' F = ($1, $0, $2)
+  | T '/' F = ($1, $0, $2)
   | F
   ;
-F : F '^' D ($1, $0, $2)
+F : F '^' D = ($1, $0, $2)
   | D
   ;
-D : '(' E ')' ($@, $1)
+D : '(' E ')' = ($1)
   | int
   ;

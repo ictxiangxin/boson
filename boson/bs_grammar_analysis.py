@@ -1,6 +1,6 @@
 import re
 import boson.bs_configure as configure
-from boson.bs_boson_ebnf_analyzer import BosonEBNFAnalyzer, BosonSemanticAnalyzer
+from boson.bs_boson_ebnf_analyzer import BosonEBNFAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
 
 
@@ -87,7 +87,7 @@ def bs_tokenize(text: str):
     return token_list
 
 
-semantic_analyzer = BosonSemanticAnalyzer()
+semantic_analyzer = BosonSemanticsAnalyzer()
 
 
 class BosonScriptAnalyzer:
@@ -141,11 +141,11 @@ class BosonScriptAnalyzer:
         return hidden_name
 
     def init_semantic(self):
-        @semantic_analyzer.semantic_entity('command')
+        @semantic_analyzer.semantics_entity('command')
         def _semantic_command(grammar_entity):
             self.__command_list.append(grammar_entity)
 
-        @semantic_analyzer.semantic_entity('reduce')
+        @semantic_analyzer.semantics_entity('reduce')
         def _semantic_reduce(grammar_entity):
             reduce_name = grammar_entity[0]
             derivation_list = grammar_entity[1]
@@ -173,7 +173,7 @@ class BosonScriptAnalyzer:
                     raise RuntimeError('Never touch here.')
                 self.__grammar_number += 1
 
-        @semantic_analyzer.semantic_entity('name_closure')
+        @semantic_analyzer.semantics_entity('name_closure')
         def _semantic_name_closure(grammar_entity):
             name = grammar_entity[0]
             if len(grammar_entity) == 2:
@@ -185,7 +185,7 @@ class BosonScriptAnalyzer:
                     raise RuntimeError('Never touch here.')
             return name
 
-        @semantic_analyzer.semantic_entity('complex_closure')
+        @semantic_analyzer.semantics_entity('complex_closure')
         def _semantic_complex_closure(grammar_entity):
             may_closure = grammar_entity[-1]
             if may_closure == '+':
@@ -198,11 +198,11 @@ class BosonScriptAnalyzer:
                 raise RuntimeError('Never touch here.')
             return name
 
-        @semantic_analyzer.semantic_entity('complex_optional')
+        @semantic_analyzer.semantics_entity('complex_optional')
         def _semantic_complex_optional(grammar_entity):
             return self.__add_optional(self.__add_hidden_derivation(grammar_entity))
 
-        @semantic_analyzer.semantic_entity('grammar_node')
+        @semantic_analyzer.semantics_entity('grammar_node')
         def _semantic_grammar_node(grammar_entity):
             if len(grammar_entity) == 1:
                 return grammar_entity[0][1:]
@@ -216,7 +216,7 @@ class BosonScriptAnalyzer:
             else:
                 raise RuntimeError('Never touch here.')
 
-        @semantic_analyzer.semantic_entity('literal')
+        @semantic_analyzer.semantics_entity('literal')
         def _semantic_literal(grammar_entity):
             literal = grammar_entity[0]
             literal_string = literal[1: -1]
@@ -257,10 +257,10 @@ class BosonScriptAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def semantic_analysis(self, grammar_tree):
+    def semantics_analysis(self, grammar_tree):
         self.__init__()
         self.init_semantic()
-        semantic_analyzer.semantic_analysis(grammar_tree)
+        semantic_analyzer.semantics_analysis(grammar_tree)
         grammar_package = GrammarPackage()
         grammar_package.command_list = self.__command_list
         grammar_package.sentence_set = self.__sentence_set
@@ -274,7 +274,7 @@ class BosonScriptAnalyzer:
 
     def parse(self, token_list):
         grammar_tree = self.grammar_analysis(token_list)
-        grammar_package = self.semantic_analysis(grammar_tree)
+        grammar_package = self.semantics_analysis(grammar_tree)
         return grammar_package
 
 

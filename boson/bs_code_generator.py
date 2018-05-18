@@ -4,11 +4,13 @@ import boson.bs_configure as configure
 from boson.bs_data_package import AnalyzerTable, GrammarPackage
 
 
-def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_package: GrammarPackage, sparse: bool=False):
+def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
     none_grammar_tuple_reduce = [analyzer_table.sentence_list.index(sentence) for sentence in grammar_package.none_grammar_tuple_set]
     none_grammar_tuple_reduce.sort()
     none_grammar_tuple_reduce = list(map(str, none_grammar_tuple_reduce))
-    if sparse:
+    sparse_table = configure.boson_option['sparse_table'] == 'yes'
+    generate_semantics_analyzer = configure.boson_option['generate_semantics_analyzer'] == 'yes'
+    if sparse_table:
         sparse_action_table = {}
         action_table = analyzer_table.action_table
         for i, sub_table in enumerate(action_table):
@@ -31,17 +33,18 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
         analyzer_table.goto_table = sparse_goto_table
     reduce_number_to_grammar_name = {}
     reduce_number_to_grammar_number = {}
-    for sentence, grammar_sign in grammar_package.sentence_grammar_map.items():
-        reduce_number = analyzer_table.sentence_list.index(sentence)
-        if isinstance(grammar_sign, int):
-            reduce_number_to_grammar_number[reduce_number] = grammar_sign
-        elif isinstance(grammar_sign, str):
-            reduce_number_to_grammar_name[reduce_number] = grammar_sign
-        else:
-            raise ValueError('Invalid grammar sign type: {}'.format(type(grammar_sign)))
     naive_reduce_number = set()
-    for sentence in grammar_package.naive_sentence:
-        naive_reduce_number.add(analyzer_table.sentence_list.index(sentence))
+    if generate_semantics_analyzer:
+        for sentence, grammar_sign in grammar_package.sentence_grammar_map.items():
+            reduce_number = analyzer_table.sentence_list.index(sentence)
+            if isinstance(grammar_sign, int):
+                reduce_number_to_grammar_number[reduce_number] = grammar_sign
+            elif isinstance(grammar_sign, str):
+                reduce_number_to_grammar_name[reduce_number] = grammar_sign
+            else:
+                raise ValueError('Invalid grammar sign type: {}'.format(type(grammar_sign)))
+        for sentence in grammar_package.naive_sentence:
+            naive_reduce_number.add(analyzer_table.sentence_list.index(sentence))
     template_data = {
         'configure': configure,
         'analyzer_table': analyzer_table,
@@ -53,7 +56,9 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
         'reduce_number_to_grammar_name': reduce_number_to_grammar_name,
         'reduce_number_to_grammar_number': reduce_number_to_grammar_number,
         'naive_reduce_number': naive_reduce_number,
-        'sparse': sparse,
+        'sparse_table': sparse_table,
+        'code_comment': configure.boson_option['code_comment'] == 'yes',
+        'generate_semantics_analyzer': generate_semantics_analyzer,
     }
     environment = jinja2.Environment(loader=jinja2.PackageLoader(configure.boson_package_name, configure.boson_template_directory))
     template = environment.get_template(language + configure.boson_template_postfix)
