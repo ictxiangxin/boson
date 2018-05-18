@@ -271,7 +271,7 @@ class BosonScriptAnalyzer:
                     self.__none_grammar_tuple_set.add(sentence)
                 elif grammar_name.startswith(configure.boson_grammar_name_prefix):
                     self.__sentence_grammar_map[sentence] = self.__grammar_number
-                    self.__grammar_tuple_map[sentence] = self.__temp_grammar_name_map[grammar_name]
+                    self.__grammar_tuple_map[sentence] = tuple(self.__temp_grammar_name_map[grammar_name])
                 else:
                     self.__grammar_tuple_map[sentence] = tuple(self.__grammar_name_map[grammar_name])
                     self.__sentence_grammar_map[sentence] = grammar_name
