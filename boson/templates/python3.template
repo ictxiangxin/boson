@@ -282,7 +282,7 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
         if grammar_name in self.__semantics_entity:
             return self.__semantics_entity[grammar_name](grammar_entity)
-        if grammar_tree.reduce_number in self.__naive_reduce_number:
+        elif grammar_tree.reduce_number in self.__naive_reduce_number:
             return self.__naive_semantics_entity(grammar_entity)
         else:
             return self.__default_semantics_entity(grammar_entity)

@@ -120,7 +120,7 @@ class BosonScriptAnalyzer:
     def __add_positive_closure(self, name):
         hidden_name = self.__generate_hidden_name()
         self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
-        self.__sentence_add((hidden_name, name), ('0',))
+        self.__sentence_add((hidden_name, name))
         return hidden_name
 
     def __add_colin_closure(self, name):
@@ -131,13 +131,19 @@ class BosonScriptAnalyzer:
 
     def __add_optional(self, name):
         hidden_name = self.__generate_hidden_name()
-        self.__sentence_add((hidden_name, name), ('0',))
+        self.__sentence_add((hidden_name, name))
         self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+        return hidden_name
+
+    def __add_select(self, name_list):
+        hidden_name = self.__generate_hidden_name()
+        for name in name_list:
+            self.__sentence_add((hidden_name, name))
         return hidden_name
 
     def __add_hidden_derivation(self, derivation):
         hidden_name = self.__generate_hidden_name()
-        self.__sentence_add((hidden_name,) + tuple(derivation), (configure.boson_grammar_tuple_all,))
+        self.__sentence_add((hidden_name,) + tuple(derivation))
         return hidden_name
 
     def init_semantic(self):
@@ -158,7 +164,10 @@ class BosonScriptAnalyzer:
                 else:
                     sentence = (reduce_name, configure.boson_null_symbol)
                 self.__sentence_set.add(sentence)
-                if len(sentence) == 1 or (len(sentence) == 2 and not sentence[0].startswith(configure.boson_grammar_name_prefix)):
+                if len(sentence) == 1 or\
+                   (len(sentence) == 2 and
+                    (not sentence[0].startswith(configure.boson_hidden_name_prefix) and
+                     not sentence[1].startswith(configure.boson_hidden_name_prefix))):
                     self.__naive_sentence.add(sentence)
                 if len(derivation) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
@@ -189,10 +198,10 @@ class BosonScriptAnalyzer:
         def _semantic_complex_closure(grammar_entity):
             may_closure = grammar_entity[-1]
             if may_closure == '+':
-                hidden_derivation = self.__add_hidden_derivation(grammar_entity[:-1])
+                hidden_derivation = self.__add_hidden_derivation(grammar_entity[0])
                 name = self.__add_positive_closure(hidden_derivation)
             elif may_closure == '*':
-                hidden_derivation = self.__add_hidden_derivation(grammar_entity[:-1])
+                hidden_derivation = self.__add_hidden_derivation(grammar_entity[0])
                 name = self.__add_colin_closure(hidden_derivation)
             else:
                 raise RuntimeError('Never touch here.')
@@ -200,7 +209,11 @@ class BosonScriptAnalyzer:
 
         @semantic_analyzer.semantics_entity('complex_optional')
         def _semantic_complex_optional(grammar_entity):
-            return self.__add_optional(self.__add_hidden_derivation(grammar_entity))
+            return self.__add_optional(self.__add_hidden_derivation(grammar_entity[0]))
+
+        @semantic_analyzer.semantics_entity('select')
+        def _semantic_select(grammar_entity):
+            return [self.__add_select(grammar_entity)]
 
         @semantic_analyzer.semantics_entity('grammar_node')
         def _semantic_grammar_node(grammar_entity):
