@@ -196,15 +196,15 @@ class BosonScriptAnalyzer:
 
         @semantic_analyzer.semantics_entity('complex_closure')
         def _semantic_complex_closure(grammar_entity):
-            may_closure = grammar_entity[-1]
-            if may_closure == '+':
-                hidden_derivation = self.__add_hidden_derivation(grammar_entity[0])
-                name = self.__add_positive_closure(hidden_derivation)
-            elif may_closure == '*':
-                hidden_derivation = self.__add_hidden_derivation(grammar_entity[0])
-                name = self.__add_colin_closure(hidden_derivation)
-            else:
-                raise RuntimeError('Never touch here.')
+            name = self.__add_hidden_derivation(grammar_entity[0])
+            if len(grammar_entity) == 2:
+                may_closure = grammar_entity[1]
+                if may_closure == '+':
+                    name = self.__add_positive_closure(name)
+                elif may_closure == '*':
+                    name = self.__add_colin_closure(name)
+                else:
+                    raise RuntimeError('Never touch here.')
             return name
 
         @semantic_analyzer.semantics_entity('complex_optional')
