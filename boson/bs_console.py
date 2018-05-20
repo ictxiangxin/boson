@@ -12,18 +12,22 @@ from boson.bs_lalr_generate import bs_lalr_generate_table
 from boson.bs_code_generator import bs_generate_code
 
 grammar_generate_table = {
-    'slr':  bs_slr_generate_table,
-    'lr':   bs_lr_generate_table,
+    'slr': bs_slr_generate_table,
+    'lr': bs_lr_generate_table,
     'lalr': bs_lalr_generate_table,
 }
 
 
+def display(text, newline=True, file=sys.stdout):
+    print(text, end=('\n' if newline else ''), flush=True, file=file)
+
+
 def welcome():
-    print('{} - {}'.format(configure.boson_title, configure.boson_description), flush=True)
-    print('    Author: {}'.format(configure.boson_author), flush=True)
-    print('    Email:  {}'.format(configure.boson_email), flush=True)
-    print('    Site:   {}'.format(configure.boson_url), flush=True)
-    print(flush=True)
+    display('{} - {}'.format(configure.boson_title, configure.boson_description))
+    display('    Author: {}'.format(configure.boson_author))
+    display('    Email:  {}'.format(configure.boson_email))
+    display('    Site:   {}'.format(configure.boson_url))
+    display('')
 
 
 def console_main():
@@ -53,44 +57,46 @@ def console_main():
     try:
         if arguments.output is not None and os.path.exists(arguments.output):
             output_file_exist = True
-        print('[Generate grammar analyzer code]', flush=True)
-        print('    Parse grammar file... ', end='', flush=True)
+        display('[Generate grammar analyzer code]')
+        display('    Parse grammar file... ', newline=False)
         start_time = time.time()
         global_start_time = start_time
         source_file = open(arguments.grammar_file, 'r', encoding='utf-8')
         grammar_package = bs_grammar_analysis(source_file.read())
         bs_command_execute(grammar_package.command_list)
         end_time = time.time()
-        print('Done [{:.4f}s]'.format(end_time - start_time), flush=True)
-        print('    Generate {} grammar analysis table... '.format(arguments.analyzer.upper()), end='', flush=True)
+        display('Done [{:.4f}s]'.format(end_time - start_time))
+        display('    Generate {} grammar analysis table... '.format(arguments.analyzer.upper()), newline=False)
         start_time = time.time()
         analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)
         end_time = time.time()
-        print('Done [{:.4f}s]'.format(end_time - start_time), flush=True)
+        display('Done [{:.4f}s]'.format(end_time - start_time))
         if arguments.report and len(analyzer_table.conflict_list):
             conflict_type_text = {
                 configure.boson_conflict_reduce_reduce: 'Reduce/Reduce',
                 configure.boson_conflict_shift_reduce: 'Shift/Reduce'
             }
-            print('[Conflict information]', flush=True)
+            display('[Error] Conflict')
             for state_number, conflict_type, terminal in analyzer_table.conflict_list:
-                print('    [Conflict state: {}] {} Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal), flush=True)
+                if terminal in grammar_package.literal_reverse_map:
+                    terminal = '\'{}\''.format(grammar_package.literal_reverse_map[terminal])
+                display('    [Conflict state: {}] {} Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal))
         if not arguments.force and len(analyzer_table.conflict_list):
             return
         if arguments.output is not None:
             output_file = open(arguments.output, 'w', encoding='utf-8')
         else:
             output_file = sys.stdout
-        print('    Generate analyzer {} code... '.format(arguments.language.upper()), end='', flush=True)
+        display('    Generate analyzer {} code... '.format(arguments.language.upper()), newline=False)
         start_time = time.time()
         text = bs_generate_code(arguments.language, analyzer_table, grammar_package)
         end_time = time.time()
-        print('Done [{:.4f}s]'.format(end_time - start_time), flush=True)
+        display('Done [{:.4f}s]'.format(end_time - start_time))
         global_end_time = time.time()
-        print('    Complete!!! [{:.4f}s]'.format(global_end_time - global_start_time))
+        display('    Complete!!! [{:.4f}s]'.format(global_end_time - global_start_time))
         output_file.write(text)
     except Exception as e:
-        print('\n\n[Error] {}'.format(e), file=sys.stderr, flush=True)
+        display('\n\n[Error] {}'.format(e), file=sys.stderr)
         if arguments.output is not None and output_file is not None:
             output_file.close()
             if os.path.exists(arguments.output) or not output_file_exist:
