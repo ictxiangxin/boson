@@ -138,7 +138,9 @@ class BosonScriptAnalyzer:
     def __add_select(self, name_list):
         hidden_name = self.__generate_hidden_name()
         for name in name_list:
-            self.__sentence_add((hidden_name, name))
+            sentence = (hidden_name, name)
+            self.__sentence_add(sentence)
+            self.__naive_sentence.add(sentence)
         return hidden_name
 
     def __add_hidden_derivation(self, derivation):
@@ -164,10 +166,7 @@ class BosonScriptAnalyzer:
                 else:
                     sentence = (reduce_name, configure.boson_null_symbol)
                 self.__sentence_set.add(sentence)
-                if len(sentence) == 1 or\
-                   (len(sentence) == 2 and
-                    (not sentence[0].startswith(configure.boson_hidden_name_prefix) and
-                     not sentence[1].startswith(configure.boson_hidden_name_prefix))):
+                if len(sentence) == 1 or (len(sentence) == 2 and not sentence[1].startswith(configure.boson_hidden_name_prefix)):
                     self.__naive_sentence.add(sentence)
                 if len(derivation) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
