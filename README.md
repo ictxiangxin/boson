@@ -14,6 +14,12 @@ Boson can use production sentences given by the user to generate grammar analyze
 
 ## How to install boson?
 
+> Use `pip`: `pip install boson`
+
+This way may get the lastest release version.
+
+> Install from source code
+
 You just need download the ZIP file, and unZIP it, type the command:
  `python3 setup.py install` or `sudo python3 setup.py install`
 
