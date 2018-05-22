@@ -276,9 +276,9 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         if grammar_tree.reduce_number in self.__reduce_number_to_grammar_name:
             grammar_name = self.__reduce_number_to_grammar_name[grammar_tree.reduce_number]
         elif grammar_tree.reduce_number in self.__reduce_number_to_grammar_number:
-            grammar_name = '{{ configure.boson_grammar_name_prefix }}'.format(self.__reduce_number_to_grammar_number[grammar_tree.reduce_number])
+            grammar_name = '{{ configure.boson_grammar_name_prefix }}{}'.format(self.__reduce_number_to_grammar_number[grammar_tree.reduce_number])
         else:
-            grammar_name = '{{ configure.boson_grammar_name_prefix }}'.format('hidden')
+            grammar_name = '{{ configure.boson_grammar_name_prefix }}{}'.format('hidden')
         grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
         if grammar_name in self.__semantics_entity:
             return self.__semantics_entity[grammar_name](grammar_entity)
@@ -293,7 +293,7 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
     def semantics_entity(self, sign):
         def decorator(f):
             if isinstance(sign, int):
-                name = '{{ configure.boson_grammar_name_prefix }}'.format(sign)
+                name = '{{ configure.boson_grammar_name_prefix }}{}'.format(sign)
             elif isinstance(sign, str):
                 name = sign
             else:
