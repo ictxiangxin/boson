@@ -45,10 +45,10 @@ def console_main():
     parse.add_argument('-l', '--language', default='python3', choices=['python3'],
                        help='Generate code language (default is Python3).\n'
                             '  python3 - Python3 code.\n')
-    parse.add_argument('-r', '--report', action='store_true', default=True,
-                       help='Report conflict when create grammar analyzer.')
     parse.add_argument('-f', '--force', action='store_true',
                        help='Force generate code when exist conflict.')
+    parse.add_argument('-q', '--quiet', action='store_true',
+                       help='Do not output code when executing boson script.')
     arguments = parse.parse_args()
     welcome()
     source_file = None
@@ -71,7 +71,7 @@ def console_main():
         analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
-        if arguments.report and len(analyzer_table.conflict_list):
+        if len(analyzer_table.conflict_list):
             conflict_type_text = {
                 configure.boson_conflict_reduce_reduce: 'Reduce/Reduce',
                 configure.boson_conflict_shift_reduce: 'Shift/Reduce'
@@ -85,6 +85,8 @@ def console_main():
             return
         if arguments.output is not None:
             output_file = open(arguments.output, 'w', encoding='utf-8')
+        elif arguments.quiet:
+            output_file = None
         else:
             output_file = sys.stdout
         display('    Generate analyzer {} code... '.format(arguments.language.upper()), newline=False)
@@ -94,7 +96,9 @@ def console_main():
         display('Done [{:.4f}s]'.format(end_time - start_time))
         global_end_time = time.time()
         display('    Complete!!! [{:.4f}s]'.format(global_end_time - global_start_time))
-        output_file.write(text)
+        display('')
+        if output_file is not None:
+            output_file.write(text)
     except Exception as e:
         display('\n\n[Error] {}'.format(e), file=sys.stderr)
         if arguments.output is not None and output_file is not None:
