@@ -3,18 +3,40 @@
 %generate_semantics_analyzer yes;
 %code_comment no;
 %sparse_table yes;
-%start_symbol grammar;
+%start_symbol boson;
 
-
-grammar : statement+;
+boson : statement+;
 
 statement : command_statement
-          | reduction_statement
+          | lexicon_statement
+          | grammar_statement
           ;
 
-command_statement : command (name | literal)+ end = command($0, *$1($?));
+command_statement : command (name | string)+ end = command($0, *$1($?));
 
-reduction_statement : name reduce derivation_list end = reduce($0, $2);
+lexicon_statement : name assign lexicon_list end = lexical_define($0, $2);
+
+lexicon_list : lexicon (or lexicon)* = ($0, *$1($1));
+
+lexicon : lexeme+ [brace_l name+ brace_r] = ($0, *$1($1));
+
+lexeme : complex_lexeme
+       | [except] (alphabet | string | name) [postfix] = (*$0($?), *$1($?), $2($?))
+       ;
+
+complex_lexeme : parentheses_l sub_lexeme parentheses_r [postfix] = lexical_closure($1, *$3($?))
+               | bracket_l sub_lexeme bracket_r = lexical_optional($1)
+               ;
+
+sub_lexeme : lexeme+ = (*$0)
+           | lexeme (or lexeme)+ = lexical_select($0, *$1($1))
+           ;
+
+postfix : closure [greedy] = ($0, *$1($?))
+        | count
+        ;
+
+grammar_statement : name reduce derivation_list end = reduce($0, $2);
 
 derivation_list : derivation (or derivation)* = ($0, *$1($1));
 
@@ -25,15 +47,13 @@ derivation_body : element+ = (*$0)
                 |
                 ;
 
-grammar_tuple : parentheses_l node_list parentheses_r = (*$1);
-
-node_list : node_element (comma node_element)* = ($0, *$1($1));
+grammar_tuple : parentheses_l node_element (comma node_element)* parentheses_r = ($1, *$2($1));
 
 node_element : [star] node [grammar_tuple] = grammar_node(*$0($?), $1, *$2($?));
 
 element : complex_element
         | name [closure] = name_closure($0, *$1($?))
-        | literal = literal($0)
+        | string = literal($0)
         ;
 
 complex_element : parentheses_l sub_derivation parentheses_r [closure] = complex_closure($1, *$3($?))
