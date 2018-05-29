@@ -1,6 +1,6 @@
 import re
 import boson.bs_configure as configure
-from boson.bs_boson_ebnf_analyzer import BosonEBNFAnalyzer, BosonSemanticsAnalyzer
+from boson.bs_boson_script_analyzer import BosonEBNFAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
 
 
