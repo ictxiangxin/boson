@@ -1,6 +1,6 @@
 import re
 import boson.bs_configure as configure
-from boson.bs_boson_script_analyzer import BosonEBNFAnalyzer, BosonSemanticsAnalyzer
+from boson.bs_boson_script_analyzer import BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
 
 
@@ -95,7 +95,7 @@ semantic_analyzer = BosonSemanticsAnalyzer()
 
 class BosonScriptAnalyzer:
     def __init__(self):
-        self.__ebnf_grammar_analyzer = BosonEBNFAnalyzer()
+        self.__ebnf_grammar_analyzer = BosonGrammarAnalyzer()
         self.__sentence_set = set()
         self.__grammar_tuple_map = {}
         self.__none_grammar_tuple_set = set()

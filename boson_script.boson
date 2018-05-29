@@ -1,4 +1,4 @@
-%grammar_analyzer_class_name BosonEBNFAnalyzer;
+%grammar_analyzer_class_name BosonGrammarAnalyzer;
 %semantics_analyzer_class_name BosonSemanticsAnalyzer;
 %generate_semantics_analyzer yes;
 %code_comment no;
