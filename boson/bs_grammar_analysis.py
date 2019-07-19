@@ -95,7 +95,7 @@ semantic_analyzer = BosonSemanticsAnalyzer()
 
 class BosonScriptAnalyzer:
     def __init__(self):
-        self.__ebnf_grammar_analyzer = BosonGrammarAnalyzer()
+        self.__grammar_analyzer = BosonGrammarAnalyzer()
         self.__sentence_set = set()
         self.__grammar_tuple_map = {}
         self.__none_grammar_tuple_set = set()
@@ -245,7 +245,7 @@ class BosonScriptAnalyzer:
             return literal_symbol
 
     def grammar_analysis(self, token_list):
-        grammar = self.__ebnf_grammar_analyzer.grammar_analysis(token_list)
+        grammar = self.__grammar_analyzer.grammar_analysis(token_list)
         if grammar.error_index is None:
             return grammar.grammar_tree
         else:
