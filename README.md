@@ -1,6 +1,6 @@
 # Boson - Grammar Analyzer Generator
 
-![Version](https://img.shields.io/badge/Version-0.9-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.7.0-green.svg)
 ![C++](https://img.shields.io/badge/C++-17-green.svg)
 
