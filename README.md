@@ -39,7 +39,7 @@ You can see the usage of console command `boson -h`.
 The usage of `boson` is:
 
 ```
-usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3}] [-r] [-f]
+usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3,c++}] [-f] [-q]
              grammar_file
 
 Boson v0.9 - Grammar analyzer generator
@@ -56,11 +56,12 @@ optional arguments:
                           slr  - SLR (Simple LR)
                           lr   - LR (Canonical LR)
                           lalr - LALR (Look-Ahead LR)
-  -l {python3}, --language {python3}
+  -l {python3,c++}, --language {python3,c++}
                         Generate code language (default is Python3).
                           python3 - Python3 code.
-  -r, --report          Report conflict when create grammar analyzer.
+                          c++ - C++ code.
   -f, --force           Force generate code when exist conflict.
+  -q, --quiet           Do not output code when executing boson script.
 ```
 
 ## Boson Script
