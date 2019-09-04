@@ -86,12 +86,12 @@ In current version, boson has these commands:
 
 |Command|Value Type|Value Range|Comment|
 |:-|:-:|:-|:-|
-|%start_symbol|Work|Any|Determine the start symbol name of script|
-|%lexical_token_class_name|Work|Any|Set lexical token class name of result code|
-|%grammar_analyzer_class_name|Work|Any|Set grammar analyzer class name of result code|
-|%grammar_class_name|Work|Any|Set grammar class name of result code|
-|%grammar_node_class_name|Work|Any|Set grammar node class name of result code|
-|%semantics_analyzer_class_name|Work|Any|Set semantics analyzer class name of result code|
+|%start_symbol|Words|Any|Determine the start symbol name of script|
+|%lexical_token_class_name|Words|Any|Set lexical token class name of result code|
+|%grammar_analyzer_class_name|Words|Any|Set grammar analyzer class name of result code|
+|%grammar_class_name|Words|Any|Set grammar class name of result code|
+|%grammar_node_class_name|Words|Any|Set grammar node class name of result code|
+|%semantics_analyzer_class_name|Words|Any|Set semantics analyzer class name of result code|
 |%generate_semantics_analyzer|Bool|yes/no|Determine weather generate semantics analyzer code|
 |%code_comment|Bool|yes/no|Determine weather generate comment header in result code|
 |%sparse_table|Bool|yes/no|Determine weather use sparse grammar table in result code|
