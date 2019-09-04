@@ -37,9 +37,10 @@ boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
 
 boson_option = {
     'start_symbol': 'start',
+    'lexical_token_class_name': 'BosonToken',
     'grammar_analyzer_class_name': 'BosonGrammarAnalyzer',
     'grammar_class_name': 'BosonGrammar',
-    'grammar_node_name': 'BosonGrammarNode',
+    'grammar_node_class_name': 'BosonGrammarNode',
     'semantics_analyzer_class_name': 'BosonSemanticsAnalyzer',
     'generate_semantics_analyzer': 'yes',
     'code_comment': 'yes',

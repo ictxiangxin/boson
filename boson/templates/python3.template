@@ -21,6 +21,17 @@
 
 
 {% endif -%}
+class {{ configure.boson_option['lexical_token_class_name'] }}:
+    text: str
+    line: int
+    symbol: str
+
+    def __init__(self, text: str, line: int, symbol: str):
+        self.text = text
+        self.line = line
+        self.symbol = symbol
+
+
 class {{ configure.boson_option['grammar_class_name'] }}:
     def __init__(self):
         self.__grammar_tree = None
@@ -43,7 +54,7 @@ class {{ configure.boson_option['grammar_class_name'] }}:
     error_index = property(get_error_index, set_error_index)
 
 
-class {{ configure.boson_option['grammar_node_name'] }}:
+class {{ configure.boson_option['grammar_node_class_name'] }}:
     def __init__(self):
         self.reduce_number = -1
         self.__data = []
@@ -122,29 +133,25 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
         {%- endif %}
         self.__node_table = {
             {%- for sentence, grammar_tuple in grammar_package.grammar_tuple_map.items() %}
-            {{ analyzer_table.sentence_list.index(sentence) }}: {{ grammar_tuple }}{%- if not loop.last %},{% endif -%}
+            {{ analyzer_table.sentence_list.index(sentence) }}: {{ grammar_tuple }}
+            {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         self.__reduce_symbol_sum = [
-                                    {%- for index in analyzer_table.reduce_symbol_sum -%}
-                                    {{ index }}
-                                    {%- if not loop.last %}, {% endif -%}
-                                    {%- endfor -%}
-                                   ]
+            {%- for index in analyzer_table.reduce_symbol_sum -%}
+            {{ index }}
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor -%}
+        ]
         self.__reduce_to_non_terminal_index = [
-                                               {%- for index in analyzer_table.reduce_to_non_terminal_index -%}
-                                               {{ index }}
-                                               {%- if not loop.last %}, {% endif -%}
-                                               {%- endfor -%}
-                                              ]
+            {%- for index in analyzer_table.reduce_to_non_terminal_index -%}
+                {{ index }}
+                {%- if not loop.last %}, {% endif -%}
+                {%- endfor -%}
+            ]
 
-    def __generate_grammar_tuple(self, statement_index, symbol_package):
-        grammar_node = BosonGrammarNode()
-        if isinstance(statement_index, int):
-            node_tuple = self.__node_table[statement_index]
-        else:
-            node_tuple = statement_index
-            statement_index = -1
+    def __generate_grammar_tuple(self, statement_index: int, node_tuple: tuple, symbol_package: list):
+        grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
         for i in node_tuple:
             if isinstance(i, str):
                 if i == '$':
@@ -161,10 +168,10 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
                 if symbol_package:
                     if i[0][0] == '*':
                         for node in symbol_package[int(i[0][1:])]:
-                            grammar_node += self.__generate_grammar_tuple(i[1], node)
+                            grammar_node += self.__generate_grammar_tuple(-1, i[1], node)
                     else:
                         for node in symbol_package[int(i[0])]:
-                            grammar_node.append(self.__generate_grammar_tuple(i[1], node))
+                            grammar_node.append(self.__generate_grammar_tuple(-1, i[1], node))
         grammar_node.reduce_number = statement_index
         return grammar_node
 
@@ -210,7 +217,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
                     symbol_package = []
                     for _ in range(reduce_sum):
                         symbol_package.insert(0, symbol_stack.pop())
-                    symbol_stack.append(self.__generate_grammar_tuple(statement_index, symbol_package))
+                    symbol_stack.append(self.__generate_grammar_tuple(statement_index, self.__node_table[statement_index], symbol_package))
                 {%- endif %}
                 {%- if have_default_reduce_tuple %}
                 {%- if have_special_generate %}
@@ -218,13 +225,13 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
                 {%- else %}
                 if statement_index in [{{ ', '.join(none_grammar_tuple_reduce) }}]:
                 {%- endif %}
-                    grammar_node = BosonGrammarNode()
+                    grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
                     for _ in range(reduce_sum):
                         grammar_node.insert(0, symbol_stack.pop())
                     grammar_node.reduce_number = statement_index
                     symbol_stack.append(grammar_node)
                 {%- endif %}
-                {%- if have_special_generate and have_default_reduce_tuple %}
+                {%- if have_special_generate or have_default_reduce_tuple %}
                 else:
                     raise ValueError('Invalid reduce number: reduce={}'.format(statement_index))
                 {%- endif %}
@@ -252,11 +259,11 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
             {%- endfor %}
         }
         self.__naive_reduce_number = {
-                                      {%- for reduce_number in naive_reduce_number -%}
-                                      {{ reduce_number }}
-                                      {%- if not loop.last %}, {% endif -%}
-                                      {%- endfor -%}
-                                     }
+            {%- for reduce_number in naive_reduce_number -%}
+            {{ reduce_number }}
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor -%}
+        }
         self.__semantics_entity = {}
 
     @staticmethod
@@ -272,14 +279,14 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         else:
             return grammar_entity
 
-    def __semantics_analysis(self, grammar_tree: BosonGrammarNode):
+    def __semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
         if grammar_tree.reduce_number in self.__reduce_number_to_grammar_name:
             grammar_name = self.__reduce_number_to_grammar_name[grammar_tree.reduce_number]
         elif grammar_tree.reduce_number in self.__reduce_number_to_grammar_number:
             grammar_name = '{{ configure.boson_grammar_name_prefix }}{}'.format(self.__reduce_number_to_grammar_number[grammar_tree.reduce_number])
         else:
-            grammar_name = '{{ configure.boson_grammar_name_prefix }}{}'.format('hidden')
-        grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
+            grammar_name = '{{ configure.boson_grammar_name_prefix }}hidden'
+        grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, {{ configure.boson_option['grammar_node_class_name'] }}) else g, grammar_tree.data()))
         if grammar_name in self.__semantics_entity:
             return self.__semantics_entity[grammar_name](grammar_entity)
         elif grammar_tree.reduce_number in self.__naive_reduce_number:
@@ -287,7 +294,7 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         else:
             return self.__default_semantics_entity(grammar_entity)
 
-    def semantics_analysis(self, grammar_tree: BosonGrammarNode):
+    def semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
         return self.__semantics_analysis(grammar_tree)
 
     def semantics_entity(self, sign):

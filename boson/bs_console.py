@@ -42,9 +42,10 @@ def console_main():
                             '  slr  - SLR (Simple LR)\n'
                             '  lr   - LR (Canonical LR)\n'
                             '  lalr - LALR (Look-Ahead LR)\n')
-    parse.add_argument('-l', '--language', default='python3', choices=['python3'],
+    parse.add_argument('-l', '--language', default='python3', choices=['python3', 'c++'],
                        help='Generate code language (default is Python3).\n'
-                            '  python3 - Python3 code.\n')
+                            '  python3 - Python3 code.\n'
+                            '  c++ - C++ code.\n')
     parse.add_argument('-f', '--force', action='store_true',
                        help='Force generate code when exist conflict.')
     parse.add_argument('-q', '--quiet', action='store_true',

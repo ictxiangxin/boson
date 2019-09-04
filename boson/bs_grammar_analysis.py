@@ -1,38 +1,7 @@
 import re
 import boson.bs_configure as configure
-from boson.bs_boson_script_analyzer import BosonGrammarAnalyzer, BosonSemanticsAnalyzer
+from boson.bs_boson_script_analyzer import LexicalToken, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
-
-
-class LexicalToken:
-    def __init__(self):
-        self.__symbol = None
-        self.__text = None
-        self.__line = None
-
-    def get_symbol(self):
-        return self.__symbol
-
-    def set_symbol(self, symbol: str):
-        self.__symbol = symbol
-
-    symbol = property(get_symbol, set_symbol)
-
-    def get_text(self):
-        return self.__text
-
-    def set_text(self, text: str):
-        self.__text = text
-
-    text = property(get_text, set_text)
-
-    def get_line(self):
-        return self.__line
-
-    def set_line(self, line: int):
-        self.__line = line
-
-    line = property(get_line, set_line)
 
 
 token_tuple = [
@@ -77,15 +46,9 @@ def bs_tokenize(text: str):
         elif symbol == 'invalid':
             raise RuntimeError('[Line: {}] Invalid token: {}'.format(line, text))
         else:
-            token = LexicalToken()
-            token.symbol = symbol
-            token.text = text
-            token.line = line
+            token = LexicalToken(text, line, symbol)
             token_list.append(token)
-    token = LexicalToken()
-    token.symbol = configure.boson_end_symbol
-    token.text = ''
-    token.line = line
+    token = LexicalToken('', line, configure.boson_end_symbol)
     token_list.append(token)
     return token_list
 

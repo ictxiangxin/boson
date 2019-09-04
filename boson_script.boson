@@ -1,9 +1,10 @@
-%grammar_analyzer_class_name BosonGrammarAnalyzer;
-%semantics_analyzer_class_name BosonSemanticsAnalyzer;
-%generate_semantics_analyzer yes;
-%code_comment no;
-%sparse_table yes;
-%start_symbol boson;
+%LexicalTokenClassName LexicalToken;
+%GrammarAnalyzerClassName BosonGrammarAnalyzer;
+%SemanticsAnalyzerClassName BosonSemanticsAnalyzer;
+%GenerateSemanticsAnalyzer yes;
+%CodeComment no;
+%SparseTable yes;
+%StartSymbol boson;
 
 boson : statement+;
 
