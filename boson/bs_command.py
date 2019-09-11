@@ -20,6 +20,7 @@ def bs_command_execute(command_list):
                        'grammar_class_name',
                        'grammar_node_class_name',
                        'semantics_analyzer_class_name',
+                       'semantics_node_class_name',
                        'generate_semantics_analyzer',
                        'code_comment',
                        'sparse_table',

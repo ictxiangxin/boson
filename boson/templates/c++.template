@@ -26,6 +26,7 @@
 #include <set>
 #include <unordered_map>
 #include <string>
+#include <functional>
 
 
 class {{ configure.boson_option['lexical_token_class_name'] }} {
@@ -54,11 +55,6 @@ public:
         this->set_text(text);
     }
 
-    static {{ configure.boson_option['grammar_node_class_name'] }} &null_node() {
-        static {{ configure.boson_option['grammar_node_class_name'] }} node;
-        return node;
-    }
-
     int get_reduce_number() {
         return this->_reduce_number;
     }
@@ -76,30 +72,25 @@ public:
     }
 
     void append(const {{ configure.boson_option['grammar_node_class_name'] }} &item) {
-        this->_data.push_back(item);
+        this->_children.push_back(item);
     }
 
     void insert(int index, const {{ configure.boson_option['grammar_node_class_name'] }} &item) {
-        this->_data.insert(this->_data.begin() + index, item);
+        this->_children.insert(this->_children.begin() + index, item);
     }
 
-    std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> &data() {
-        return this->_data;
+    std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> &children() {
+        return this->_children;
     }
 
     {{ configure.boson_option['grammar_node_class_name'] }} &operator[](int index) {
-        return this->_data[index];
-    }
-
-    {{ configure.boson_option['grammar_node_class_name'] }} &operator+=(const {{ configure.boson_option['grammar_node_class_name'] }} &item) {
-        this->append(item);
-        return *this;
+        return this->_children[index];
     }
 
 private:
     int _reduce_number = -1;
     std::string _text;
-    std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> _data;
+    std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> _children;
 };
 
 
@@ -129,6 +120,68 @@ private:
 };
 
 
+{% if generate_semantics_analyzer -%}
+template <class T>
+class {{ configure.boson_option['semantics_node_class_name'] }} {
+public:
+    {{ configure.boson_option['semantics_node_class_name'] }}() = default;
+
+    explicit {{ configure.boson_option['semantics_node_class_name'] }}(T data): _data(data) {};
+
+    static {{ configure.boson_option['semantics_node_class_name'] }} &null_node() {
+        static {{ configure.boson_option['semantics_node_class_name'] }} node;
+        return node;
+    }
+
+    T &get_data() {
+        return this->_data;
+    }
+
+    void set_data(T data) {
+        this->_data = std::move(data);
+    }
+
+    int get_reduce_number() {
+        return this->_reduce_number;
+    }
+
+    void set_reduce_number(int reduce_number) {
+        this->_reduce_number = reduce_number;
+    }
+
+    const std::string &get_text() {
+        return this->_text;
+    }
+
+    void set_text(std::string &text) {
+        this->_text = text;
+    }
+
+    void append(const {{ configure.boson_option['semantics_node_class_name'] }} &item) {
+        this->_children.push_back(item);
+    }
+
+    void insert(int index, const {{ configure.boson_option['semantics_node_class_name'] }} &item) {
+        this->_children.insert(this->_children.begin() + index, item);
+    }
+
+    std::vector<{{ configure.boson_option['semantics_node_class_name'] }}> &children() {
+        return this->_children;
+    }
+
+    {{ configure.boson_option['semantics_node_class_name'] }} &operator[](int index) {
+        return this->_children[index];
+    }
+
+protected:
+    int _reduce_number = -1;
+    std::string _text;
+    std::vector<{{ configure.boson_option['semantics_node_class_name'] }}> _children;
+    T _data;
+};
+
+
+{% endif -%}
 class {{ configure.boson_option['grammar_analyzer_class_name'] }} {
 public:
     {{ configure.boson_option['grammar_analyzer_class_name'] }}() = default;
@@ -347,7 +400,7 @@ private:
                     i--;
                     int reduce_number = (int) strtol(number_text.c_str(), nullptr, 10);
                     if (star) {
-                        for (auto &node : symbol_package[reduce_number].data()) {
+                        for (auto &node : symbol_package[reduce_number].children()) {
                             grammar_node.append(node);
                         }
                     } else {
@@ -379,10 +432,10 @@ private:
                     if (parenthesis_count == 0) {
                         int reduce_number = (int) strtol(number_text.c_str(), nullptr, 10);
                         std::string sub_node_tuple = node_tuple.substr(sub_start_index, i - sub_start_index + 1);
-                        for (auto &each: symbol_package[reduce_number].data()) {
-                            {{ configure.boson_option['grammar_node_class_name'] }} sub_node = this->_generate_grammar_tuple(-1, sub_node_tuple, each.data());
+                        for (auto &each: symbol_package[reduce_number].children()) {
+                            {{ configure.boson_option['grammar_node_class_name'] }} sub_node = this->_generate_grammar_tuple(-1, sub_node_tuple, each.children());
                             if (star) {
-                                for (auto &node : sub_node.data()) {
+                                for (auto &node : sub_node.children()) {
                                     grammar_node.append(node);
                                 }
                             } else {
@@ -405,25 +458,26 @@ private:
 {%- if generate_semantics_analyzer %}
 
 
-typedef {{ configure.boson_option['grammar_node_class_name'] }} (*semantic_function)({{ configure.boson_option['grammar_node_class_name'] }} &);
-
+template <class T>
 class {{ configure.boson_option['semantics_analyzer_class_name'] }} {
 public:
+    using semantic_function = std::function<{{ configure.boson_option['semantics_node_class_name'] }}<T>({{ configure.boson_option['semantics_node_class_name'] }}<T> &)>;
+
     {{ configure.boson_option['semantics_analyzer_class_name'] }}() = default;
 
-    {{ configure.boson_option['grammar_node_class_name'] }} semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} grammar_tree) {
+    {{ configure.boson_option['semantics_node_class_name'] }}<T> semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
         return this->_semantics_analysis(grammar_tree);
     }
 
-    static {{ configure.boson_option['grammar_node_class_name'] }} default_semantics_entity({{ configure.boson_option['grammar_node_class_name'] }} &grammar_entity) {
-        return grammar_entity;
+    static {{ configure.boson_option['semantics_node_class_name'] }}<T> default_semantics_entity({{ configure.boson_option['semantics_node_class_name'] }}<T> &semantics_node) {
+        return semantics_node;
     }
 
-    static {{ configure.boson_option['grammar_node_class_name'] }} naive_semantics_entity({{ configure.boson_option['grammar_node_class_name'] }} &grammar_entity) {
-        if (grammar_entity.data().size() == 1) {
-            return grammar_entity.data()[0];
+    static {{ configure.boson_option['semantics_node_class_name'] }}<T> naive_semantics_entity({{ configure.boson_option['semantics_node_class_name'] }}<T> &semantics_node) {
+        if (semantics_node.children().size() == 1) {
+            return semantics_node[0];
         } else {
-            return grammar_entity;
+            return semantics_node;
         }
     }
 
@@ -465,7 +519,7 @@ private:
 
     std::unordered_map<std::string, semantic_function> _semantics_entity;
 
-    {{ configure.boson_option['grammar_node_class_name'] }} _semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
+    {{ configure.boson_option['semantics_node_class_name'] }}<T> _semantics_analysis(BosonGrammarNode &grammar_tree) {
         std::string grammar_name;
         if (this->_reduce_number_to_grammar_name.count(grammar_tree.get_reduce_number())) {
             grammar_name = this->_reduce_number_to_grammar_name[grammar_tree.get_reduce_number()];
@@ -474,20 +528,23 @@ private:
         } else {
             grammar_name = "{{ configure.boson_grammar_name_prefix }}hidden";
         }
-        {{ configure.boson_option['grammar_node_class_name'] }} grammar_entity;
-        for (auto &node: grammar_tree.data()) {
-            if (!node.data().empty()) {
-                grammar_entity.append(this->_semantics_analysis(node));
+        {{ configure.boson_option['semantics_node_class_name'] }}<T> semantics_node;
+        for (auto &node: grammar_tree.children()) {
+            if (!node.children().empty()) {
+                semantics_node.append(this->_semantics_analysis(node));
             } else {
-                grammar_entity.append(node);
+                {{ configure.boson_option['semantics_node_class_name'] }}<T> temp_node;
+                temp_node.set_reduce_number(node.get_reduce_number());
+                temp_node.set_text(node.get_text());
+                semantics_node.append(temp_node);
             }
         }
         if (this->_semantics_entity.count(grammar_name)) {
-            return this->_semantics_entity[grammar_name](grammar_entity);
+            return this->_semantics_entity[grammar_name](semantics_node);
         } else if (this->_naive_reduce_number.count(grammar_tree.get_reduce_number())) {
-            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::naive_semantics_entity(grammar_entity);
+            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::naive_semantics_entity(semantics_node);
         } else {
-            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::default_semantics_entity(grammar_entity);
+            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::default_semantics_entity(semantics_node);
         }
     }
 };

@@ -42,6 +42,7 @@ boson_option = {
     'grammar_class_name': 'BosonGrammar',
     'grammar_node_class_name': 'BosonGrammarNode',
     'semantics_analyzer_class_name': 'BosonSemanticsAnalyzer',
+    'semantics_node_class_name': 'BosonSemanticsNode',
     'generate_semantics_analyzer': 'yes',
     'code_comment': 'yes',
     'sparse_table': 'no',
