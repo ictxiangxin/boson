@@ -6,6 +6,20 @@
 %SparseTable yes;
 %StartSymbol boson;
 
+string = '"' ^'"'* '"';
+
+name = [_a-zA-Z] [_a-zA-Z0-9]*;
+
+node = '$' [0-9]+
+     | '$@'
+     | '$$'
+     | '$?'
+     ;
+
+command = '%' <_a-zA-Z>+;
+
+comment = '#' ^<\r\n>*;
+
 boson : statement+;
 
 statement : command_statement
