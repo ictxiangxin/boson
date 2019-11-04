@@ -45,7 +45,8 @@ def console_main():
     parse.add_argument('-l', '--language', default='python3', choices=['python3', 'c++'],
                        help='Generate code language (default is Python3).\n'
                             '  python3 - Python3 code.\n'
-                            '  c++ - C++ code.\n')
+                            '  c++ - C++ code.\n'
+                            '  java - Java code.\n')
     parse.add_argument('-f', '--force', action='store_true',
                        help='Force generate code when exist conflict.')
     parse.add_argument('-q', '--quiet', action='store_true',

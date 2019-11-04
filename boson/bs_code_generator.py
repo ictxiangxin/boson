@@ -72,3 +72,7 @@ def bs_generate_python3_code(analyzer_table: AnalyzerTable, grammar_package: Gra
 
 def bs_generate_cpp_code(analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
     return bs_generate_code('c++', analyzer_table, grammar_package)
+
+
+def bs_generate_java_code(analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
+    return bs_generate_code('java', analyzer_table, grammar_package)
