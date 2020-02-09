@@ -235,7 +235,7 @@ class BosonScriptAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def semantics_analysis(self, grammar_tree):
+    def semantics_analysis(self, grammar_tree) -> GrammarPackage:
         self.__init__()
         self.init_semantic()
         semantic_analyzer.semantics_analysis(grammar_tree)
@@ -250,13 +250,13 @@ class BosonScriptAnalyzer:
         grammar_package.naive_sentence = self.__naive_sentence
         return grammar_package
 
-    def parse(self, token_list):
+    def parse(self, token_list) -> GrammarPackage:
         grammar_tree = self.grammar_analysis(token_list)
         grammar_package = self.semantics_analysis(grammar_tree)
         return grammar_package
 
 
-def bs_grammar_analysis(text: str):
+def bs_grammar_analysis(text: str) -> GrammarPackage:
     token_list = bs_tokenize(text)
     script_analyzer = BosonScriptAnalyzer()
     grammar_package = script_analyzer.parse(token_list)

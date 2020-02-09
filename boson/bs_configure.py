@@ -26,6 +26,12 @@ boson_grammar_tuple_number = '$'
 boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
 
+boson_lexicon_default_state = 0
+boson_lexicon_default_start_state = 0
+boson_lexicon_default_end_state = 1
+boson_lexicon_epsilon_transition = None
+boson_lexicon_wildcard = True
+
 boson_reserved_symbol = '!'
 boson_end_symbol = '$'
 boson_null_symbol = '~'
