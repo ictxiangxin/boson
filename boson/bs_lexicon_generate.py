@@ -164,6 +164,8 @@ class LexicalNFA:
         dfa_state_set.add(dfa_start)
         dfa_state_map[dfa_start] = dfa_state_number
         dfa_entity.set_start_state(dfa_state_number)
+        if len(self.end_state_set() & dfa_start) > 0:
+            dfa_entity.add_end_state(dfa_state_number)
         dfa_state_number += 1
         dfa_state_wait_list.append(dfa_start)
         lexical_end_state_set = set(self.__lexical_symbol_mapping)
@@ -285,8 +287,24 @@ class LexicalNFA:
         self.set_start_state(start_state)
         self.add_move(start_state, configure.boson_lexical_epsilon_transition, start_state_mapping[0])
 
-    def create_nfa_repeat(self, input_nfa, count: int):
-        self.create_nfa_link([input_nfa] * count)
+    def bs_create_nfa_count_range(self, input_nfa, min_count: int, max_count: int):
+        input_nfa_list = [input_nfa] * max_count
+        start_state_mapping, end_state_mapping = self.update(input_nfa_list)
+        for index in range(len(input_nfa_list)):
+            if index == 0:
+                self.set_start_state(start_state_mapping[index])
+                if min_count == 0:
+                    self.add_end_state(start_state_mapping[index])
+            if index == len(input_nfa_list) - 1:
+                for state in end_state_mapping[index]:
+                    self.add_end_state(state)
+            if index > 0:
+                start_state = start_state_mapping[index]
+                for previous_end_state in end_state_mapping[index - 1]:
+                    self.add_move(previous_end_state, configure.boson_lexical_epsilon_transition, start_state)
+            if index >= min_count - 1:
+                for end_state in end_state_mapping[index]:
+                    self.add_end_state(end_state)
 
 
 def bs_create_nfa_character(character: (str, bool)) -> LexicalNFA:
@@ -319,7 +337,7 @@ def bs_create_nfa_plus_closure(input_nfa: LexicalNFA) -> LexicalNFA:
     return nfa
 
 
-def bs_create_nfa_repeat(input_nfa: LexicalNFA, count: int) -> LexicalNFA:
+def bs_create_nfa_count_range(input_nfa: LexicalNFA, min_count: int, max_count: int) -> LexicalNFA:
     nfa = LexicalNFA()
-    nfa.create_nfa_repeat(input_nfa, count)
+    nfa.bs_create_nfa_count_range(input_nfa, min_count, max_count)
     return nfa
