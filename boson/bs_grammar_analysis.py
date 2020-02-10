@@ -3,31 +3,33 @@ import boson.bs_configure as configure
 from boson.bs_boson_script_analyzer import LexicalToken, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
 
-
 token_tuple = [
-    ('name',          r'[_a-zA-Z][_a-zA-Z0-9]*'),
-    ('reduce',        r'\:'),
-    ('or',            r'\|'),
-    ('comma',         r'\,'),
-    ('assign',        r'\='),
-    ('plus',          r'\+'),
-    ('star',          r'\*'),
+    ('name', r'[_a-zA-Z][_a-zA-Z0-9]*'),
+    ('reduce', r'\:'),
+    ('or', r'\|'),
+    ('comma', r'\,'),
+    ('assign', r'\='),
+    ('plus', r'\+'),
+    ('star', r'\*'),
     ('parentheses_l', r'\('),
     ('parentheses_r', r'\)'),
-    ('bracket_l',     r'\['),
-    ('bracket_r',     r'\]'),
-    ('node',          r'\$[0-9]+\*{0,1}|\$\@|\$\$|\$\?'),
-    ('string',        r'\'.*?[^\\]\'|\".*?[^\\]\"'),
-    ('alphabet',      r'\/.*?[^\\]\/'),
-    ('null',          r'~'),
-    ('comment',       r'#[^\r\n]*'),
-    ('command',       r'%[_a-zA-Z]+'),
-    ('end',           r'\;'),
-    ('except',        r'\^'),
-    ('greedy',        r'\?'),
-    ('skip',          r'[ \t]+'),
-    ('newline',       r'\n|\r\n'),
-    ('invalid',       r'.'),
+    ('bracket_l', r'\['),
+    ('bracket_r', r'\]'),
+    ('brace_l', r'\{'),
+    ('brace_r', r'\}'),
+    ('at', r'\@'),
+    ('node', r'\$[0-9]+\*{0,1}|\$\@|\$\$|\$\?'),
+    ('string', r'\'.*?[^\\]\'|\".*?[^\\]\"'),
+    ('regular_expression', r'\<.*?[^\\]\>'),
+    ('internal_function', r'\![_a-zA-Z]+'),
+    ('alphabet', r'\/.*?[^\\]\/'),
+    ('null', r'~'),
+    ('comment', r'#[^\r\n]*'),
+    ('command', r'%[_a-zA-Z]+'),
+    ('end', r'\;'),
+    ('skip', r'[ \t]+'),
+    ('newline', r'\n|\r\n'),
+    ('invalid', r'.'),
 ]
 
 token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
@@ -70,6 +72,7 @@ class BosonScriptAnalyzer:
         self.__literal_number = 1
         self.__hidden_name_number = 0
         self.__grammar_number = 0
+        self.__lexical_regular_expression_map = {}
 
     def __generate_hidden_name(self):
         hidden_name = '{}{}'.format(configure.boson_hidden_name_prefix, self.__hidden_name_number)
@@ -118,6 +121,17 @@ class BosonScriptAnalyzer:
         @semantic_analyzer.semantics_entity('command')
         def _semantic_command(grammar_entity):
             self.__command_list.append(grammar_entity)
+
+        @semantic_analyzer.semantics_entity('lexical_define')
+        def _semantic_lexical_define(grammar_entity):
+            lexical_name, lexicon_list = grammar_entity
+            first_element = lexicon_list[0]
+            if isinstance(first_element, str):
+                self.__lexical_regular_expression_map[lexical_name] = lexicon_list
+
+        @semantic_analyzer.semantics_entity('regular_expression')
+        def _semantic_regular_expression(grammar_entity):
+            return [grammar_entity[0][1:-1], grammar_entity[1] if len(grammar_entity) > 1 else []]
 
         @semantic_analyzer.semantics_entity('reduce')
         def _semantic_reduce(grammar_entity):
@@ -241,6 +255,7 @@ class BosonScriptAnalyzer:
         semantic_analyzer.semantics_analysis(grammar_tree)
         grammar_package = GrammarPackage()
         grammar_package.command_list = self.__command_list
+        grammar_package.lexical_regular_expression_map = self.__lexical_regular_expression_map
         grammar_package.sentence_set = self.__sentence_set
         grammar_package.grammar_tuple_map = self.__grammar_tuple_map
         grammar_package.none_grammar_tuple_set = self.__none_grammar_tuple_set

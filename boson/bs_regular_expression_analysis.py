@@ -1,0 +1,221 @@
+import re
+import boson.bs_configure as configure
+from boson.bs_regular_expression_analyzer import RegularExpressionToken, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
+from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
+from boson.bs_data_package import GrammarPackage
+
+token_tuple = [
+    ('single_number', r'[0-9]'),
+    ('plus', r'\+'),
+    ('star', r'\*'),
+    ('parentheses_l', r'\('),
+    ('parentheses_r', r'\)'),
+    ('bracket_l', r'\['),
+    ('bracket_r', r'\]'),
+    ('brace_l', r'\{'),
+    ('brace_r', r'\}'),
+    ('comma', r'\,'),
+    ('or', r'\|'),
+    ('to', r'\-'),
+    ('question_mark', r'\?'),
+    ('reverse', r'\^'),
+    ('escape_character', r'\\.'),
+    ('wildcard_character', r'\.'),
+    ('normal_character', r'.'),
+]
+
+token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
+
+
+def bs_tokenize(text: str):
+    token_list = list()
+    line = 1
+    for one_token in re.finditer(token_regular_expression, text):
+        symbol = one_token.lastgroup
+        text = one_token.group(symbol)
+        if symbol in ['skip', 'comment']:
+            pass
+        elif symbol == 'newline':
+            line += 1
+        elif symbol == 'invalid':
+            raise RuntimeError('[Line: {}] Invalid token: {}'.format(line, text))
+        else:
+            token = RegularExpressionToken(text, line, symbol)
+            token_list.append(token)
+    token = RegularExpressionToken('', line, configure.boson_end_symbol)
+    token_list.append(token)
+    return token_list
+
+
+semantic_analyzer = RegularExpressionSemanticsAnalyzer()
+
+
+class BosonRegularExpressionAnalyzer:
+    def __init__(self):
+        self.__grammar_analyzer = RegularExpressionAnalyzer()
+        self.__escape_character_mapping = {
+            'n': '\n',
+            'r': '\r',
+            't': '\t',
+            'd': '0123456789',
+            'w': 'abcdefghijklmnopqrstuvwxyz',
+            'W': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        }
+        self.__nfa = None
+
+    def init_semantic(self):
+        @semantic_analyzer.semantics_entity('regular_expression')
+        def _semantic_regular_expression(grammar_entity):
+            self.__nfa = grammar_entity[0]
+
+        @semantic_analyzer.semantics_entity('group')
+        def _semantic_group(grammar_entity):
+            if len(grammar_entity) == 1:
+                return grammar_entity[0]
+            elif len(grammar_entity) == 2:
+                nfa, postfix = grammar_entity
+                if isinstance(postfix, list):
+                    return bs_create_nfa_count_range(nfa, int(postfix[0]), int(postfix[1]))
+                elif isinstance(postfix, str):
+                    if postfix == '*':
+                        return bs_create_nfa_kleene_closure(nfa)
+                    elif postfix == '+':
+                        return bs_create_nfa_plus_closure(nfa)
+                    elif postfix == '?':
+                        return bs_create_nfa_count_range(nfa, 0, 1)
+                    else:
+                        raise RuntimeError('Never touch here.')
+                else:
+                    raise RuntimeError('Never touch here.')
+            else:
+                raise RuntimeError('Never touch here.')
+
+        @semantic_analyzer.semantics_entity('construct_number')
+        def _semantic_construct_number(grammar_entity):
+            return ''.join(grammar_entity)
+
+        @semantic_analyzer.semantics_entity('simple_construct')
+        def _semantic_character(grammar_entity):
+            character = grammar_entity[0]
+            if character[0] == '\\':
+                escape_character = character[1]
+                if escape_character in self.__escape_character_mapping:
+                    mapping_character = self.__escape_character_mapping[escape_character]
+                    if len(mapping_character) > 1:
+                        nfa_list = []
+                        for character in mapping_character:
+                            nfa_list.append(bs_create_nfa_character(character))
+                        return bs_create_nfa_or(nfa_list)
+                    else:
+                        return bs_create_nfa_character(mapping_character)
+                else:
+                    return bs_create_nfa_character(escape_character)
+            else:
+                return bs_create_nfa_character(character)
+
+        @semantic_analyzer.semantics_entity('select')
+        def _semantic_select(grammar_entity):
+            reverse = False
+            select_list = grammar_entity[0]
+            if len(grammar_entity) == 2:
+                reverse = True
+                select_list = grammar_entity[1]
+            select_character_set = set()
+            for each_select in select_list:
+                if isinstance(each_select, str):
+                    if each_select[0] == '\\':
+                        escape_character = each_select[1]
+                        if escape_character in self.__escape_character_mapping:
+                            select_character_set |= set(self.__escape_character_mapping[escape_character])
+                        else:
+                            select_character_set.add(escape_character)
+                    else:
+                        select_character_set.add(each_select[0])
+                elif isinstance(each_select, list):
+                    start_ascii, end_ascii = (ord(each_select[0]), ord(each_select[1]))
+                    if start_ascii <= end_ascii:
+                        character_range_set = set()
+                        while start_ascii <= end_ascii:
+                            character_range_set.add(chr(start_ascii))
+                            start_ascii += 1
+                        select_character_set |= character_range_set
+                    else:
+                        raise ValueError('Character range invalid.')
+                else:
+                    raise RuntimeError('Never touch here.')
+            if reverse:
+                return bs_create_nfa_reverse_delay_construct(select_character_set)
+            else:
+                nfa_list = []
+                for character in select_character_set:
+                    nfa_list.append(bs_create_nfa_character(character))
+                return bs_create_nfa_or(nfa_list)
+
+        @semantic_analyzer.semantics_entity('branch')
+        def _semantic_branch(grammar_entity):
+            return bs_create_nfa_link(grammar_entity)
+
+        @semantic_analyzer.semantics_entity('expression')
+        def _semantic_expression(grammar_entity):
+            if len(grammar_entity) > 1:
+                return bs_create_nfa_or(grammar_entity)
+            else:
+                return grammar_entity[0]
+
+        @semantic_analyzer.semantics_entity('wildcard_character')
+        def _semantic_wildcard_character(grammar_entity):
+            return bs_create_nfa_reverse_delay_construct(set())
+
+        @semantic_analyzer.semantics_entity('complex_construct')
+        def _semantic_complex_construct(grammar_entity):
+            return grammar_entity[0]
+
+        @semantic_analyzer.semantics_entity('sub_expression')
+        def _semantic_sub_expression(grammar_entity):
+            return grammar_entity[0]
+
+    def grammar_analysis(self, token_list):
+        grammar = self.__grammar_analyzer.grammar_analysis(token_list)
+        if grammar.error_index is None:
+            return grammar.grammar_tree
+        else:
+            start_index = grammar.error_index
+            end_index = grammar.error_index
+            error_line = token_list[grammar.error_index].line
+            while start_index >= 0:
+                if token_list[start_index].line == error_line:
+                    start_index -= 1
+                    continue
+                else:
+                    break
+            while end_index < len(token_list):
+                if token_list[end_index].line == error_line:
+                    end_index += 1
+                    continue
+                else:
+                    break
+            offset = grammar.error_index - start_index - 1
+            error_token_list = token_list[start_index + 1: end_index]
+            error_message = '\nGrammar Error [Line: {}] \n'.format(error_line)
+            error_token_text_list = [token.text for token in error_token_list]
+            error_message += '{}\n'.format(' '.join(error_token_text_list))
+            error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
+            raise ValueError(error_message)
+
+    def semantics_analysis(self, grammar_tree) -> LexicalNFA:
+        self.__init__()
+        self.init_semantic()
+        semantic_analyzer.semantics_analysis(grammar_tree)
+        return self.__nfa
+
+    def parse(self, token_list) -> LexicalNFA:
+        grammar_tree = self.grammar_analysis(token_list)
+        regular_expression_nfa = self.semantics_analysis(grammar_tree)
+        return regular_expression_nfa
+
+
+def bs_regular_expression_to_nfa(text: str) -> LexicalNFA:
+    token_list = bs_tokenize(text)
+    script_analyzer = BosonRegularExpressionAnalyzer()
+    regular_expression_nfa = script_analyzer.parse(token_list)
+    return regular_expression_nfa

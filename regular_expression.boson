@@ -1,0 +1,44 @@
+%LexicalTokenClassName RegularExpressionToken;
+%GrammarAnalyzerClassName RegularExpressionAnalyzer;
+%SemanticsAnalyzerClassName RegularExpressionSemanticsAnalyzer;
+%GenerateSemanticsAnalyzer yes;
+%CodeComment no;
+%SparseTable yes;
+%StartSymbol regular_expression;
+
+regular_expression: expression = regular_expression($0);
+
+expression : branch (or branch)* = expression($0, *$1($1));
+
+branch: group+ = branch(*$0);
+
+group: element [postfix] = group($0, *$1($0));
+
+element : simple_element = simple_construct($0)
+        | complex_element = complex_construct($0)
+        | wildcard_character = wildcard_character($0)
+        ;
+
+simple_element : character
+               | escape_character
+               ;
+
+character : normal_character
+          | single_number
+          ;
+
+complex_element : bracket_l [reverse] select_element+ bracket_r = select(*$1($0), $2)
+                | parentheses_l expression parentheses_r = sub_expression($1)
+                ;
+
+select_element : simple_element
+               | character to character = ($0, $2)
+               ;
+
+postfix : plus
+        | star
+        | question_mark
+        | brace_l [number] comma [number] brace_r = count_range(*$1($0), *$3($0))
+        ;
+
+number : single_number+ = construct_number(*$0);

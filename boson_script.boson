@@ -6,19 +6,19 @@
 %SparseTable yes;
 %StartSymbol boson;
 
-string = '"' ^'"'* '"';
+string = <".*[^\\]">;
 
-name = [_a-zA-Z] [_a-zA-Z0-9]*;
+name = <[_a-zA-Z][_a-zA-Z0-9]*>;
 
-node = '$' [0-9]+
-     | '$@'
-     | '$$'
-     | '$?'
-     ;
+node = <$[0-9]+|$@|$$|$\?>;
 
-command = '%' <_a-zA-Z>+;
+command = <%[_a-zA-Z]+>;
 
-comment = '#' ^<\r\n>*;
+comment = <#[^\r\n]*>;
+
+skip = <[\ \t]+> @{!skip};
+
+newline = <\n\r|\n> @{!skip !newline};
 
 boson : statement+;
 
@@ -29,17 +29,23 @@ statement : command_statement
 
 command_statement : command (name | string)+ end = command($0, *$1($?));
 
-lexicon_statement : name assign lexicon_list end = lexical_define($0, $2);
+lexicon_statement : name assign lexical_define end = lexical_define($0, $2);
+
+lexical_define : lexicon_list
+               | regular_expression [at brace_l lexical_function+ brace_r] = ($0, $1(*$2))
+               ;
 
 lexicon_list : lexicon (or lexicon)* = ($0, *$1($1));
 
-lexicon : lexeme+ [brace_l name+ brace_r] = ($0, *$1($1));
+lexicon : lexicon_body [at brace_l lexical_function+ brace_r] = ($0, $1(*$2));
+
+lexicon_body : lexeme+ = (*$0);
 
 lexeme : complex_lexeme
-       | [except] (alphabet | string | name) [postfix] = (*$0($?), *$1($?), $2($?))
+       | name [closure] = lexical_name_closure($0, *$1($?))
        ;
 
-complex_lexeme : parentheses_l sub_lexeme parentheses_r [postfix] = lexical_closure($1, *$3($?))
+complex_lexeme : parentheses_l sub_lexeme parentheses_r [closure] = lexical_closure($1, *$3($?))
                | bracket_l sub_lexeme bracket_r = lexical_optional($1)
                ;
 
@@ -47,9 +53,9 @@ sub_lexeme : lexeme+ = (*$0)
            | lexeme (or lexeme)+ = lexical_select($0, *$1($1))
            ;
 
-postfix : closure [greedy] = ($0, *$1($?))
-        | count
-        ;
+lexical_function : internal_function
+                 | name
+                 ;
 
 grammar_statement : name reduce derivation_list end = reduce($0, $2);
 

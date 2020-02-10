@@ -12,6 +12,7 @@ class AnalyzerTable:
 class GrammarPackage:
     def __init__(self):
         self.command_list = None
+        self.lexical_regular_expression_map = None
         self.sentence_set = None
         self.grammar_tuple_map = None
         self.none_grammar_tuple_set = None

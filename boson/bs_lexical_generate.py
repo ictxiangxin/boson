@@ -7,7 +7,9 @@ class LexicalDFA:
         self.__start_state: int = configure.boson_lexical_default_state
         self.__end_state_set: set = set()
         self.__state_set: set = set()
-        self.__lexical_symbol_mapping = {}
+        self.__lexical_symbol_mapping: dict = {}
+        self.__character_set: set = set()
+        self.__simplify_move_table: dict = {}
 
     def set_start_state(self, state: int):
         self.__start_state = state
@@ -15,7 +17,7 @@ class LexicalDFA:
     def add_end_state(self, state: int):
         self.__end_state_set.add(state)
 
-    def add_move(self, from_state: int, character: (str, bool), to_state: int):
+    def add_move(self, from_state: int, character: str, to_state: int):
         self.__state_set.add(from_state)
         self.__state_set.add(to_state)
         self.__move_table.setdefault(from_state, {})
@@ -24,7 +26,10 @@ class LexicalDFA:
     def add_lexicon(self, state: int, lexical_symbol: str):
         self.__lexical_symbol_mapping[state] = lexical_symbol
 
-    def move(self, state: int, character: (str, bool)) -> int:
+    def set_character_set(self, character_set: set):
+        self.__character_set = set(character_set)
+
+    def move(self, state: int, character: str) -> int:
         return self.__move_table.get(state, {}).get(character, None)
 
     def alphabet(self) -> set:
@@ -32,6 +37,43 @@ class LexicalDFA:
         for _, move_table in self.__move_table.items():
             alphabet |= set(move_table)
         return alphabet - {configure.boson_lexical_epsilon_transition}
+
+    def simplify(self):
+        self.__simplify_move_table = {}
+        for from_state, move_table in self.__move_table.items():
+            reverse_mapping = {}
+            for character, to_state in move_table.items():
+                reverse_mapping.setdefault(to_state, set())
+                reverse_mapping[to_state].add(character)
+            self.__simplify_move_table.setdefault(from_state, [])
+            for to_state, character_set in reverse_mapping.items():
+                range_list = []
+                scattered_character_set = set()
+                scan_head = None
+                scan = None
+                reverse = False
+                if configure.boson_lexical_wildcard in character_set:
+                    if len(self.__character_set) < 1.5 * len(character_set):
+                        reverse = True
+                        character_set = self.__character_set - character_set
+                for character in sorted(character_set - {configure.boson_lexical_wildcard}) + [chr(0xffff)]:
+                    if scan_head is None:
+                        scan_head = character
+                        scan = character
+                    else:
+                        if ord(character) - ord(scan) != 1:
+                            if ord(scan) - ord(scan_head) > 1:
+                                range_list.append((scan_head, scan))
+                            else:
+                                scattered_character_set.add(scan_head)
+                                scattered_character_set.add(scan)
+                            scan_head = character
+                            scan = character
+                        else:
+                            scan = character
+                if configure.boson_lexical_wildcard in character_set:
+                    scattered_character_set.add(configure.boson_lexical_wildcard)
+                self.__simplify_move_table[from_state].append([reverse, scattered_character_set, range_list, to_state])
 
     def minimize(self):
         alphabet = self.alphabet()
@@ -84,6 +126,8 @@ class LexicalDFA:
                 self.__end_state_set.add(base_state)
             for remove_state in merge_group:
                 self.__state_set.remove(remove_state)
+                if remove_state in self.__lexical_symbol_mapping:
+                    del self.__lexical_symbol_mapping[remove_state]
                 base_state_move_table.update(self.__move_table.get(remove_state, {}))
                 if remove_state in self.__move_table:
                     del self.__move_table[remove_state]
@@ -102,7 +146,12 @@ class LexicalNFA:
         self.__start_state: int = configure.boson_lexical_default_start_state
         self.__end_state_set: set = set()
         self.__state_set: set = set()
-        self.__lexical_symbol_mapping = {}
+        self.__character_set: set = set()
+        self.__lexical_symbol_mapping: dict = {}
+        self.__reverse_delay_construct: bool = False
+        self.__reverse_character_set: set = set()
+        self.__delay_construct_reverse_set_list: list = []
+        self.__delay_construct_base_state_list: list = []
 
     def set_start_state(self, state: int):
         self.__start_state = state
@@ -110,12 +159,36 @@ class LexicalNFA:
     def add_end_state(self, state: int):
         self.__end_state_set.add(state)
 
-    def add_move(self, from_state: int, character: (str, bool), to_state: int):
+    def add_move(self, from_state: int, character: str, to_state: int):
         self.__state_set.add(from_state)
         self.__state_set.add(to_state)
+        self.__character_set.add(character)
         self.__move_table.setdefault(from_state, {})
         self.__move_table[from_state].setdefault(character, set())
         self.__move_table[from_state][character].add(to_state)
+
+    def construct(self, full_character_set: set = None):
+        if full_character_set is None:
+            full_character_set = self.character_set()
+        if self.__reverse_delay_construct:
+            for pass_character in full_character_set - self.reverse_character_set():
+                self.add_move(configure.boson_lexical_default_start_state, pass_character, configure.boson_lexical_default_end_state)
+            self.__reverse_delay_construct = False
+        for reverse_character_set, delay_base_state in self.delay_construct_list():
+            for pass_character in full_character_set - reverse_character_set:
+                self.add_move(delay_base_state[0], pass_character, delay_base_state[1])
+
+    def reverse_delay_construct(self):
+        return self.__reverse_delay_construct
+
+    def reverse_character_set(self):
+        return self.__reverse_character_set
+
+    def delay_construct_list(self):
+        return zip(self.__delay_construct_reverse_set_list, self.__delay_construct_base_state_list)
+
+    def character_set(self) -> set:
+        return self.__character_set - {configure.boson_lexical_epsilon_transition, configure.boson_lexical_wildcard}
 
     def state_set(self) -> set:
         return self.__state_set
@@ -147,7 +220,7 @@ class LexicalNFA:
             wait_set |= self.move_table().get(check_state, {}).get(configure.boson_lexical_epsilon_transition, set()) - closure
         return closure
 
-    def move_closure(self, state_set: (set, frozenset), character: (str, bool)) -> set:
+    def move_closure(self, state_set: (set, frozenset), character: str) -> set:
         closure = set()
         for state in state_set:
             closure |= self.move_table().get(state, {}).get(character, set())
@@ -187,6 +260,7 @@ class LexicalNFA:
                     dfa_entity.add_end_state(to_state)
                 for lexical_state in lexical_end_state_set & new_dfa_state:
                     dfa_entity.add_lexicon(to_state, self.__lexical_symbol_mapping[lexical_state])
+        dfa_entity.set_character_set(self.character_set())
         return dfa_entity
 
     def next_state(self):
@@ -197,6 +271,8 @@ class LexicalNFA:
         end_state_mapping = {}
         global_state_number = self.next_state()
         for index, input_nfa in enumerate(input_nfa_list):
+            if input_nfa.reverse_delay_construct():
+                self.__delay_construct_reverse_set_list.append(input_nfa.reverse_character_set())
             nfa_move_table = input_nfa.move_table()
             temp_state_mapping = {}
             for from_state, move_table in nfa_move_table.items():
@@ -222,6 +298,12 @@ class LexicalNFA:
                             end_state_mapping.setdefault(index, set())
                             end_state_mapping[index].add(to_state)
                         self.add_move(from_state, character, to_state)
+            if input_nfa.reverse_delay_construct():
+                self.__delay_construct_base_state_list.append((start_state_mapping[index], set(end_state_mapping[index]).pop()))
+            for reverse_character_set, delay_base_state in input_nfa.delay_construct_list():
+                self.__delay_construct_reverse_set_list.append(reverse_character_set)
+                self.__delay_construct_base_state_list.append((temp_state_mapping[delay_base_state[0]], temp_state_mapping[delay_base_state[1]]))
+            self.__character_set |= input_nfa.character_set()
         return start_state_mapping, end_state_mapping
 
     def add_lexicon(self, lexical_nfa, lexical_symbol: str):
@@ -234,7 +316,15 @@ class LexicalNFA:
             self.__lexical_symbol_mapping[state] = lexical_symbol
             self.add_end_state(state)
 
-    def create_nfa_character(self, character: (str, bool)):
+    def create_nfa_reverse_delay_construct(self, reverse_character_set: set):
+        self.__reverse_delay_construct = True
+        self.__reverse_character_set = set(reverse_character_set)
+        self.__character_set |= reverse_character_set
+        self.add_move(configure.boson_lexical_default_start_state, configure.boson_lexical_wildcard, configure.boson_lexical_default_end_state)
+        self.set_start_state(configure.boson_lexical_default_start_state)
+        self.add_end_state(configure.boson_lexical_default_end_state)
+
+    def create_nfa_character(self, character: str):
         self.add_move(configure.boson_lexical_default_start_state, character, configure.boson_lexical_default_end_state)
         self.set_start_state(configure.boson_lexical_default_start_state)
         self.add_end_state(configure.boson_lexical_default_end_state)
@@ -287,7 +377,7 @@ class LexicalNFA:
         self.set_start_state(start_state)
         self.add_move(start_state, configure.boson_lexical_epsilon_transition, start_state_mapping[0])
 
-    def bs_create_nfa_count_range(self, input_nfa, min_count: int, max_count: int):
+    def create_nfa_count_range(self, input_nfa, min_count: int, max_count: int):
         input_nfa_list = [input_nfa] * max_count
         start_state_mapping, end_state_mapping = self.update(input_nfa_list)
         for index in range(len(input_nfa_list)):
@@ -307,7 +397,7 @@ class LexicalNFA:
                     self.add_end_state(end_state)
 
 
-def bs_create_nfa_character(character: (str, bool)) -> LexicalNFA:
+def bs_create_nfa_character(character: str) -> LexicalNFA:
     nfa = LexicalNFA()
     nfa.create_nfa_character(character)
     return nfa
@@ -339,5 +429,11 @@ def bs_create_nfa_plus_closure(input_nfa: LexicalNFA) -> LexicalNFA:
 
 def bs_create_nfa_count_range(input_nfa: LexicalNFA, min_count: int, max_count: int) -> LexicalNFA:
     nfa = LexicalNFA()
-    nfa.bs_create_nfa_count_range(input_nfa, min_count, max_count)
+    nfa.create_nfa_count_range(input_nfa, min_count, max_count)
+    return nfa
+
+
+def bs_create_nfa_reverse_delay_construct(reverse_character_set: set) -> LexicalNFA:
+    nfa = LexicalNFA()
+    nfa.create_nfa_reverse_delay_construct(reverse_character_set)
     return nfa

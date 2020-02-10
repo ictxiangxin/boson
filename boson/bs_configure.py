@@ -40,6 +40,7 @@ boson_literal_template = '{}l_{}'.format(boson_reserved_symbol, '{}')
 boson_augmented_start = '{}start'.format(boson_reserved_symbol)
 boson_hidden_name_prefix = '{}name_'.format(boson_reserved_symbol)
 boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
+boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
 
 boson_option = {
     'start_symbol': 'start',
