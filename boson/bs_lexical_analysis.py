@@ -185,14 +185,27 @@ def bs_lexical_analysis(lexical_regular_expression: dict) -> LexicalPackage:
     lexical_package = LexicalPackage()
     nfa = LexicalNFA()
     symbol_function_mapping = {}
+    non_greedy_symbol_set = set()
     for lexical_symbol, regular_expression in lexical_regular_expression.items():
         if len(regular_expression) > 1:
-            symbol_function_mapping[lexical_symbol] = regular_expression[1]
+            function_list = None
+            if isinstance(regular_expression[1], list):
+                function_list = regular_expression[1]
+            else:
+                non_greedy_symbol_set.add(lexical_symbol)
+            if len(regular_expression) == 3:
+                function_list = regular_expression[2]
+            if function_list is not None:
+                symbol_function_mapping[lexical_symbol] = function_list
         nfa.add_lexical_symbol(bs_regular_expression_to_nfa(regular_expression[0]), lexical_symbol)
     nfa.construct()
     dfa = nfa.transform_to_dfa()
     dfa.minimize()
     dfa.simplify()
+    non_greedy_state_set = set()
+    for state, lexical_symbol in dfa.lexical_symbol_mapping().items():
+        if lexical_symbol in non_greedy_symbol_set:
+            non_greedy_state_set.add(state)
     lexical_package.move_table = dfa.move_table()
     lexical_package.compact_move_table = dfa.compact_move_table()
     lexical_package.start_state = dfa.start_state()
@@ -200,4 +213,5 @@ def bs_lexical_analysis(lexical_regular_expression: dict) -> LexicalPackage:
     lexical_package.character_set = dfa.character_set()
     lexical_package.lexical_symbol_mapping = dfa.lexical_symbol_mapping()
     lexical_package.symbol_function_mapping = symbol_function_mapping
+    lexical_package.non_greedy_state_set = non_greedy_state_set
     return lexical_package

@@ -18,6 +18,7 @@ class LexicalPackage:
         self.end_state_set = None
         self.lexical_symbol_mapping = None
         self.symbol_function_mapping = None
+        self.non_greedy_state_set = None
 
 
 class GrammarPackage:

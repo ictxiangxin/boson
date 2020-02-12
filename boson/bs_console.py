@@ -27,7 +27,7 @@ def welcome():
     display('{} - {}'.format(configure.boson_title, configure.boson_description))
     display('    Author: {}'.format(configure.boson_author))
     display('    Email:  {}'.format(configure.boson_email))
-    display('    Site:   {}'.format(configure.boson_url))
+    display('    URL:   {}'.format(configure.boson_url))
     display('')
 
 
@@ -59,8 +59,8 @@ def console_main():
     try:
         if arguments.output is not None and os.path.exists(arguments.output):
             output_file_exist = True
-        display('[Generate grammar analyzer code]')
-        display('    Parse grammar file... ', newline=False)
+        display('[Generate Analyzer Code]')
+        display('    Parse Boson Script... ', newline=False)
         start_time = time.time()
         global_start_time = start_time
         source_file = open(arguments.grammar_file, 'r', encoding='utf-8')
@@ -68,12 +68,12 @@ def console_main():
         bs_command_execute(grammar_package.command_list)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
-        display('    Generate lexical analysis table... ', newline=False)
+        display('    Generate Lexical Analysis Table... ', newline=False)
         start_time = time.time()
         lexical_package = bs_lexical_analysis(grammar_package.lexical_regular_expression_map)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
-        display('    Generate {} grammar analysis table... '.format(arguments.analyzer.upper()), newline=False)
+        display('    Generate {} Grammar Analysis Table... '.format(arguments.analyzer.upper()), newline=False)
         start_time = time.time()
         analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)
         end_time = time.time()
@@ -96,13 +96,13 @@ def console_main():
             output_file = None
         else:
             output_file = sys.stdout
-        display('    Generate analyzer {} code... '.format(arguments.language.upper()), newline=False)
+        display('    Generate Analyzer {} Code... '.format(arguments.language.upper()), newline=False)
         start_time = time.time()
         text = bs_generate_code(arguments.language, analyzer_table, lexical_package, grammar_package)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
         global_end_time = time.time()
-        display('    Complete!!! [{:.4f}s]'.format(global_end_time - global_start_time))
+        display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))
         display('')
         if output_file is not None:
             output_file.write(text)

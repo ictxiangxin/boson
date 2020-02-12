@@ -50,12 +50,20 @@ public:
 {% if generate_lexical_analyzer -%}
 class {{ configure.boson_option['lexical_analyzer_class_name'] }} {
 public:
-    using lexical_function = std::function<bool(std::string &)>;
+    using lexical_function = std::function<std::string &(std::string &)>;
 
     {{ configure.boson_option['lexical_analyzer_class_name'] }}() = default;
 
     std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> &token_list() {
         return this->__token_list;
+    }
+
+    void skip() {
+        this->__skip = true;
+    }
+
+    void newline() {
+        this->__line++;
     }
 
     int error_line() {
@@ -75,7 +83,10 @@ public:
         while (index < text.length()) {
             char character = text[index];
             index++;
-            bool generate_token = false;
+            bool get_token = false;
+            if (this->__non_greedy_state_set.count(state)) {
+                get_token = true;
+            }
             if (this->_move_table_attribute.count(state)) {
                 std::vector<int> &attribute_list = this->_move_table_attribute[state];
                 std::vector<std::set<char>> &character_set_list = this->_move_table_character_set[state];
@@ -106,10 +117,6 @@ public:
                         }
                     }
                     if (condition) {
-                        if (this->__end_state_set.count(state) && !this->__end_state_set.count(next_state)) {
-                            generate_token = true;
-                            break;
-                        }
                         token_string += character;
                         state = next_state;
                         break;
@@ -117,7 +124,7 @@ public:
                 }
                 if (i == attribute_list.size()) {
                     if (this->__end_state_set.count(state)) {
-                        generate_token = true;
+                        get_token = true;
                     } else {
                         this->__error_line = this->__line;
                         return this->__error_line;
@@ -125,39 +132,21 @@ public:
                 }
             } else {
                 if (this->__end_state_set.count(state)) {
-                    generate_token = true;
+                    get_token = true;
                 } else {
                     this->__error_line = this->__line;
                     return this->__error_line;
                 }
             }
-            if (generate_token) {
-                std::string symbol;
-                if (this->__lexical_symbol_mapping.count(state)) {
-                    symbol = this->__lexical_symbol_mapping[state];
-                } else {
-                    symbol = "{{ configure.boson_default_symbol }}";
-                }
-                bool is_token = this->_invoke_lexical_function(symbol, token_string);
-                if (is_token) {
-                    this->__token_list.emplace_back(token_string, this->__line, symbol);
-                }
+            if (get_token) {
+                this->_generate_token(state, token_string);
                 token_string = "";
                 state = this->__start_state;
                 index--;
             }
         }
         if (this->__end_state_set.count(state)) {
-            std::string symbol;
-            if (this->__lexical_symbol_mapping.count(state)) {
-                symbol = this->__lexical_symbol_mapping[state];
-            } else {
-                symbol = "{{ configure.boson_default_symbol }}";
-            }
-            bool is_token = this->_invoke_lexical_function(symbol, token_string);
-            if (is_token) {
-                this->__token_list.emplace_back(token_string, this->__line, symbol);
-            }
+            this->_generate_token(state, token_string);
         } else {
             throw std::runtime_error("Invalid state.");
         }
@@ -174,6 +163,7 @@ private:
     int __line = {{ configure.boson_lexical_start_line }};
     int __error_line = {{ configure.boson_lexical_no_error_line }};
     int __no_error_line = {{ configure.boson_lexical_no_error_line }};
+    bool __skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
     std::unordered_map<int, std::vector<int>> _move_table_attribute = {
         {%- for state, state_move_table in lexical_package.compact_move_table.items() %}
         { {{- state }}, {
@@ -243,6 +233,12 @@ private:
         {%- if not loop.last %},{% endif -%}
         {%- endfor %}
     };
+    std::set<int> __non_greedy_state_set = {
+        {%- for state in lexical_package.non_greedy_state_set -%}
+            state
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor -%}
+    };
     std::unordered_map<std::string, std::vector<std::string>> __symbol_function_mapping = {
         {%- for symbol, function_list in lexical_package.symbol_function_mapping.items() %}
         {"{{ symbol }}", {
@@ -256,20 +252,33 @@ private:
     };
     std::unordered_map<std::string, lexical_function> __lexical_function;
 
-    bool _invoke_lexical_function(std::string &symbol, std::string &token_string) {
-        bool is_token = true;
+    std::string &_invoke_lexical_function(std::string &symbol, std::string &token_string) {
+        this->__skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
         if (this->__symbol_function_mapping.count(symbol)) {
             for (const auto& function : this->__symbol_function_mapping[symbol]) {
                 if (this->__lexical_function.count(function)) {
-                    is_token = this->__lexical_function[function](token_string);
+                    token_string = this->__lexical_function[function](token_string);
                 } else if (function == "skip") {
-                    is_token = false;
+                    this->skip();
                 } else if (function == "newline") {
-                    this->__line++;
+                    this->newline();
                 }
             }
         }
-        return is_token;
+        return token_string;
+    }
+
+    void _generate_token(int state, std::string &token_string) {
+        std::string symbol;
+        if (this->__lexical_symbol_mapping.count(state)) {
+            symbol = this->__lexical_symbol_mapping[state];
+        } else {
+            symbol = "{{ configure.boson_default_symbol }}";
+        }
+        token_string = this->_invoke_lexical_function(symbol, token_string);
+        if (!this->__skip) {
+            this->__token_list.emplace_back(token_string, this->__line, symbol);
+        }
     }
 };
 

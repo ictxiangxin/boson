@@ -15,66 +15,81 @@ class RegularExpressionLexicalAnalyzer:
         self.__line = 1
         self.__error_line = -1
         self.__no_error_line = -1
+        self.__skip = False
         self.__move_table = {
             0: [
-                [0, set(), [('0', '9')], 1],
-                [1, set(), [], 2],
-                [0, {'('}, [], 3],
-                [0, {'{'}, [], 4],
-                [0, {'*'}, [], 5],
-                [0, {'['}, [], 6],
-                [0, {'\\'}, [], 7],
-                [0, {'}'}, [], 8],
-                [0, {')'}, [], 9],
-                [0, {']'}, [], 10],
-                [0, {'|'}, [], 11],
-                [0, {'?'}, [], 12],
-                [0, {'^'}, [], 13],
-                [0, {'.'}, [], 14],
-                [0, {'-'}, [], 15],
-                [0, {','}, [], 16],
-                [0, {'+'}, [], 17]
+                [1, set(), [], 1],
+                [0, set(), [('0', '9')], 2],
+                [0, {'['}, [], 3],
+                [0, {']'}, [], 4],
+                [0, {'^'}, [], 5],
+                [0, {'('}, [], 6],
+                [0, {'+'}, [], 7],
+                [0, {'*'}, [], 8],
+                [0, {'|'}, [], 9],
+                [0, {'-'}, [], 10],
+                [0, {','}, [], 11],
+                [0, {'}'}, [], 12],
+                [0, {'.'}, [], 13],
+                [0, {'\\'}, [], 14],
+                [0, {'{'}, [], 15],
+                [0, {')'}, [], 16],
+                [0, {'?'}, [], 17]
             ],
-            7: [
+            14: [
                 [2, set(), [], 18]
             ]
         }
-        self.__character_set = {'3', '(', '{', '0', '*', '[', '\\', '}', '1', '8', ']', ')', '6', '9', '|', '4', '7', '5', '?', '^', '.', '2', '-', ',', '+'}
+        self.__character_set = {'4', '[', '3', '2', ']', '(', '^', '9', '5', '*', '|', '1', '-', '0', '6', ',', '}', '8', '.', '\\', '{', '+', '7', '?', ')'}
         self.__start_state = 0
-        self.__end_state_set = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
+        self.__end_state_set = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18}
         self.__lexical_symbol_mapping = {
-            1: 'single_number',
-            2: 'normal_character',
-            3: '!symbol_6',
-            4: '!symbol_12',
-            5: '!symbol_10',
-            6: '!symbol_3',
-            8: '!symbol_14',
-            9: '!symbol_7',
-            10: '!symbol_5',
-            11: '!symbol_1',
-            12: '!symbol_11',
-            13: '!symbol_4',
-            14: '!symbol_2',
-            15: '!symbol_8',
-            16: '!symbol_13',
-            17: '!symbol_9',
+            1: 'normal_character',
+            2: 'single_number',
+            3: '!symbol_3',
+            4: '!symbol_5',
+            5: '!symbol_4',
+            6: '!symbol_6',
+            7: '!symbol_9',
+            8: '!symbol_10',
+            9: '!symbol_1',
+            10: '!symbol_8',
+            11: '!symbol_13',
+            12: '!symbol_14',
+            13: '!symbol_2',
+            15: '!symbol_12',
+            16: '!symbol_7',
+            17: '!symbol_11',
             18: 'escape_character'
         }
+        self.__non_greedy_state_set = set()
         self.__symbol_function_mapping = {
         }
         self.__lexical_function = {}
 
-    def _invoke_lexical_function(self, symbol: str, token_string):
+    def _invoke_lexical_function(self, symbol: str, token_string: str):
+        self.__skip = False
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
                 if function in self.__lexical_function:
                     token_string = self.__lexical_function[function](token_string)
                 elif function == 'skip':
-                    token_string = None
+                    self.skip()
                 elif function == 'newline':
-                    self.__line += 1
+                    self.newline()
         return token_string
+
+    def _generate_token(self, state: int, token_string: str):
+        symbol = self.__lexical_symbol_mapping.get(state, '!symbol')
+        token_string = self._invoke_lexical_function(symbol, token_string)
+        if not self.__skip:
+            self.__token_list.append(RegularExpressionToken(token_string, self.__line, symbol))
+
+    def skip(self):
+        self.__skip = True
+
+    def newline(self):
+        self.__line += 1
 
     def token_list(self):
         return self.__token_list
@@ -95,8 +110,10 @@ class RegularExpressionLexicalAnalyzer:
         while index < len(text):
             character = text[index]
             index += 1
-            generate_token = False
-            if state in self.__move_table:
+            get_token = False
+            if state in self.__non_greedy_state_set:
+                get_token = True
+            if not get_token and state in self.__move_table:
                 for attribute, character_set, range_list, next_state in self.__move_table[state]:
                     if attribute == 2:
                         condition = character not in character_set
@@ -111,36 +128,27 @@ class RegularExpressionLexicalAnalyzer:
                                 condition = True
                                 break
                     if condition:
-                        if state in self.__end_state_set and next_state not in self.__end_state_set:
-                            generate_token = True
-                            break
                         token_string += character
                         state = next_state
                         break
                 else:
                     if state in self.__end_state_set:
-                        generate_token = True
+                        get_token = True
                     else:
                         self.__error_line = self.__line
                         return self.__error_line
             else:
-                if state in self.__end_state_set:
-                    generate_token = True
+                if get_token or state in self.__end_state_set:
+                    get_token = True
                 else:
                     raise ValueError('Invalid state: state={}'.format(state))
-            if generate_token:
-                symbol = self.__lexical_symbol_mapping.get(state, '!symbol')
-                token_string = self._invoke_lexical_function(symbol, token_string)
-                if token_string is not None:
-                    self.__token_list.append(RegularExpressionToken(token_string, self.__line, symbol))
+            if get_token:
+                self._generate_token(state, token_string)
                 token_string = ''
                 state = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
-            symbol = self.__lexical_symbol_mapping.get(state, '!symbol')
-            token_string = self._invoke_lexical_function(symbol, token_string)
-            if token_string is not None:
-                self.__token_list.append(RegularExpressionToken(token_string, self.__line, symbol))
+            self._generate_token(state, token_string)
         else:
             raise ValueError('Invalid state: state={}'.format(state))
         self.__token_list.append(RegularExpressionToken('', self.__line, '$'))
@@ -200,93 +208,93 @@ class BosonGrammarNode:
 class RegularExpressionAnalyzer:
     def __init__(self):
         self.__terminal_index = {
-            '!symbol_3': 0,
-            '$': 1,
-            '!symbol_2': 2,
-            '!symbol_10': 3,
-            '!symbol_8': 4,
-            '!symbol_9': 5,
-            '!symbol_6': 6,
-            '!symbol_14': 7,
-            '!symbol_1': 8,
-            'escape_character': 9,
-            '!symbol_5': 10,
-            'single_number': 11,
-            '!symbol_7': 12,
-            '!symbol_4': 13,
-            '!symbol_13': 14,
-            '!symbol_11': 15,
-            'normal_character': 16,
-            '!symbol_12': 17
+            '!symbol_9': 0,
+            'normal_character': 1,
+            '!symbol_5': 2,
+            '!symbol_6': 3,
+            '$': 4,
+            '!symbol_8': 5,
+            'escape_character': 6,
+            '!symbol_11': 7,
+            'single_number': 8,
+            '!symbol_4': 9,
+            '!symbol_7': 10,
+            '!symbol_12': 11,
+            '!symbol_14': 12,
+            '!symbol_13': 13,
+            '!symbol_3': 14,
+            '!symbol_2': 15,
+            '!symbol_10': 16,
+            '!symbol_1': 17
         }
         self.__action_table = {
-            0: {0: 's4', 2: 's2', 6: 's14', 9: 's6', 11: 's10', 16: 's13'},
-            1: {0: 'r29', 1: 'r29', 2: 'r29', 3: 'r29', 5: 'r29', 6: 'r29', 8: 'r29', 9: 'r29', 11: 'r29', 12: 'r29', 15: 'r29', 16: 'r29', 17: 'r29'},
-            2: {0: 'r27', 1: 'r27', 2: 'r27', 3: 'r27', 5: 'r27', 6: 'r27', 8: 'r27', 9: 'r27', 11: 'r27', 12: 'r27', 15: 'r27', 16: 'r27', 17: 'r27'},
-            3: {0: 's4', 1: 'r22', 2: 's2', 6: 's14', 8: 'r22', 9: 's6', 11: 's10', 12: 'r22', 16: 's13'},
-            4: {9: 'r16', 11: 'r16', 13: 's18', 16: 'r16'},
-            5: {1: 'r3', 8: 'r3', 12: 'r3'},
-            6: {0: 'r41', 1: 'r41', 2: 'r41', 3: 'r41', 5: 'r41', 6: 'r41', 8: 'r41', 9: 'r41', 10: 'r41', 11: 'r41', 12: 'r41', 15: 'r41', 16: 'r41', 17: 'r41'},
-            7: {0: 'r13', 1: 'r13', 2: 'r13', 3: 's24', 5: 's25', 6: 'r13', 8: 'r13', 9: 'r13', 11: 'r13', 12: 'r13', 15: 's21', 16: 'r13', 17: 's26'},
-            8: {1: 'a'},
-            9: {0: 'r40', 1: 'r40', 2: 'r40', 3: 'r40', 5: 'r40', 6: 'r40', 8: 'r40', 9: 'r40', 11: 'r40', 12: 'r40', 15: 'r40', 16: 'r40', 17: 'r40'},
-            10: {0: 'r24', 1: 'r24', 2: 'r24', 3: 'r24', 4: 'r24', 5: 'r24', 6: 'r24', 8: 'r24', 9: 'r24', 10: 'r24', 11: 'r24', 12: 'r24', 15: 'r24', 16: 'r24', 17: 'r24'},
-            11: {0: 'r10', 1: 'r10', 2: 'r10', 6: 'r10', 8: 'r10', 9: 'r10', 11: 'r10', 12: 'r10', 16: 'r10'},
-            12: {0: 'r28', 1: 'r28', 2: 'r28', 3: 'r28', 5: 'r28', 6: 'r28', 8: 'r28', 9: 'r28', 11: 'r28', 12: 'r28', 15: 'r28', 16: 'r28', 17: 'r28'},
-            13: {0: 'r23', 1: 'r23', 2: 'r23', 3: 'r23', 4: 'r23', 5: 'r23', 6: 'r23', 8: 'r23', 9: 'r23', 10: 'r23', 11: 'r23', 12: 'r23', 15: 'r23', 16: 'r23', 17: 'r23'},
-            14: {0: 's4', 2: 's2', 6: 's14', 9: 's6', 11: 's10', 16: 's13'},
-            15: {1: 'r37'},
-            16: {0: 'r9', 1: 'r9', 2: 'r9', 6: 'r9', 8: 'r9', 9: 'r9', 11: 'r9', 12: 'r9', 16: 'r9'},
-            17: {9: 's6', 11: 's10', 16: 's13'},
-            18: {9: 'r14', 11: 'r14', 16: 'r14'},
-            19: {9: 'r15', 11: 'r15', 16: 'r15'},
-            20: {1: 'r30', 8: 's34', 12: 'r30'},
-            21: {0: 'r34', 1: 'r34', 2: 'r34', 6: 'r34', 8: 'r34', 9: 'r34', 11: 'r34', 12: 'r34', 16: 'r34'},
-            22: {0: 'r11', 1: 'r11', 2: 'r11', 6: 'r11', 8: 'r11', 9: 'r11', 11: 'r11', 12: 'r11', 16: 'r11'},
-            23: {0: 'r12', 1: 'r12', 2: 'r12', 6: 'r12', 8: 'r12', 9: 'r12', 11: 'r12', 12: 'r12', 16: 'r12'},
-            24: {0: 'r33', 1: 'r33', 2: 'r33', 6: 'r33', 8: 'r33', 9: 'r33', 11: 'r33', 12: 'r33', 16: 'r33'},
-            25: {0: 'r36', 1: 'r36', 2: 'r36', 6: 'r36', 8: 'r36', 9: 'r36', 11: 'r36', 12: 'r36', 16: 'r36'},
-            26: {11: 's37', 14: 'r21'},
-            27: {0: 'r31', 1: 'r31', 2: 'r31', 6: 'r31', 8: 'r31', 9: 'r31', 11: 'r31', 12: 'r31', 16: 'r31'},
-            28: {12: 's40'},
-            29: {9: 's6', 10: 's42', 11: 's10', 16: 's13'},
-            30: {9: 'r39', 10: 'r39', 11: 'r39', 16: 'r39'},
-            31: {4: 's43', 9: 'r40', 10: 'r40', 11: 'r40', 16: 'r40'},
-            32: {9: 'r18', 10: 'r18', 11: 'r18', 16: 'r18'},
-            33: {1: 'r2', 8: 'r2', 12: 'r2'},
-            34: {0: 's4', 2: 's2', 6: 's14', 9: 's6', 11: 's10', 16: 's13'},
-            35: {7: 'r32', 11: 's45', 14: 'r32'},
-            36: {14: 's46'},
-            37: {7: 'r8', 11: 'r8', 14: 'r8'},
-            38: {14: 'r19'},
-            39: {14: 'r20'},
-            40: {0: 'r26', 1: 'r26', 2: 'r26', 3: 'r26', 5: 'r26', 6: 'r26', 8: 'r26', 9: 'r26', 11: 'r26', 12: 'r26', 15: 'r26', 16: 'r26', 17: 'r26'},
-            41: {9: 'r17', 10: 'r17', 11: 'r17', 16: 'r17'},
-            42: {0: 'r25', 1: 'r25', 2: 'r25', 3: 'r25', 5: 'r25', 6: 'r25', 8: 'r25', 9: 'r25', 11: 'r25', 12: 'r25', 15: 'r25', 16: 'r25', 17: 'r25'},
-            43: {11: 's10', 16: 's13'},
-            44: {1: 'r1', 8: 'r1', 12: 'r1'},
-            45: {7: 'r7', 11: 'r7', 14: 'r7'},
-            46: {7: 'r6', 11: 's37'},
-            47: {9: 'r38', 10: 'r38', 11: 'r38', 16: 'r38'},
-            48: {7: 'r4'},
-            49: {7: 'r5'},
-            50: {7: 's51'},
-            51: {0: 'r35', 1: 'r35', 2: 'r35', 6: 'r35', 8: 'r35', 9: 'r35', 11: 'r35', 12: 'r35', 16: 'r35'}
+            0: {1: 's1', 3: 's2', 6: 's6', 8: 's5', 14: 's3', 15: 's14'},
+            1: {0: 'r23', 1: 'r23', 2: 'r23', 3: 'r23', 4: 'r23', 5: 'r23', 6: 'r23', 7: 'r23', 8: 'r23', 10: 'r23', 11: 'r23', 14: 'r23', 15: 'r23', 16: 'r23', 17: 'r23'},
+            2: {1: 's1', 3: 's2', 6: 's6', 8: 's5', 14: 's3', 15: 's14'},
+            3: {1: 'r16', 6: 'r16', 8: 'r16', 9: 's18'},
+            4: {0: 'r29', 1: 'r29', 3: 'r29', 4: 'r29', 6: 'r29', 7: 'r29', 8: 'r29', 10: 'r29', 11: 'r29', 14: 'r29', 15: 'r29', 16: 'r29', 17: 'r29'},
+            5: {0: 'r24', 1: 'r24', 2: 'r24', 3: 'r24', 4: 'r24', 5: 'r24', 6: 'r24', 7: 'r24', 8: 'r24', 10: 'r24', 11: 'r24', 14: 'r24', 15: 'r24', 16: 'r24', 17: 'r24'},
+            6: {0: 'r41', 1: 'r41', 2: 'r41', 3: 'r41', 4: 'r41', 6: 'r41', 7: 'r41', 8: 'r41', 10: 'r41', 11: 'r41', 14: 'r41', 15: 'r41', 16: 'r41', 17: 'r41'},
+            7: {4: 'r37'},
+            8: {0: 's25', 1: 'r13', 3: 'r13', 4: 'r13', 6: 'r13', 7: 's22', 8: 'r13', 10: 'r13', 11: 's24', 14: 'r13', 15: 'r13', 16: 's20', 17: 'r13'},
+            9: {0: 'r40', 1: 'r40', 3: 'r40', 4: 'r40', 6: 'r40', 7: 'r40', 8: 'r40', 10: 'r40', 11: 'r40', 14: 'r40', 15: 'r40', 16: 'r40', 17: 'r40'},
+            10: {4: 'r3', 10: 'r3', 17: 'r3'},
+            11: {1: 's1', 3: 's2', 4: 'r22', 6: 's6', 8: 's5', 10: 'r22', 14: 's3', 15: 's14', 17: 'r22'},
+            12: {1: 'r10', 3: 'r10', 4: 'r10', 6: 'r10', 8: 'r10', 10: 'r10', 14: 'r10', 15: 'r10', 17: 'r10'},
+            13: {0: 'r28', 1: 'r28', 3: 'r28', 4: 'r28', 6: 'r28', 7: 'r28', 8: 'r28', 10: 'r28', 11: 'r28', 14: 'r28', 15: 'r28', 16: 'r28', 17: 'r28'},
+            14: {0: 'r27', 1: 'r27', 3: 'r27', 4: 'r27', 6: 'r27', 7: 'r27', 8: 'r27', 10: 'r27', 11: 'r27', 14: 'r27', 15: 'r27', 16: 'r27', 17: 'r27'},
+            15: {4: 'a'},
+            16: {10: 's29'},
+            17: {1: 's1', 6: 's6', 8: 's5'},
+            18: {1: 'r14', 6: 'r14', 8: 'r14'},
+            19: {1: 'r15', 6: 'r15', 8: 'r15'},
+            20: {1: 'r33', 3: 'r33', 4: 'r33', 6: 'r33', 8: 'r33', 10: 'r33', 14: 'r33', 15: 'r33', 17: 'r33'},
+            21: {1: 'r31', 3: 'r31', 4: 'r31', 6: 'r31', 8: 'r31', 10: 'r31', 14: 'r31', 15: 'r31', 17: 'r31'},
+            22: {1: 'r34', 3: 'r34', 4: 'r34', 6: 'r34', 8: 'r34', 10: 'r34', 14: 'r34', 15: 'r34', 17: 'r34'},
+            23: {1: 'r11', 3: 'r11', 4: 'r11', 6: 'r11', 8: 'r11', 10: 'r11', 14: 'r11', 15: 'r11', 17: 'r11'},
+            24: {8: 's34', 13: 'r21'},
+            25: {1: 'r36', 3: 'r36', 4: 'r36', 6: 'r36', 8: 'r36', 10: 'r36', 14: 'r36', 15: 'r36', 17: 'r36'},
+            26: {1: 'r12', 3: 'r12', 4: 'r12', 6: 'r12', 8: 'r12', 10: 'r12', 14: 'r12', 15: 'r12', 17: 'r12'},
+            27: {4: 'r30', 10: 'r30', 17: 's39'},
+            28: {1: 'r9', 3: 'r9', 4: 'r9', 6: 'r9', 8: 'r9', 10: 'r9', 14: 'r9', 15: 'r9', 17: 'r9'},
+            29: {0: 'r26', 1: 'r26', 3: 'r26', 4: 'r26', 6: 'r26', 7: 'r26', 8: 'r26', 10: 'r26', 11: 'r26', 14: 'r26', 15: 'r26', 16: 'r26', 17: 'r26'},
+            30: {1: 'r40', 2: 'r40', 5: 's41', 6: 'r40', 8: 'r40'},
+            31: {1: 'r18', 2: 'r18', 6: 'r18', 8: 'r18'},
+            32: {1: 's1', 2: 's42', 6: 's6', 8: 's5'},
+            33: {1: 'r39', 2: 'r39', 6: 'r39', 8: 'r39'},
+            34: {8: 'r8', 12: 'r8', 13: 'r8'},
+            35: {13: 's44'},
+            36: {8: 's45', 12: 'r32', 13: 'r32'},
+            37: {13: 'r20'},
+            38: {13: 'r19'},
+            39: {1: 's1', 3: 's2', 6: 's6', 8: 's5', 14: 's3', 15: 's14'},
+            40: {4: 'r2', 10: 'r2', 17: 'r2'},
+            41: {1: 's1', 8: 's5'},
+            42: {0: 'r25', 1: 'r25', 3: 'r25', 4: 'r25', 6: 'r25', 7: 'r25', 8: 'r25', 10: 'r25', 11: 'r25', 14: 'r25', 15: 'r25', 16: 'r25', 17: 'r25'},
+            43: {1: 'r17', 2: 'r17', 6: 'r17', 8: 'r17'},
+            44: {8: 's34', 12: 'r6'},
+            45: {8: 'r7', 12: 'r7', 13: 'r7'},
+            46: {4: 'r1', 10: 'r1', 17: 'r1'},
+            47: {1: 'r38', 2: 'r38', 6: 'r38', 8: 'r38'},
+            48: {12: 'r4'},
+            49: {12: 'r5'},
+            50: {12: 's51'},
+            51: {1: 'r35', 3: 'r35', 4: 'r35', 6: 'r35', 8: 'r35', 10: 'r35', 14: 'r35', 15: 'r35', 17: 'r35'}
         }
         self.__goto_table = {
-            0: {1: 5, 2: 3, 4: 15, 6: 11, 11: 1, 14: 9, 18: 12, 21: 7, 22: 8},
-            3: {6: 16, 11: 1, 14: 9, 18: 12, 21: 7},
-            4: {0: 19, 8: 17},
-            5: {23: 20},
-            7: {9: 22, 13: 23, 16: 27},
-            14: {1: 5, 2: 3, 4: 28, 6: 11, 11: 1, 14: 9, 18: 12, 21: 7},
-            17: {7: 32, 11: 30, 12: 29, 14: 31},
-            20: {5: 33},
-            26: {3: 38, 10: 35, 15: 39, 20: 36},
-            29: {7: 41, 11: 30, 14: 31},
-            34: {1: 44, 2: 3, 6: 11, 11: 1, 14: 9, 18: 12, 21: 7},
-            43: {14: 47},
-            46: {3: 48, 10: 35, 17: 49, 19: 50}
+            0: {1: 15, 2: 9, 3: 7, 4: 11, 10: 4, 17: 12, 18: 13, 20: 10, 23: 8},
+            2: {2: 9, 3: 16, 4: 11, 10: 4, 17: 12, 18: 13, 20: 10, 23: 8},
+            3: {13: 19, 21: 17},
+            8: {6: 23, 8: 26, 24: 21},
+            10: {22: 27},
+            11: {2: 9, 10: 4, 17: 28, 18: 13, 23: 8},
+            17: {2: 30, 9: 32, 10: 33, 14: 31},
+            24: {5: 38, 7: 35, 11: 36, 15: 37},
+            27: {16: 40},
+            32: {2: 30, 10: 33, 14: 43},
+            39: {2: 9, 4: 11, 10: 4, 17: 12, 18: 13, 20: 46, 23: 8},
+            41: {2: 47},
+            44: {0: 50, 5: 48, 11: 36, 12: 49}
         }
         self.__node_table = {
             36: ('0',),
@@ -312,7 +320,7 @@ class RegularExpressionAnalyzer:
             31: ('*0',)
         }
         self.__reduce_symbol_sum = [2, 2, 0, 1, 1, 0, 2, 1, 2, 1, 1, 1, 0, 1, 1, 0, 2, 1, 1, 1, 0, 1, 1, 1, 4, 3, 1, 1, 1, 2, 2, 1, 1, 1, 5, 1, 1, 3, 1, 1, 1]
-        self.__reduce_to_non_terminal_index = [5, 23, 23, 17, 19, 19, 10, 10, 2, 2, 13, 16, 16, 0, 8, 8, 12, 12, 15, 20, 20, 1, 14, 14, 18, 18, 21, 21, 21, 4, 6, 3, 9, 9, 9, 9, 22, 7, 7, 11, 11]
+        self.__reduce_to_non_terminal_index = [16, 22, 22, 12, 0, 0, 11, 11, 4, 4, 8, 24, 24, 13, 21, 21, 9, 9, 15, 7, 7, 20, 2, 2, 18, 18, 23, 23, 23, 3, 17, 5, 6, 6, 6, 6, 1, 14, 14, 10, 10]
 
     def __generate_grammar_tuple(self, statement_index: int, node_tuple: tuple, symbol_package: list):
         grammar_node = BosonGrammarNode()

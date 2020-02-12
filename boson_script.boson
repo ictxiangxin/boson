@@ -14,8 +14,8 @@
 ####################################
 name    = <[_a-zA-Z][_a-zA-Z0-9]*>;
 node    = <$[0-9]+|$@|$$|$\?>;
-string  = <".*[^\\]"|'.*[^\\]'>;
-regular = <\<.*[^\\]\>>;
+string  = <".*[^\\]"|'.*[^\\]'>!;
+regular = <\<.*[^\\]\>>!;
 comment = <#[^\r\n]*>@{skip};
 command = <%[_a-zA-Z]+>;
 skip    = <[\ \t]+>@{skip};
@@ -37,7 +37,7 @@ command_statement : command (name | string)+ ';' = command($0, *$1($?));
 lexicon_statement : name '=' lexical_define ';' = lexical_define($0, $2);
 
 lexical_define : lexicon_list
-               | regular ['@' '{' lexical_function '}'] = ($0, $1(*$2))
+               | regular ['!'] ['@' '{' lexical_function '}'] = ($0, *$1($?), $2(*$2))
                ;
 
 lexicon_list : lexicon ('|' lexicon)* = ($0, *$1($1));

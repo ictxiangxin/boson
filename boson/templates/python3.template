@@ -39,6 +39,7 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
         self.__line = {{ configure.boson_lexical_start_line }}
         self.__error_line = {{ configure.boson_lexical_no_error_line }}
         self.__no_error_line = {{ configure.boson_lexical_no_error_line }}
+        self.__skip = {{ configure.boson_lexical_default_skip }}
         self.__move_table = {
             {%- for state, state_move_table in lexical_package.compact_move_table.items() %}
             {{ state }}: [
@@ -59,6 +60,7 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
+        self.__non_greedy_state_set = {{ lexical_package.non_greedy_state_set }}
         self.__symbol_function_mapping = {
             {%- for symbol, function_list in lexical_package.symbol_function_mapping.items() %}
             '{{ symbol }}': {{ function_list }}
@@ -67,16 +69,29 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
         }
         self.__lexical_function = {}
 
-    def _invoke_lexical_function(self, symbol: str, token_string):
+    def _invoke_lexical_function(self, symbol: str, token_string: str):
+        self.__skip = {{ configure.boson_lexical_default_skip }}
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
                 if function in self.__lexical_function:
                     token_string = self.__lexical_function[function](token_string)
                 elif function == 'skip':
-                    token_string = None
+                    self.skip()
                 elif function == 'newline':
-                    self.__line += 1
+                    self.newline()
         return token_string
+
+    def _generate_token(self, state: int, token_string: str):
+        symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
+        token_string = self._invoke_lexical_function(symbol, token_string)
+        if not self.__skip:
+            self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
+
+    def skip(self):
+        self.__skip = True
+
+    def newline(self):
+        self.__line += 1
 
     def token_list(self):
         return self.__token_list
@@ -97,8 +112,10 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
         while index < len(text):
             character = text[index]
             index += 1
-            generate_token = False
-            if state in self.__move_table:
+            get_token = False
+            if state in self.__non_greedy_state_set:
+                get_token = True
+            if not get_token and state in self.__move_table:
                 for attribute, character_set, range_list, next_state in self.__move_table[state]:
                     if attribute == 2:
                         condition = character not in character_set
@@ -113,36 +130,27 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
                                 condition = True
                                 break
                     if condition:
-                        if state in self.__end_state_set and next_state not in self.__end_state_set:
-                            generate_token = True
-                            break
                         token_string += character
                         state = next_state
                         break
                 else:
                     if state in self.__end_state_set:
-                        generate_token = True
+                        get_token = True
                     else:
                         self.__error_line = self.__line
                         return self.__error_line
             else:
-                if state in self.__end_state_set:
-                    generate_token = True
+                if get_token or state in self.__end_state_set:
+                    get_token = True
                 else:
                     raise ValueError('Invalid state: state={}'.format(state))
-            if generate_token:
-                symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
-                token_string = self._invoke_lexical_function(symbol, token_string)
-                if token_string is not None:
-                    self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
+            if get_token:
+                self._generate_token(state, token_string)
                 token_string = ''
                 state = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
-            symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
-            token_string = self._invoke_lexical_function(symbol, token_string)
-            if token_string is not None:
-                self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
+            self._generate_token(state, token_string)
         else:
             raise ValueError('Invalid state: state={}'.format(state))
         self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
