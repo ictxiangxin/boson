@@ -1,3 +1,4 @@
+import boson.bs_configure as configure
 from boson.bs_regular_expression_analyzer import RegularExpressionLexicalAnalyzer, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
 from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
 from boson.bs_data_package import LexicalPackage
@@ -172,7 +173,9 @@ class BosonRegularExpressionAnalyzer:
 
 def bs_regular_expression_to_nfa(text: str) -> LexicalNFA:
     tokenizer = RegularExpressionLexicalAnalyzer()
-    token_list = tokenizer.tokenize(text)
+    if tokenizer.tokenize(text) != tokenizer.no_error_line():
+        raise ValueError('Regular Expression Invalid: "{}"'.format(text))
+    token_list = tokenizer.token_list()
     script_analyzer = BosonRegularExpressionAnalyzer()
     regular_expression_nfa = script_analyzer.parse(token_list)
     return regular_expression_nfa

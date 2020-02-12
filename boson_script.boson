@@ -16,10 +16,10 @@ name    = <[_a-zA-Z][_a-zA-Z0-9]*>;
 node    = <$[0-9]+|$@|$$|$\?>;
 string  = <".*[^\\]"|'.*[^\\]'>;
 regular = <\<.*[^\\]\>>;
-comment = <#[^\r\n]*> @{skip};
+comment = <#[^\r\n]*>@{skip};
 command = <%[_a-zA-Z]+>;
-skip    = <[\ \t]+> @{skip};
-newline = <\n\r|\n> @{skip, newline};
+skip    = <[\ \t]+>@{skip};
+newline = <\n\r|\n>@{skip, newline};
 
 
 #####################################

@@ -192,7 +192,7 @@ class BosonScriptAnalyzer:
                     break
             offset = grammar.error_index - start_index - 1
             error_token_list = token_list[start_index + 1: end_index]
-            error_message = '\nGrammar Error [Line: {}] \n'.format(error_line)
+            error_message = '\nGrammar Error [Line: {}]\n'.format(error_line)
             error_token_text_list = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
@@ -222,7 +222,9 @@ class BosonScriptAnalyzer:
 
 def bs_grammar_analysis(text: str) -> GrammarPackage:
     tokenizer = BosonLexicalAnalyzer()
-    token_list = tokenizer.tokenize(text)
+    if tokenizer.tokenize(text) != tokenizer.no_error_line():
+        raise ValueError('Tokenizer Error [Line: {}]'.format(tokenizer.error_line()))
+    token_list = tokenizer.token_list()
     script_analyzer = BosonScriptAnalyzer()
     grammar_package = script_analyzer.parse(token_list)
     return grammar_package

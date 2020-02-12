@@ -90,9 +90,13 @@ class LexicalDFA:
                             scan = character
                         else:
                             scan = character
-                if configure.boson_lexical_wildcard in character_set:
-                    scattered_character_set.add(configure.boson_lexical_wildcard)
-                self.__compact_move_table[from_state].append([reverse, scattered_character_set, range_list, to_state])
+                has_wildcard = configure.boson_lexical_wildcard in character_set
+                attribute = 0b00
+                if reverse and not has_wildcard:
+                    attribute = 0b10
+                elif not reverse and has_wildcard:
+                    attribute = 0b01
+                self.__compact_move_table[from_state].append([attribute, scattered_character_set, range_list, to_state])
 
     def minimize(self):
         group_number = 0

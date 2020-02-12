@@ -1,7 +1,7 @@
 boson_name = 'Boson'
 boson_package_name = 'boson'
 boson_version_main = 1
-boson_version_sub = 1
+boson_version_sub = 2
 boson_title = '{} v{}.{}'.format(boson_name, boson_version_main, boson_version_sub)
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
@@ -26,7 +26,8 @@ boson_grammar_tuple_number = '$'
 boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
 
-boson_lexical_start_line = 0
+boson_lexical_start_line = 1
+boson_lexical_no_error_line = -1
 boson_lexical_default_state = 0
 boson_lexical_default_start_state = 0
 boson_lexical_default_end_state = 1
