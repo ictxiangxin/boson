@@ -9,7 +9,17 @@ class LexicalDFA:
         self.__state_set: set = set()
         self.__lexical_symbol_mapping: dict = {}
         self.__character_set: set = set()
-        self.__simplify_move_table: dict = {}
+        self.__compact_move_table: dict = {}
+
+    def __alphabet(self, state_group: set) -> set:
+        alphabet = set()
+        for state in state_group:
+            if state in self.__move_table:
+                alphabet |= set(self.__move_table[state])
+        return alphabet - {configure.boson_lexical_epsilon_transition}
+
+    def __move(self, state: int, character: str) -> int:
+        return self.__move_table.get(state, {}).get(character, None)
 
     def set_start_state(self, state: int):
         self.__start_state = state
@@ -23,29 +33,38 @@ class LexicalDFA:
         self.__move_table.setdefault(from_state, {})
         self.__move_table[from_state][character] = to_state
 
-    def add_lexicon(self, state: int, lexical_symbol: str):
+    def add_lexical_symbol(self, state: int, lexical_symbol: str):
         self.__lexical_symbol_mapping[state] = lexical_symbol
 
     def set_character_set(self, character_set: set):
         self.__character_set = set(character_set)
 
-    def move(self, state: int, character: str) -> int:
-        return self.__move_table.get(state, {}).get(character, None)
+    def move_table(self):
+        return self.__move_table
 
-    def alphabet(self) -> set:
-        alphabet = set()
-        for _, move_table in self.__move_table.items():
-            alphabet |= set(move_table)
-        return alphabet - {configure.boson_lexical_epsilon_transition}
+    def compact_move_table(self):
+        return self.__compact_move_table
+
+    def character_set(self):
+        return self.__character_set
+
+    def start_state(self):
+        return self.__start_state
+
+    def end_state_set(self):
+        return self.__end_state_set
+
+    def lexical_symbol_mapping(self):
+        return self.__lexical_symbol_mapping
 
     def simplify(self):
-        self.__simplify_move_table = {}
+        self.__compact_move_table = {}
         for from_state, move_table in self.__move_table.items():
             reverse_mapping = {}
             for character, to_state in move_table.items():
                 reverse_mapping.setdefault(to_state, set())
                 reverse_mapping[to_state].add(character)
-            self.__simplify_move_table.setdefault(from_state, [])
+            self.__compact_move_table.setdefault(from_state, [])
             for to_state, character_set in reverse_mapping.items():
                 range_list = []
                 scattered_character_set = set()
@@ -73,10 +92,9 @@ class LexicalDFA:
                             scan = character
                 if configure.boson_lexical_wildcard in character_set:
                     scattered_character_set.add(configure.boson_lexical_wildcard)
-                self.__simplify_move_table[from_state].append([reverse, scattered_character_set, range_list, to_state])
+                self.__compact_move_table[from_state].append([reverse, scattered_character_set, range_list, to_state])
 
     def minimize(self):
-        alphabet = self.alphabet()
         group_number = 0
         state_group_number = {}
         state_group_wait_list = [set(self.__state_set - self.__end_state_set), set(self.__end_state_set)]
@@ -93,10 +111,10 @@ class LexicalDFA:
                 if len(state_group) > 1:
                     check_pass = True
                     group_changed = False
-                    for character in alphabet:
+                    for character in self.__alphabet(state_group):
                         split_group = {}
                         for state in state_group:
-                            move_state = self.move(state, character)
+                            move_state = self.__move(state, character)
                             move_group_number = state_group_number.get(move_state, -1)
                             if state in self.__lexical_symbol_mapping:
                                 move_group_number = (move_group_number, self.__lexical_symbol_mapping[state])
@@ -138,6 +156,28 @@ class LexicalDFA:
                     if to_state in merge_group:
                         move_table[character] = base_state
                 self.__move_table[from_state] = move_table
+        new_state_number_mapping = {}
+        new_number = 0
+        for state in self.__state_set:
+            new_state_number_mapping[state] = new_number
+            new_number += 1
+        new_move_table = {}
+        for from_state, move_table in self.__move_table.items():
+            state_move_table = {}
+            for symbol, to_state in move_table.items():
+                state_move_table[symbol] = new_state_number_mapping[to_state]
+            new_move_table[new_state_number_mapping[from_state]] = state_move_table
+        new_end_state_set = set()
+        for state in self.__end_state_set:
+            new_end_state_set.add(new_state_number_mapping[state])
+        new_lexical_symbol_mapping = {}
+        for state, lexical_symbol in self.__lexical_symbol_mapping.items():
+            new_lexical_symbol_mapping[new_state_number_mapping[state]] = lexical_symbol
+        self.__move_table = new_move_table
+        self.__state_set = set(range(new_number))
+        self.__start_state = new_state_number_mapping[self.__start_state]
+        self.__end_state_set = new_end_state_set
+        self.__lexical_symbol_mapping = new_lexical_symbol_mapping
 
 
 class LexicalNFA:
@@ -152,6 +192,13 @@ class LexicalNFA:
         self.__reverse_character_set: set = set()
         self.__delay_construct_reverse_set_list: list = []
         self.__delay_construct_base_state_list: list = []
+
+    def __alphabet(self, dfa_state: frozenset) -> set:
+        alphabet = set()
+        for state in dfa_state:
+            if state in self.__move_table:
+                alphabet |= set(self.__move_table[state])
+        return alphabet - {configure.boson_lexical_epsilon_transition}
 
     def set_start_state(self, state: int):
         self.__start_state = state
@@ -202,12 +249,6 @@ class LexicalNFA:
     def move_table(self):
         return self.__move_table
 
-    def alphabet(self) -> set:
-        alphabet = set()
-        for _, move_table in self.move_table().items():
-            alphabet |= set(move_table)
-        return alphabet - {configure.boson_lexical_epsilon_transition}
-
     def epsilon_closure(self, state: (set, frozenset, int)) -> set:
         if isinstance(state, int):
             wait_set = {state}
@@ -232,7 +273,6 @@ class LexicalNFA:
         dfa_state_map = {}
         dfa_state_number = configure.boson_lexical_default_state
         dfa_entity = LexicalDFA()
-        alphabet = self.alphabet()
         dfa_start = frozenset(self.epsilon_closure(self.start_state()))
         dfa_state_set.add(dfa_start)
         dfa_state_map[dfa_start] = dfa_state_number
@@ -244,7 +284,7 @@ class LexicalNFA:
         lexical_end_state_set = set(self.__lexical_symbol_mapping)
         while len(dfa_state_wait_list) > 0:
             dfa_state = dfa_state_wait_list.pop()
-            for character in alphabet:
+            for character in self.__alphabet(dfa_state):
                 new_dfa_state = frozenset(self.epsilon_closure(self.move_closure(dfa_state, character)))
                 if len(new_dfa_state) == 0:
                     continue
@@ -259,7 +299,7 @@ class LexicalNFA:
                 if len(self.end_state_set() & new_dfa_state) > 0:
                     dfa_entity.add_end_state(to_state)
                 for lexical_state in lexical_end_state_set & new_dfa_state:
-                    dfa_entity.add_lexicon(to_state, self.__lexical_symbol_mapping[lexical_state])
+                    dfa_entity.add_lexical_symbol(to_state, self.__lexical_symbol_mapping[lexical_state])
         dfa_entity.set_character_set(self.character_set())
         return dfa_entity
 
@@ -275,8 +315,10 @@ class LexicalNFA:
                 self.__delay_construct_reverse_set_list.append(input_nfa.reverse_character_set())
             nfa_move_table = input_nfa.move_table()
             temp_state_mapping = {}
+            end_state_mapping.setdefault(index, set())
             for from_state, move_table in nfa_move_table.items():
                 is_start_state = True if from_state == input_nfa.start_state() else False
+                is_end_state = True if from_state in input_nfa.end_state_set() else False
                 if from_state in temp_state_mapping:
                     from_state = temp_state_mapping[from_state]
                 else:
@@ -285,6 +327,8 @@ class LexicalNFA:
                     global_state_number += 1
                 if is_start_state:
                     start_state_mapping[index] = from_state
+                if is_end_state:
+                    end_state_mapping[index].add(from_state)
                 for character, to_state_set in move_table.items():
                     for to_state in to_state_set:
                         is_end_state = True if to_state in input_nfa.end_state_set() else False
@@ -295,7 +339,6 @@ class LexicalNFA:
                             to_state = global_state_number
                             global_state_number += 1
                         if is_end_state:
-                            end_state_mapping.setdefault(index, set())
                             end_state_mapping[index].add(to_state)
                         self.add_move(from_state, character, to_state)
             if input_nfa.reverse_delay_construct():
@@ -306,7 +349,7 @@ class LexicalNFA:
             self.__character_set |= input_nfa.character_set()
         return start_state_mapping, end_state_mapping
 
-    def add_lexicon(self, lexical_nfa, lexical_symbol: str):
+    def add_lexical_symbol(self, lexical_nfa, lexical_symbol: str):
         default_start_state = configure.boson_lexical_default_start_state
         if len(self.__state_set) == 0:
             self.__state_set.add(default_start_state)
@@ -346,12 +389,12 @@ class LexicalNFA:
         start_state_mapping, end_state_mapping = self.update(input_nfa_list)
         start_state = self.next_state()
         self.set_start_state(start_state)
-        for state in [state for _, state in start_state_mapping.items()]:
+        for _, state in start_state_mapping.items():
             self.add_move(start_state, configure.boson_lexical_epsilon_transition, state)
         end_state = self.next_state()
         self.add_end_state(end_state)
-        for state_set in [state_set for _, state_set in end_state_mapping.items()]:
-            for state in state_set:
+        for _, end_state_set in end_state_mapping.items():
+            for state in end_state_set:
                 self.add_move(state, configure.boson_lexical_epsilon_transition, end_state)
 
     def create_nfa_kleene_closure(self, input_nfa):

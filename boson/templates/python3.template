@@ -32,6 +32,120 @@ class {{ configure.boson_option['lexical_token_class_name'] }}:
         self.symbol = symbol
 
 
+{% if generate_lexical_analyzer -%}
+class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
+    def __init__(self):
+        self.__move_table = {
+            {%- for state, state_move_table in lexical_package.compact_move_table.items() %}
+            {{ state }}: [
+                {%- for each in state_move_table %}
+                {{ each }}
+                {%- if not loop.last %},{% endif -%}
+                {%- endfor %}
+            ]
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        self.__character_set = {{ lexical_package.character_set }}
+        self.__start_state = {{ lexical_package.start_state }}
+        self.__end_state_set = {{ lexical_package.end_state_set }}
+        self.__lexical_symbol_mapping = {
+            {%- for state, symbol in lexical_package.lexical_symbol_mapping.items() %}
+            {{ state }}: '{{ symbol }}'
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        self.__symbol_function_mapping = {
+            'skip': ['!skip'],
+            'newline': ['!skip', '!newline']
+        }
+        self.__lexical_function = {
+            '!skip': self._lexical_function_skip,
+            '!newline': self._lexical_function_newline,
+        }
+        self.__line = {{ configure.boson_lexical_start_line }}
+
+    def _lexical_function_skip(self, token_string):
+        return None
+
+    def _lexical_function_newline(self, token_string):
+        self.__line += 1
+        return token_string
+
+    def invoke_lexical_function(self, symbol: str, token):
+        if symbol in self.__symbol_function_mapping:
+            for function in self.__symbol_function_mapping[symbol]:
+                if function in self.__lexical_function:
+                    token = self.__lexical_function[function](token)
+        return token
+
+    def tokenize(self, text: str):
+        token_list = []
+        self.__line = {{ configure.boson_lexical_start_line }}
+        state = self.__start_state
+        token_string = ''
+        index = 0
+        while index < len(text):
+            character = text[index]
+            index += 1
+            generate_token = False
+            if state in self.__move_table:
+                for reverse, character_set, range_list, next_state in self.__move_table[state]:
+                    if reverse:
+                        condition = character not in character_set
+                        for min_character, max_character in range_list:
+                            condition &= character < min_character or character > max_character
+                    else:
+                        condition = character in character_set
+                        if {{ configure.boson_lexical_wildcard }} in character_set and condition not in self.__character_set:
+                            condition = True
+                        for min_character, max_character in range_list:
+                            if condition or min_character <= character <= max_character:
+                                condition = True
+                                break
+                    if condition:
+                        if state in self.__end_state_set and next_state not in self.__end_state_set:
+                            generate_token = True
+                            break
+                        token_string += character
+                        state = next_state
+                        break
+                else:
+                    if state in self.__end_state_set:
+                        generate_token = True
+                    else:
+                        raise ValueError('[Line: {}] Invalid character: {}[{}]'.format(self.__line, token_string, character))
+            else:
+                if state in self.__end_state_set:
+                    generate_token = True
+                else:
+                    raise ValueError('Invalid state: state={}'.format(state))
+            if generate_token:
+                symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
+                token_string = self.invoke_lexical_function(symbol, token_string)
+                if token_string is not None:
+                    token_list.append(LexicalToken(token_string, self.__line, symbol))
+                token_string = ''
+                state = self.__start_state
+                index -= 1
+        if state in self.__end_state_set:
+            symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
+            token_string = self.invoke_lexical_function(symbol, token_string)
+            if token_string is not None:
+                token_list.append(LexicalToken(token_string, self.__line, symbol))
+        else:
+            raise ValueError('Invalid state: state={}'.format(state))
+        token_list.append(LexicalToken('', self.__line, '{{ configure.boson_end_symbol }}'))
+        return token_list
+
+    def lexical_function(self, function_name):
+        def decorator(f):
+            self.__lexical_function[function_name] = f
+            return f
+        return decorator
+
+
+{% endif -%}
 class {{ configure.boson_option['grammar_class_name'] }}:
     def __init__(self):
         self.__grammar_tree = None
@@ -87,46 +201,26 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
         {%- if sparse_table %}
         self.__action_table = {
             {%- for i, sub_table in analyzer_table.action_table.items() %}
-            {{ i }}: {
-            {%- for j, each in sub_table.items() -%}
-            {{ j }}: '{{ each }}'
-            {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}
-            }
-            {%- if not loop.last %}, {% endif -%}
+            {{ i }}: {{ sub_table }}
+            {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         self.__goto_table = {
             {%- for i, sub_table in analyzer_table.goto_table.items() %}
-            {{ i }}: {
-            {%- for j, each in sub_table.items() -%}
-            {{ j }}: {{ each }}
-            {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}
-            }
-            {%- if not loop.last %}, {% endif -%}
+            {{ i }}: {{ sub_table }}
+            {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         {%- else %}
         self.__action_table = [
             {%- for line in analyzer_table.action_table %}
-            [
-                {%- for each in line -%}
-                '{{ each }}'
-                {%- if not loop.last %}, {% endif -%}
-                {%- endfor -%}
-            ]
+            {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
         self.__goto_table = [
             {%- for line in analyzer_table.goto_table %}
-            [
-                {%- for each in line -%}
-                {{ each }}
-                {%- if not loop.last %}, {% endif -%}
-                {%- endfor -%}
-            ]
+            {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
@@ -137,18 +231,8 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__reduce_symbol_sum = [
-            {%- for index in analyzer_table.reduce_symbol_sum -%}
-            {{ index }}
-            {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}
-        ]
-        self.__reduce_to_non_terminal_index = [
-            {%- for index in analyzer_table.reduce_to_non_terminal_index -%}
-                {{ index }}
-                {%- if not loop.last %}, {% endif -%}
-                {%- endfor -%}
-            ]
+        self.__reduce_symbol_sum = {{ analyzer_table.reduce_symbol_sum }}
+        self.__reduce_to_non_terminal_index = {{ analyzer_table.reduce_to_non_terminal_index }}
 
     def __generate_grammar_tuple(self, statement_index: int, node_tuple: tuple, symbol_package: list):
         grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
@@ -249,21 +333,16 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         self.__reduce_number_to_grammar_name = {
             {%- for reduce_number, grammar_name in reduce_number_to_grammar_name.items() %}
             {{ reduce_number }}: '{{ grammar_name }}'
-            {%- if not loop.last %}, {% endif -%}
+            {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         self.__reduce_number_to_grammar_number = {
             {%- for reduce_number, grammar_number in reduce_number_to_grammar_number.items() %}
             {{ reduce_number }}: {{ grammar_number }}
-            {%- if not loop.last %}, {% endif -%}
+            {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__naive_reduce_number = {
-            {%- for reduce_number in naive_reduce_number -%}
-            {{ reduce_number }}
-            {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}
-        }
+        self.__naive_reduce_number = {{ naive_reduce_number }}
         self.__semantics_entity = {}
 
     @staticmethod

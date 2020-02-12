@@ -5,6 +5,7 @@ import time
 from argparse import RawTextHelpFormatter
 import boson.bs_configure as configure
 from boson.bs_command import bs_command_execute
+from boson.bs_lexical_analysis import bs_lexical_analysis
 from boson.bs_grammar_analysis import bs_grammar_analysis
 from boson.bs_slr_generate import bs_slr_generate_table
 from boson.bs_lr_generate import bs_lr_generate_table
@@ -67,6 +68,11 @@ def console_main():
         bs_command_execute(grammar_package.command_list)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
+        display('    Generate lexical analysis table... ', newline=False)
+        start_time = time.time()
+        lexical_package = bs_lexical_analysis(grammar_package.lexical_regular_expression_map)
+        end_time = time.time()
+        display('Done [{:.4f}s]'.format(end_time - start_time))
         display('    Generate {} grammar analysis table... '.format(arguments.analyzer.upper()), newline=False)
         start_time = time.time()
         analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)
@@ -92,7 +98,7 @@ def console_main():
             output_file = sys.stdout
         display('    Generate analyzer {} code... '.format(arguments.language.upper()), newline=False)
         start_time = time.time()
-        text = bs_generate_code(arguments.language, analyzer_table, grammar_package)
+        text = bs_generate_code(arguments.language, analyzer_table, lexical_package, grammar_package)
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
         global_end_time = time.time()

@@ -26,6 +26,7 @@ boson_grammar_tuple_number = '$'
 boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
 
+boson_lexical_start_line = 0
 boson_lexical_default_state = 0
 boson_lexical_default_start_state = 0
 boson_lexical_default_end_state = 1
@@ -36,7 +37,7 @@ boson_reserved_symbol = '!'
 boson_end_symbol = '$'
 boson_null_symbol = '~'
 
-boson_literal_template = '{}l_{}'.format(boson_reserved_symbol, '{}')
+boson_symbol_template = '{}symbol_{}'.format(boson_reserved_symbol, '{}')
 boson_augmented_start = '{}start'.format(boson_reserved_symbol)
 boson_hidden_name_prefix = '{}name_'.format(boson_reserved_symbol)
 boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
@@ -44,6 +45,7 @@ boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
 
 boson_option = {
     'start_symbol': 'start',
+    'lexical_analyzer_class_name': 'BosonLexicalAnalyzer',
     'lexical_token_class_name': 'BosonToken',
     'grammar_analyzer_class_name': 'BosonGrammarAnalyzer',
     'grammar_class_name': 'BosonGrammar',
@@ -51,6 +53,7 @@ boson_option = {
     'semantics_analyzer_class_name': 'BosonSemanticsAnalyzer',
     'semantics_node_class_name': 'BosonSemanticsNode',
     'generate_semantics_analyzer': 'yes',
+    'generate_lexical_analyzer': 'yes',
     'code_comment': 'yes',
     'sparse_table': 'no',
 }

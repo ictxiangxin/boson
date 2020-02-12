@@ -1,15 +1,16 @@
 import jinja2
 import math
 import boson.bs_configure as configure
-from boson.bs_data_package import AnalyzerTable, GrammarPackage
+from boson.bs_data_package import AnalyzerTable, LexicalPackage, GrammarPackage
 
 
-def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
+def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
     none_grammar_tuple_reduce = [analyzer_table.sentence_list.index(sentence) for sentence in grammar_package.none_grammar_tuple_set]
     none_grammar_tuple_reduce.sort()
     none_grammar_tuple_reduce = list(map(str, none_grammar_tuple_reduce))
     sparse_table = configure.boson_option['sparse_table'] == 'yes'
     generate_semantics_analyzer = configure.boson_option['generate_semantics_analyzer'] == 'yes'
+    generate_lexical_analyzer = configure.boson_option['generate_lexical_analyzer'] == 'yes'
     if sparse_table:
         sparse_action_table = {}
         action_table = analyzer_table.action_table
@@ -59,6 +60,8 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
         'sparse_table': sparse_table,
         'code_comment': configure.boson_option['code_comment'] == 'yes',
         'generate_semantics_analyzer': generate_semantics_analyzer,
+        'generate_lexical_analyzer': generate_lexical_analyzer,
+        'lexical_package': lexical_package
     }
     environment = jinja2.Environment(loader=jinja2.PackageLoader(configure.boson_package_name, configure.boson_template_directory))
     template = environment.get_template(language + configure.boson_template_postfix)
@@ -66,9 +69,9 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, grammar_packa
     return code_text
 
 
-def bs_generate_python3_code(analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
-    return bs_generate_code('python3', analyzer_table, grammar_package)
+def bs_generate_python3_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
+    return bs_generate_code('python3', analyzer_table, lexical_package, grammar_package)
 
 
-def bs_generate_cpp_code(analyzer_table: AnalyzerTable, grammar_package: GrammarPackage):
-    return bs_generate_code('c++', analyzer_table, grammar_package)
+def bs_generate_cpp_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
+    return bs_generate_code('c++', analyzer_table, lexical_package, grammar_package)

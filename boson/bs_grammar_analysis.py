@@ -1,58 +1,6 @@
-import re
 import boson.bs_configure as configure
-from boson.bs_boson_script_analyzer import LexicalToken, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
+from boson.bs_boson_script_analyzer import BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
-
-token_tuple = [
-    ('name', r'[_a-zA-Z][_a-zA-Z0-9]*'),
-    ('reduce', r'\:'),
-    ('or', r'\|'),
-    ('comma', r'\,'),
-    ('assign', r'\='),
-    ('plus', r'\+'),
-    ('star', r'\*'),
-    ('parentheses_l', r'\('),
-    ('parentheses_r', r'\)'),
-    ('bracket_l', r'\['),
-    ('bracket_r', r'\]'),
-    ('brace_l', r'\{'),
-    ('brace_r', r'\}'),
-    ('at', r'\@'),
-    ('node', r'\$[0-9]+\*{0,1}|\$\@|\$\$|\$\?'),
-    ('string', r'\'.*?[^\\]\'|\".*?[^\\]\"'),
-    ('regular_expression', r'\<.*?[^\\]\>'),
-    ('internal_function', r'\![_a-zA-Z]+'),
-    ('alphabet', r'\/.*?[^\\]\/'),
-    ('null', r'~'),
-    ('comment', r'#[^\r\n]*'),
-    ('command', r'%[_a-zA-Z]+'),
-    ('end', r'\;'),
-    ('skip', r'[ \t]+'),
-    ('newline', r'\n|\r\n'),
-    ('invalid', r'.'),
-]
-
-token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
-
-
-def bs_tokenize(text: str):
-    token_list = list()
-    line = 1
-    for one_token in re.finditer(token_regular_expression, text):
-        symbol = one_token.lastgroup
-        text = one_token.group(symbol)
-        if symbol in ['skip', 'comment']:
-            pass
-        elif symbol == 'newline':
-            line += 1
-        elif symbol == 'invalid':
-            raise RuntimeError('[Line: {}] Invalid token: {}'.format(line, text))
-        else:
-            token = LexicalToken(text, line, symbol)
-            token_list.append(token)
-    token = LexicalToken('', line, configure.boson_end_symbol)
-    token_list.append(token)
-    return token_list
 
 
 semantic_analyzer = BosonSemanticsAnalyzer()
@@ -127,6 +75,7 @@ class BosonScriptAnalyzer:
             lexical_name, lexicon_list = grammar_entity
             first_element = lexicon_list[0]
             if isinstance(first_element, str):
+                lexicon_list[0] = first_element[1:-1]
                 self.__lexical_regular_expression_map[lexical_name] = lexicon_list
 
         @semantic_analyzer.semantics_entity('regular_expression')
@@ -210,15 +159,15 @@ class BosonScriptAnalyzer:
 
         @semantic_analyzer.semantics_entity('literal')
         def _semantic_literal(grammar_entity):
-            literal = grammar_entity[0]
-            literal_string = literal[1: -1]
+            literal_string = grammar_entity[0][1: -1]
             if literal_string in self.__literal_map:
                 literal_symbol = self.__literal_map[literal_string]
             else:
-                literal_symbol = configure.boson_literal_template.format(self.__literal_number)
+                literal_symbol = configure.boson_symbol_template.format(self.__literal_number)
                 self.__literal_number += 1
                 self.__literal_map[literal_string] = literal_symbol
                 self.__literal_reverse_map[literal_symbol] = literal_string
+                self.__lexical_regular_expression_map[literal_symbol] = literal_string
             return literal_symbol
 
     def grammar_analysis(self, token_list):
@@ -272,7 +221,8 @@ class BosonScriptAnalyzer:
 
 
 def bs_grammar_analysis(text: str) -> GrammarPackage:
-    token_list = bs_tokenize(text)
+    tokenizer = BosonLexicalAnalyzer()
+    token_list = tokenizer.tokenize(text)
     script_analyzer = BosonScriptAnalyzer()
     grammar_package = script_analyzer.parse(token_list)
     return grammar_package

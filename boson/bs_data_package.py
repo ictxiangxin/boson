@@ -9,6 +9,17 @@ class AnalyzerTable:
         self.conflict_list = None
 
 
+class LexicalPackage:
+    def __init__(self):
+        self.move_table = None
+        self.compact_move_table = None
+        self.character_set = None
+        self.start_state = None
+        self.end_state_set = None
+        self.lexical_symbol_mapping = None
+        self.symbol_function_mapping = None
+
+
 class GrammarPackage:
     def __init__(self):
         self.command_list = None

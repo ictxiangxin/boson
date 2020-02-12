@@ -2,7 +2,7 @@ import re
 import boson.bs_configure as configure
 from boson.bs_regular_expression_analyzer import RegularExpressionToken, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
 from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
-from boson.bs_data_package import GrammarPackage
+from boson.bs_data_package import LexicalPackage
 
 token_tuple = [
     ('single_number', r'[0-9]'),
@@ -219,3 +219,25 @@ def bs_regular_expression_to_nfa(text: str) -> LexicalNFA:
     script_analyzer = BosonRegularExpressionAnalyzer()
     regular_expression_nfa = script_analyzer.parse(token_list)
     return regular_expression_nfa
+
+
+def bs_lexical_analysis(lexical_regular_expression: dict) -> LexicalPackage:
+    lexical_package = LexicalPackage()
+    nfa = LexicalNFA()
+    symbol_function_mapping = {}
+    for lexical_symbol, regular_expression in lexical_regular_expression.items():
+        if len(regular_expression) > 1:
+            symbol_function_mapping[lexical_symbol] = regular_expression[1]
+        nfa.add_lexical_symbol(bs_regular_expression_to_nfa(regular_expression[0]), lexical_symbol)
+    nfa.construct()
+    dfa = nfa.transform_to_dfa()
+    dfa.minimize()
+    dfa.simplify()
+    lexical_package.move_table = dfa.move_table()
+    lexical_package.compact_move_table = dfa.compact_move_table()
+    lexical_package.start_state = dfa.start_state()
+    lexical_package.end_state_set = dfa.end_state_set()
+    lexical_package.character_set = dfa.character_set()
+    lexical_package.lexical_symbol_mapping = dfa.lexical_symbol_mapping()
+    lexical_package.symbol_function_mapping = symbol_function_mapping
+    return lexical_package

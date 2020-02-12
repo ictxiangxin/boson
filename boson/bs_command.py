@@ -1,5 +1,7 @@
 import boson.bs_configure as configure
 
+option_list = list(configure.boson_option)
+
 
 def bs_command_execute(command_list):
     for command_line in command_list:
@@ -14,17 +16,7 @@ def bs_command_execute(command_list):
                 command += prefix + c.lower()
             else:
                 command += c
-        if command in ['start_symbol',
-                       'lexical_token_class_name',
-                       'grammar_analyzer_class_name',
-                       'grammar_class_name',
-                       'grammar_node_class_name',
-                       'semantics_analyzer_class_name',
-                       'semantics_node_class_name',
-                       'generate_semantics_analyzer',
-                       'code_comment',
-                       'sparse_table',
-                       ]:
+        if command in option_list:
             configure.boson_option[command] = arguments[0]
         else:
             raise ValueError('Invalid command: %s' % ' '.join(command_line))

@@ -1,4 +1,5 @@
 %LexicalTokenClassName LexicalToken;
+%LexicalAnalyzerClassName BosonLexicalAnalyzer;
 %GrammarAnalyzerClassName BosonGrammarAnalyzer;
 %SemanticsAnalyzerClassName BosonSemanticsAnalyzer;
 %GenerateSemanticsAnalyzer yes;
@@ -6,19 +7,51 @@
 %SparseTable yes;
 %StartSymbol boson;
 
-string = <".*[^\\]">;
-
 name = <[_a-zA-Z][_a-zA-Z0-9]*>;
 
-node = <$[0-9]+|$@|$$|$\?>;
+reduce = <:>;
 
-command = <%[_a-zA-Z]+>;
+or = <\|>;
+
+comma = <\,>;
+
+assign = <=>;
+
+plus = <\+>;
+
+star = <\*>;
+
+parentheses_l = <\(>;
+
+parentheses_r = <\)>;
+
+bracket_l = <\[>;
+
+bracket_r = <\]>;
+
+brace_l = <\{>;
+
+brace_r = <\}>;
+
+at = <@>;
+
+node = <$[0-9]+\*?|$@|$$|$\?>;
+
+string = <".*[^\\]"|'.*[^\\]'>;
+
+regular_expression = <\<.*[^\\]\>>;
+
+null = <~>;
 
 comment = <#[^\r\n]*>;
 
-skip = <[\ \t]+> @{!skip};
+command = <%[_a-zA-Z]+>;
 
-newline = <\n\r|\n> @{!skip !newline};
+end = <;>;
+
+skip = <[\ \t]+> @{skip};
+
+newline = <\n\r|\n> @{skip, newline};
 
 boson : statement+;
 
@@ -32,12 +65,14 @@ command_statement : command (name | string)+ end = command($0, *$1($?));
 lexicon_statement : name assign lexical_define end = lexical_define($0, $2);
 
 lexical_define : lexicon_list
-               | regular_expression [at brace_l lexical_function+ brace_r] = ($0, $1(*$2))
+               | regular_expression [at brace_l lexical_function brace_r] = ($0, $1(*$2))
                ;
 
 lexicon_list : lexicon (or lexicon)* = ($0, *$1($1));
 
-lexicon : lexicon_body [at brace_l lexical_function+ brace_r] = ($0, $1(*$2));
+lexical_function : name (comma name)* = ($0, *$1($1));
+
+lexicon : lexicon_body [at brace_l lexical_function brace_r] = ($0, $1(*$2));
 
 lexicon_body : lexeme+ = (*$0);
 
@@ -52,10 +87,6 @@ complex_lexeme : parentheses_l sub_lexeme parentheses_r [closure] = lexical_clos
 sub_lexeme : lexeme+ = (*$0)
            | lexeme (or lexeme)+ = lexical_select($0, *$1($1))
            ;
-
-lexical_function : internal_function
-                 | name
-                 ;
 
 grammar_statement : name reduce derivation_list end = reduce($0, $2);
 
@@ -73,9 +104,12 @@ grammar_tuple : parentheses_l node_element (comma node_element)* parentheses_r =
 node_element : [star] node [grammar_tuple] = grammar_node(*$0($?), $1, *$2($?));
 
 element : complex_element
-        | name [closure] = name_closure($0, *$1($?))
-        | string = literal($0)
+        | symbol [closure] = name_closure($0, *$1($?))
         ;
+
+symbol : name
+       | string = literal($0)
+       ;
 
 complex_element : parentheses_l sub_derivation parentheses_r [closure] = complex_closure($1, *$3($?))
                 | bracket_l sub_derivation bracket_r = complex_optional($1)
