@@ -111,7 +111,7 @@ class LexicalDFA:
                 if len(state_group) > 1:
                     check_pass = True
                     group_changed = False
-                    for character in self.__alphabet(state_group):
+                    for character in self.__alphabet(state_group) | {None}:
                         split_group = {}
                         for state in state_group:
                             move_state = self.__move(state, character)

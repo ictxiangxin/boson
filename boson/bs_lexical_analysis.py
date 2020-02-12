@@ -1,50 +1,6 @@
-import re
-import boson.bs_configure as configure
-from boson.bs_regular_expression_analyzer import RegularExpressionToken, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
+from boson.bs_regular_expression_analyzer import RegularExpressionLexicalAnalyzer, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
 from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
 from boson.bs_data_package import LexicalPackage
-
-token_tuple = [
-    ('single_number', r'[0-9]'),
-    ('plus', r'\+'),
-    ('star', r'\*'),
-    ('parentheses_l', r'\('),
-    ('parentheses_r', r'\)'),
-    ('bracket_l', r'\['),
-    ('bracket_r', r'\]'),
-    ('brace_l', r'\{'),
-    ('brace_r', r'\}'),
-    ('comma', r'\,'),
-    ('or', r'\|'),
-    ('to', r'\-'),
-    ('question_mark', r'\?'),
-    ('reverse', r'\^'),
-    ('escape_character', r'\\.'),
-    ('wildcard_character', r'\.'),
-    ('normal_character', r'.'),
-]
-
-token_regular_expression = '|'.join('(?P<{}>{})'.format(*pair) for pair in token_tuple)
-
-
-def bs_tokenize(text: str):
-    token_list = list()
-    line = 1
-    for one_token in re.finditer(token_regular_expression, text):
-        symbol = one_token.lastgroup
-        text = one_token.group(symbol)
-        if symbol in ['skip', 'comment']:
-            pass
-        elif symbol == 'newline':
-            line += 1
-        elif symbol == 'invalid':
-            raise RuntimeError('[Line: {}] Invalid token: {}'.format(line, text))
-        else:
-            token = RegularExpressionToken(text, line, symbol)
-            token_list.append(token)
-    token = RegularExpressionToken('', line, configure.boson_end_symbol)
-    token_list.append(token)
-    return token_list
 
 
 semantic_analyzer = RegularExpressionSemanticsAnalyzer()
@@ -97,7 +53,7 @@ class BosonRegularExpressionAnalyzer:
         @semantic_analyzer.semantics_entity('simple_construct')
         def _semantic_character(grammar_entity):
             character = grammar_entity[0]
-            if character[0] == '\\':
+            if len(character) > 1 and character[0] == '\\':
                 escape_character = character[1]
                 if escape_character in self.__escape_character_mapping:
                     mapping_character = self.__escape_character_mapping[escape_character]
@@ -196,7 +152,7 @@ class BosonRegularExpressionAnalyzer:
                     break
             offset = grammar.error_index - start_index - 1
             error_token_list = token_list[start_index + 1: end_index]
-            error_message = '\nGrammar Error [Line: {}] \n'.format(error_line)
+            error_message = '\nRegular Expression Grammar Error [Line: {}] \n'.format(error_line)
             error_token_text_list = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
@@ -215,7 +171,8 @@ class BosonRegularExpressionAnalyzer:
 
 
 def bs_regular_expression_to_nfa(text: str) -> LexicalNFA:
-    token_list = bs_tokenize(text)
+    tokenizer = RegularExpressionLexicalAnalyzer()
+    token_list = tokenizer.tokenize(text)
     script_analyzer = BosonRegularExpressionAnalyzer()
     regular_expression_nfa = script_analyzer.parse(token_list)
     return regular_expression_nfa

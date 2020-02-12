@@ -3,56 +3,28 @@
 %GrammarAnalyzerClassName BosonGrammarAnalyzer;
 %SemanticsAnalyzerClassName BosonSemanticsAnalyzer;
 %GenerateSemanticsAnalyzer yes;
+%GenerateLexicalAnalyzer yes;
 %CodeComment no;
 %SparseTable yes;
 %StartSymbol boson;
 
-name = <[_a-zA-Z][_a-zA-Z0-9]*>;
 
-reduce = <:>;
-
-or = <\|>;
-
-comma = <\,>;
-
-assign = <=>;
-
-plus = <\+>;
-
-star = <\*>;
-
-parentheses_l = <\(>;
-
-parentheses_r = <\)>;
-
-bracket_l = <\[>;
-
-bracket_r = <\]>;
-
-brace_l = <\{>;
-
-brace_r = <\}>;
-
-at = <@>;
-
-node = <$[0-9]+\*?|$@|$$|$\?>;
-
-string = <".*[^\\]"|'.*[^\\]'>;
-
-regular_expression = <\<.*[^\\]\>>;
-
-null = <~>;
-
-comment = <#[^\r\n]*>;
-
+####################################
+#        Lexical Definition        #
+####################################
+name    = <[_a-zA-Z][_a-zA-Z0-9]*>;
+node    = <$[0-9]+|$@|$$|$\?>;
+string  = <".*[^\\]"|'.*[^\\]'>;
+regular = <\<.*[^\\]\>>;
+comment = <#[^\r\n]*> @{skip};
 command = <%[_a-zA-Z]+>;
-
-end = <;>;
-
-skip = <[\ \t]+> @{skip};
-
+skip    = <[\ \t]+> @{skip};
 newline = <\n\r|\n> @{skip, newline};
 
+
+#####################################
+#        Grammar Definition         #
+#####################################
 boson : statement+;
 
 statement : command_statement
@@ -60,19 +32,19 @@ statement : command_statement
           | grammar_statement
           ;
 
-command_statement : command (name | string)+ end = command($0, *$1($?));
+command_statement : command (name | string)+ ';' = command($0, *$1($?));
 
-lexicon_statement : name assign lexical_define end = lexical_define($0, $2);
+lexicon_statement : name '=' lexical_define ';' = lexical_define($0, $2);
 
 lexical_define : lexicon_list
-               | regular_expression [at brace_l lexical_function brace_r] = ($0, $1(*$2))
+               | regular ['@' '{' lexical_function '}'] = ($0, $1(*$2))
                ;
 
-lexicon_list : lexicon (or lexicon)* = ($0, *$1($1));
+lexicon_list : lexicon ('|' lexicon)* = ($0, *$1($1));
 
-lexical_function : name (comma name)* = ($0, *$1($1));
+lexical_function : name (',' name)* = ($0, *$1($1));
 
-lexicon : lexicon_body [at brace_l lexical_function brace_r] = ($0, $1(*$2));
+lexicon : lexicon_body ['@' '{' lexical_function '}'] = ($0, $1(*$2));
 
 lexicon_body : lexeme+ = (*$0);
 
@@ -80,28 +52,28 @@ lexeme : complex_lexeme
        | name [closure] = lexical_name_closure($0, *$1($?))
        ;
 
-complex_lexeme : parentheses_l sub_lexeme parentheses_r [closure] = lexical_closure($1, *$3($?))
-               | bracket_l sub_lexeme bracket_r = lexical_optional($1)
+complex_lexeme : '(' sub_lexeme ')' [closure] = lexical_closure($1, *$3($?))
+               | '[' sub_lexeme ']' = lexical_optional($1)
                ;
 
 sub_lexeme : lexeme+ = (*$0)
-           | lexeme (or lexeme)+ = lexical_select($0, *$1($1))
+           | lexeme ('|' lexeme)+ = lexical_select($0, *$1($1))
            ;
 
-grammar_statement : name reduce derivation_list end = reduce($0, $2);
+grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
 
-derivation_list : derivation (or derivation)* = ($0, *$1($1));
+derivation_list : derivation ('|' derivation)* = ($0, *$1($1));
 
-derivation : derivation_body [assign [name] grammar_tuple] = ($0, *$1(*$1($?), $2));
+derivation : derivation_body ['=' [name] grammar_tuple] = ($0, *$1(*$1($?), $2));
 
 derivation_body : element+ = (*$0)
-                | null
+                | '~'
                 |
                 ;
 
-grammar_tuple : parentheses_l node_element (comma node_element)* parentheses_r = ($1, *$2($1));
+grammar_tuple : '(' node_element (',' node_element)* ')' = ($1, *$2($1));
 
-node_element : [star] node [grammar_tuple] = grammar_node(*$0($?), $1, *$2($?));
+node_element : ['*'] node [grammar_tuple] = grammar_node(*$0($?), $1, *$2($?));
 
 element : complex_element
         | symbol [closure] = name_closure($0, *$1($?))
@@ -111,14 +83,12 @@ symbol : name
        | string = literal($0)
        ;
 
-complex_element : parentheses_l sub_derivation parentheses_r [closure] = complex_closure($1, *$3($?))
-                | bracket_l sub_derivation bracket_r = complex_optional($1)
+complex_element : '(' sub_derivation ')' [closure] = complex_closure($1, *$3($?))
+                | '[' sub_derivation ']' = complex_optional($1)
                 ;
 
 sub_derivation : element+ = (*$0)
-               | element (or element)+ = select($0, *$1($1))
+               | element ('|' element)+ = select($0, *$1($1))
                ;
 
-closure: plus
-       | star
-       ;
+closure: '+' | '*';

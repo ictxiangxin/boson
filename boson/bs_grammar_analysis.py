@@ -167,7 +167,7 @@ class BosonScriptAnalyzer:
                 self.__literal_number += 1
                 self.__literal_map[literal_string] = literal_symbol
                 self.__literal_reverse_map[literal_symbol] = literal_string
-                self.__lexical_regular_expression_map[literal_symbol] = literal_string
+                self.__lexical_regular_expression_map[literal_symbol] = ['\\' + '\\'.join(literal_string)]
             return literal_symbol
 
     def grammar_analysis(self, token_list):
