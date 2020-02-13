@@ -25,6 +25,7 @@ boson_grammar_tuple_prefix = '$'
 boson_grammar_tuple_number = '$'
 boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
+boson_grammar_no_error_index = -1
 
 boson_lexical_start_line = 1
 boson_lexical_default_skip = False

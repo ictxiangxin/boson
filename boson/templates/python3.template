@@ -167,7 +167,8 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
 class {{ configure.boson_option['grammar_class_name'] }}:
     def __init__(self):
         self.__grammar_tree = None
-        self.__error_index = None
+        self.__error_index = {{ configure.boson_grammar_no_error_index }}
+        self.__no_error_index = {{ configure.boson_grammar_no_error_index }}
 
     def get_grammar_tree(self):
         return self.__grammar_tree
@@ -184,6 +185,9 @@ class {{ configure.boson_option['grammar_class_name'] }}:
         self.__error_index = error_index
 
     error_index = property(get_error_index, set_error_index)
+
+    def no_error_index(self):
+        return self.__no_error_index
 
 
 class {{ configure.boson_option['grammar_node_class_name'] }}:

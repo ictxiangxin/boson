@@ -74,9 +74,8 @@ class BosonScriptAnalyzer:
         def _semantic_lexical_define(grammar_entity):
             lexical_name, lexicon_list = grammar_entity
             first_element = lexicon_list[0]
-            if isinstance(first_element, str):
-                lexicon_list[0] = first_element[1:-1]
-                self.__lexical_regular_expression_map[lexical_name] = lexicon_list
+            lexicon_list[0] = first_element[1:-1]
+            self.__lexical_regular_expression_map[lexical_name] = lexicon_list
 
         @semantic_analyzer.semantics_entity('regular_expression')
         def _semantic_regular_expression(grammar_entity):
@@ -172,11 +171,10 @@ class BosonScriptAnalyzer:
 
     def grammar_analysis(self, token_list):
         grammar = self.__grammar_analyzer.grammar_analysis(token_list)
-        if grammar.error_index is None:
+        if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
         else:
-            start_index = grammar.error_index
-            end_index = grammar.error_index
+            start_index = end_index = grammar.error_index
             error_line = token_list[grammar.error_index].line
             while start_index >= 0:
                 if token_list[start_index].line == error_line:

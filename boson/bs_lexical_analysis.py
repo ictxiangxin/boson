@@ -133,11 +133,10 @@ class BosonRegularExpressionAnalyzer:
 
     def grammar_analysis(self, token_list):
         grammar = self.__grammar_analyzer.grammar_analysis(token_list)
-        if grammar.error_index is None:
+        if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
         else:
-            start_index = grammar.error_index
-            end_index = grammar.error_index
+            start_index = end_index = grammar.error_index
             error_line = token_list[grammar.error_index].line
             while start_index >= 0:
                 if token_list[start_index].line == error_line:
