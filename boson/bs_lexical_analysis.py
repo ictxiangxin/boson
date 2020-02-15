@@ -1,3 +1,4 @@
+import boson.bs_configure as configure
 from boson.bs_regular_expression_analyzer import BosonGrammarNode, RegularExpressionLexicalAnalyzer, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
 from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
 from boson.bs_data_package import LexicalPackage
@@ -7,9 +8,9 @@ semantic_analyzer = RegularExpressionSemanticsAnalyzer()
 
 
 class BosonRegularExpressionAnalyzer:
-    def __init__(self):
-        self.__grammar_analyzer = RegularExpressionAnalyzer()
-        self.__escape_character_mapping = {
+    def __init__(self, symbol_regular_mapping: dict = None, symbol_nfa_mapping: dict = None):
+        self.__grammar_analyzer: RegularExpressionAnalyzer = RegularExpressionAnalyzer()
+        self.__escape_character_mapping: dict = {
             'n': '\n',
             'r': '\r',
             't': '\t',
@@ -17,7 +18,13 @@ class BosonRegularExpressionAnalyzer:
             'w': 'abcdefghijklmnopqrstuvwxyz',
             'W': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         }
-        self.__nfa = None
+        self.__nfa: (LexicalNFA, None) = None
+        self.__symbol_regular_mapping: dict = {}
+        self.__symbol_nfa_mapping: dict = {}
+        if symbol_regular_mapping is not None:
+            self.__symbol_regular_mapping = symbol_regular_mapping
+        if symbol_nfa_mapping is not None:
+            self.__symbol_nfa_mapping = symbol_nfa_mapping
 
     def init_semantic(self):
         @semantic_analyzer.semantics_entity('regular_expression')
@@ -130,6 +137,20 @@ class BosonRegularExpressionAnalyzer:
         def _semantic_sub_expression(grammar_entity):
             return grammar_entity[0]
 
+        @semantic_analyzer.semantics_entity('reference')
+        def _semantic_reference(grammar_entity):
+            lexical_symbol = grammar_entity[0][1:-1]
+            if lexical_symbol in self.__symbol_nfa_mapping:
+                return self.__symbol_nfa_mapping[lexical_symbol]
+            elif lexical_symbol in self.__symbol_regular_mapping:
+                regular_expression = self.__symbol_regular_mapping[lexical_symbol][0]
+                reference_nfa = bs_regular_expression_to_nfa(regular_expression, self.__symbol_regular_mapping, self.__symbol_nfa_mapping)
+                self.init_semantic()
+                self.__symbol_nfa_mapping[lexical_symbol] = reference_nfa
+                return reference_nfa
+            else:
+                raise ValueError('Regular Expression Invalid Reference: "{}"'.format(lexical_symbol))
+
     def grammar_analysis(self, token_list: list) -> BosonGrammarNode:
         grammar = self.__grammar_analyzer.grammar_analysis(token_list)
         if grammar.error_index == grammar.no_error_index():
@@ -158,7 +179,7 @@ class BosonRegularExpressionAnalyzer:
             raise ValueError(error_message)
 
     def semantics_analysis(self, grammar_tree: BosonGrammarNode) -> LexicalNFA:
-        self.__init__()
+        self.__init__(self.__symbol_regular_mapping, self.__symbol_nfa_mapping)
         self.init_semantic()
         semantic_analyzer.semantics_analysis(grammar_tree)
         return self.__nfa
@@ -169,12 +190,12 @@ class BosonRegularExpressionAnalyzer:
         return regular_expression_nfa
 
 
-def bs_regular_expression_to_nfa(text: str) -> LexicalNFA:
+def bs_regular_expression_to_nfa(text: str, symbol_regular_mapping: dict = None, symbol_nfa_mapping: dict = None) -> LexicalNFA:
     tokenizer = RegularExpressionLexicalAnalyzer()
     if tokenizer.tokenize(text) != tokenizer.no_error_line():
         raise ValueError('Regular Expression Invalid: "{}"'.format(text))
     token_list = tokenizer.token_list()
-    script_analyzer = BosonRegularExpressionAnalyzer()
+    script_analyzer = BosonRegularExpressionAnalyzer(symbol_regular_mapping, symbol_nfa_mapping)
     regular_expression_nfa = script_analyzer.parse(token_list)
     return regular_expression_nfa
 
@@ -184,18 +205,25 @@ def bs_lexical_analysis(lexical_regular_expression: dict) -> LexicalPackage:
     nfa = LexicalNFA()
     symbol_function_mapping = {}
     non_greedy_symbol_set = set()
+    symbol_nfa_mapping = {}
     for lexical_symbol, regular_expression in lexical_regular_expression.items():
-        if len(regular_expression) > 1:
-            function_list = None
-            if isinstance(regular_expression[1], list):
-                function_list = regular_expression[1]
+        if not lexical_symbol.startswith(configure.boson_lexical_hidden_prefix):
+            if len(regular_expression) > 1:
+                function_list = None
+                if isinstance(regular_expression[1], list):
+                    function_list = regular_expression[1]
+                else:
+                    non_greedy_symbol_set.add(lexical_symbol)
+                if len(regular_expression) == 3:
+                    function_list = regular_expression[2]
+                if function_list is not None:
+                    symbol_function_mapping[lexical_symbol] = function_list
+            if lexical_symbol in symbol_nfa_mapping:
+                nfa.add_lexical_symbol(symbol_nfa_mapping[lexical_symbol], lexical_symbol)
             else:
-                non_greedy_symbol_set.add(lexical_symbol)
-            if len(regular_expression) == 3:
-                function_list = regular_expression[2]
-            if function_list is not None:
-                symbol_function_mapping[lexical_symbol] = function_list
-        nfa.add_lexical_symbol(bs_regular_expression_to_nfa(regular_expression[0]), lexical_symbol)
+                new_nfa = bs_regular_expression_to_nfa(regular_expression[0], lexical_regular_expression, symbol_nfa_mapping)
+                symbol_nfa_mapping[lexical_symbol] = new_nfa
+                nfa.add_lexical_symbol(new_nfa, lexical_symbol)
     nfa.construct()
     dfa = nfa.transform_to_dfa()
     dfa.minimize()

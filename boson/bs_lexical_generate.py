@@ -317,10 +317,9 @@ class LexicalNFA:
         for index, input_nfa in enumerate(input_nfa_list):
             if input_nfa.reverse_delay_construct():
                 self.__delay_construct_reverse_set_list.append(input_nfa.reverse_character_set())
-            nfa_move_table = input_nfa.move_table()
             temp_state_mapping = {}
             end_state_mapping.setdefault(index, set())
-            for from_state, move_table in nfa_move_table.items():
+            for from_state, move_table in input_nfa.move_table().items():
                 is_start_state = True if from_state == input_nfa.start_state() else False
                 is_end_state = True if from_state in input_nfa.end_state_set() else False
                 if from_state in temp_state_mapping:

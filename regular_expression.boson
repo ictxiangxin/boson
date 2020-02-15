@@ -14,6 +14,7 @@
 ####################################
 single_number    = <[0-9]>;
 escape_character = <\\.>;
+reference        = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>;
 normal_character = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,]>;
 
 
@@ -43,6 +44,7 @@ character : normal_character
 
 complex_element : '[' ['^'] select_element+ ']' = select(*$1($0), $2)
                 | '(' expression ')' = sub_expression($1)
+                | reference = reference($0)
                 ;
 
 select_element : simple_element

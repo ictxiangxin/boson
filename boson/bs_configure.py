@@ -27,6 +27,7 @@ boson_grammar_tuple_all = '?'
 boson_grammar_tuple_unpack = '*'
 boson_grammar_no_error_index = -1
 
+boson_lexical_hidden_prefix = '_'
 boson_lexical_start_line = 1
 boson_lexical_default_skip = False
 boson_lexical_no_error_line = -1
