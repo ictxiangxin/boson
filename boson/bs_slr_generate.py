@@ -1,9 +1,10 @@
+from boson.bs_data_package import AnalyzerTable
 from boson.bs_analyzer_helper import bs_non_terminal_set, bs_non_terminal_closure, bs_non_terminal_follow_set
 from boson.bs_generate_helper import bs_generate_table
 import boson.bs_configure as configure
 
 
-def bs_slr_generate_dfa(sentence_set):
+def bs_slr_generate_dfa(sentence_set: set) -> tuple:
     sentence_set.add((configure.boson_augmented_start, configure.boson_option['start_symbol']))
     non_terminal_set = bs_non_terminal_set(sentence_set)
     follow_set = bs_non_terminal_follow_set(sentence_set)
@@ -62,7 +63,7 @@ def bs_slr_generate_dfa(sentence_set):
     return state_list, state_transfer
 
 
-def bs_slr_generate_table(sentence_set):
+def bs_slr_generate_table(sentence_set: set) -> AnalyzerTable:
     slr_dfa_state, slr_dfa_move = bs_slr_generate_dfa(sentence_set)
     analyzer_table = bs_generate_table(sentence_set, slr_dfa_state, slr_dfa_move)
     return analyzer_table

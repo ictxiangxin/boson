@@ -1,5 +1,5 @@
 import boson.bs_configure as configure
-from boson.bs_boson_script_analyzer import BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
+from boson.bs_boson_script_analyzer import BosonGrammarNode, BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 from boson.bs_data_package import GrammarPackage
 
 
@@ -8,51 +8,51 @@ semantic_analyzer = BosonSemanticsAnalyzer()
 
 class BosonScriptAnalyzer:
     def __init__(self):
-        self.__grammar_analyzer = BosonGrammarAnalyzer()
-        self.__sentence_set = set()
-        self.__grammar_tuple_map = {}
-        self.__none_grammar_tuple_set = set()
-        self.__command_list = []
-        self.__literal_map = {}
-        self.__literal_reverse_map = {}
-        self.__sentence_grammar_map = {}
-        self.__naive_sentence = set()
-        self.__literal_number = 1
-        self.__hidden_name_number = 0
-        self.__grammar_number = 0
-        self.__lexical_regular_expression_map = {}
+        self.__grammar_analyzer: BosonGrammarAnalyzer = BosonGrammarAnalyzer()
+        self.__sentence_set: set = set()
+        self.__grammar_tuple_map: dict = {}
+        self.__none_grammar_tuple_set: set = set()
+        self.__command_list: list = []
+        self.__literal_map: dict = {}
+        self.__literal_reverse_map: dict = {}
+        self.__sentence_grammar_map: dict = {}
+        self.__naive_sentence: set = set()
+        self.__literal_number: int = 1
+        self.__hidden_name_number: int = 0
+        self.__grammar_number: int = 0
+        self.__lexical_regular_expression_map: dict = {}
 
-    def __generate_hidden_name(self):
+    def __generate_hidden_name(self) -> str:
         hidden_name = '{}{}'.format(configure.boson_hidden_name_prefix, self.__hidden_name_number)
         self.__hidden_name_number += 1
         return hidden_name
 
-    def __sentence_add(self, sentence, grammar_tuple=None):
+    def __sentence_add(self, sentence: tuple, grammar_tuple: tuple = None) -> None:
         self.__sentence_set.add(sentence)
         if grammar_tuple is None:
             self.__none_grammar_tuple_set.add(sentence)
         else:
             self.__grammar_tuple_map[sentence] = grammar_tuple
 
-    def __add_positive_closure(self, name):
+    def __add_positive_closure(self, name: str) -> str:
         hidden_name = self.__generate_hidden_name()
         self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
         self.__sentence_add((hidden_name, name))
         return hidden_name
 
-    def __add_colin_closure(self, name):
+    def __add_colin_closure(self, name: str) -> str:
         hidden_name = self.__generate_hidden_name()
         self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
         self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
         return hidden_name
 
-    def __add_optional(self, name):
+    def __add_optional(self, name: str) -> str:
         hidden_name = self.__generate_hidden_name()
         self.__sentence_add((hidden_name, name))
         self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
         return hidden_name
 
-    def __add_select(self, name_list):
+    def __add_select(self, name_list: list) -> str:
         hidden_name = self.__generate_hidden_name()
         for name in name_list:
             sentence = (hidden_name, name)
@@ -60,7 +60,7 @@ class BosonScriptAnalyzer:
             self.__naive_sentence.add(sentence)
         return hidden_name
 
-    def __add_hidden_derivation(self, derivation):
+    def __add_hidden_derivation(self, derivation: list) -> str:
         hidden_name = self.__generate_hidden_name()
         self.__sentence_add((hidden_name,) + tuple(derivation))
         return hidden_name
@@ -167,7 +167,7 @@ class BosonScriptAnalyzer:
                 self.__lexical_regular_expression_map[literal_symbol] = ['\\' + '\\'.join(literal_string)]
             return literal_symbol
 
-    def grammar_analysis(self, token_list):
+    def grammar_analysis(self, token_list: list) -> BosonGrammarNode:
         grammar = self.__grammar_analyzer.grammar_analysis(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
@@ -194,7 +194,7 @@ class BosonScriptAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def semantics_analysis(self, grammar_tree) -> GrammarPackage:
+    def semantics_analysis(self, grammar_tree: BosonGrammarNode) -> GrammarPackage:
         self.__init__()
         self.init_semantic()
         semantic_analyzer.semantics_analysis(grammar_tree)
@@ -210,7 +210,7 @@ class BosonScriptAnalyzer:
         grammar_package.naive_sentence = self.__naive_sentence
         return grammar_package
 
-    def parse(self, token_list) -> GrammarPackage:
+    def parse(self, token_list: list) -> GrammarPackage:
         grammar_tree = self.grammar_analysis(token_list)
         grammar_package = self.semantics_analysis(grammar_tree)
         return grammar_package

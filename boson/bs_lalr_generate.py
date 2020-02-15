@@ -1,17 +1,18 @@
+from boson.bs_data_package import AnalyzerTable
 from boson.bs_generate_helper import bs_generate_table
 from boson.bs_slr_generate import bs_slr_generate_dfa
 from boson.bs_lr_generate import bs_lr_generate_dfa
 import boson.bs_configure as configure
 
 
-def bs_kernel_of_state(state):
+def bs_kernel_of_state(state: frozenset) -> frozenset:
     kernel = set()
     for sentence in state:
         kernel.add((sentence[0][0], sentence[1]))
     return frozenset(kernel)
 
 
-def bs_search_index(slr_state, state_kernel):
+def bs_search_index(slr_state: list, state_kernel: frozenset) -> (int, None):
     for state_index in range(len(slr_state)):
         slr_state_kernel = bs_kernel_of_state(slr_state[state_index])
         if state_kernel == slr_state_kernel:
@@ -19,7 +20,7 @@ def bs_search_index(slr_state, state_kernel):
     return None
 
 
-def bs_lalr_generate_dfa(sentence_set):
+def bs_lalr_generate_dfa(sentence_set: set) -> tuple:
     sentence_set.add((configure.boson_augmented_start, configure.boson_option['start_symbol']))
     sentence_postfix_mark = {}
     slr_state, slr_transfer = bs_slr_generate_dfa(sentence_set)
@@ -45,7 +46,7 @@ def bs_lalr_generate_dfa(sentence_set):
     return lalr_state, lalr_transfer
 
 
-def bs_lalr_generate_table(sentence_set):
+def bs_lalr_generate_table(sentence_set: set) -> AnalyzerTable:
     lr_dfa_state, lr_dfa_move = bs_lalr_generate_dfa(sentence_set)
     analyzer_table = bs_generate_table(sentence_set, lr_dfa_state, lr_dfa_move)
     return analyzer_table

@@ -19,7 +19,7 @@ grammar_generate_table = {
 }
 
 
-def display(text, newline=True, file=sys.stdout):
+def display(text: str, newline: bool = True, file=sys.stdout):
     print(text, end=('\n' if newline else ''), flush=True, file=file)
 
 

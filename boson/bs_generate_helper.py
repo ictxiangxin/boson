@@ -3,7 +3,7 @@ from boson.bs_data_package import AnalyzerTable
 import boson.bs_configure as configure
 
 
-def bs_normalize_sentence_list(sentence_set):
+def bs_normalize_sentence_list(sentence_set: set) -> list:
     sentence_list = list(sentence_set)
     sentence_list.sort()
     for sentence_index in range(len(sentence_list)):
@@ -13,7 +13,7 @@ def bs_normalize_sentence_list(sentence_set):
     return sentence_list
 
 
-def bs_numbering_element(container, base=0):
+def bs_numbering_element(container, base: int = 0) -> dict:
     container_index = {}
     count = base
     for element in container:
@@ -22,7 +22,7 @@ def bs_numbering_element(container, base=0):
     return container_index
 
 
-def bs_reduce_information(sentence_list, non_terminal_index):
+def bs_reduce_information(sentence_list: list, non_terminal_index: dict) -> tuple:
     reduce_symbol_sum = []
     reduce_to_non_terminal_index = []
     for sentence in sentence_list:
@@ -34,7 +34,7 @@ def bs_reduce_information(sentence_list, non_terminal_index):
     return reduce_symbol_sum[1:], reduce_to_non_terminal_index[1:]
 
 
-def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_index, dfa_state, dfa_move):
+def bs_generate_action_goto_table(sentence_list: list, terminal_index: dict, non_terminal_index: dict, dfa_state: list, dfa_move: dict) -> tuple:
     action_table = [[configure.boson_table_sign_error] * (len(terminal_index) + 1) for _ in range(len(dfa_state))]
     goto_table = [[configure.boson_invalid_goto] * len(non_terminal_index) for _ in range(len(dfa_state))]
     for state, move_map in dfa_move.items():
@@ -68,7 +68,7 @@ def bs_generate_action_goto_table(sentence_list, terminal_index, non_terminal_in
     return action_table, goto_table, conflict_list
 
 
-def bs_generate_table(sentence_set, dfa_state, dfa_move):
+def bs_generate_table(sentence_set: set, dfa_state: list, dfa_move: dict) -> AnalyzerTable:
     sentence_list = bs_normalize_sentence_list(sentence_set)
     non_terminal_set = bs_non_terminal_set(sentence_set)
     terminal_set = bs_terminal_set(sentence_set, non_terminal_set)

@@ -4,7 +4,7 @@ import boson.bs_configure as configure
 from boson.bs_data_package import AnalyzerTable, LexicalPackage, GrammarPackage
 
 
-def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
+def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage) -> str:
     none_grammar_tuple_reduce = [analyzer_table.sentence_list.index(sentence) for sentence in grammar_package.none_grammar_tuple_set]
     none_grammar_tuple_reduce.sort()
     none_grammar_tuple_reduce = list(map(str, none_grammar_tuple_reduce))
@@ -69,9 +69,9 @@ def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_packa
     return code_text
 
 
-def bs_generate_python3_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
+def bs_generate_python3_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage) -> str:
     return bs_generate_code('python3', analyzer_table, lexical_package, grammar_package)
 
 
-def bs_generate_cpp_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage):
+def bs_generate_cpp_code(analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage) -> str:
     return bs_generate_code('c++', analyzer_table, lexical_package, grammar_package)

@@ -3,7 +3,7 @@ import boson.bs_configure as configure
 option_list = list(configure.boson_option)
 
 
-def bs_command_execute(command_list):
+def bs_command_execute(command_list: list):
     for command_line in command_list:
         origin_command = command_line[0][1:]
         arguments = command_line[1:]

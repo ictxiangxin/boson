@@ -1,5 +1,4 @@
-import boson.bs_configure as configure
-from boson.bs_regular_expression_analyzer import RegularExpressionLexicalAnalyzer, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
+from boson.bs_regular_expression_analyzer import BosonGrammarNode, RegularExpressionLexicalAnalyzer, RegularExpressionAnalyzer, RegularExpressionSemanticsAnalyzer
 from boson.bs_lexical_generate import LexicalNFA, bs_create_nfa_character, bs_create_nfa_or, bs_create_nfa_count_range, bs_create_nfa_kleene_closure, bs_create_nfa_plus_closure, bs_create_nfa_link, bs_create_nfa_reverse_delay_construct
 from boson.bs_data_package import LexicalPackage
 
@@ -131,7 +130,7 @@ class BosonRegularExpressionAnalyzer:
         def _semantic_sub_expression(grammar_entity):
             return grammar_entity[0]
 
-    def grammar_analysis(self, token_list):
+    def grammar_analysis(self, token_list: list) -> BosonGrammarNode:
         grammar = self.__grammar_analyzer.grammar_analysis(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
@@ -158,7 +157,7 @@ class BosonRegularExpressionAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def semantics_analysis(self, grammar_tree) -> LexicalNFA:
+    def semantics_analysis(self, grammar_tree: BosonGrammarNode) -> LexicalNFA:
         self.__init__()
         self.init_semantic()
         semantic_analyzer.semantics_analysis(grammar_tree)

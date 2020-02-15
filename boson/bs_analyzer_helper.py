@@ -1,24 +1,20 @@
-import copy
 import boson.bs_configure as configure
 
 
-def bs_non_terminal_set(sentence_set):
+def bs_non_terminal_set(sentence_set: set) -> set:
     return {sentence[0] for sentence in sentence_set}
 
 
-def bs_terminal_set(sentence_set, non_terminal_set=None):
+def bs_terminal_set(sentence_set, non_terminal_set: set = None) -> set:
     if non_terminal_set is None:
         non_terminal_set = bs_non_terminal_set(sentence_set)
-    else:
-        non_terminal_set = copy.deepcopy(non_terminal_set)
-    non_terminal_set.add(configure.boson_null_symbol)
-    all_elem = set()
+    all_element = set()
     for sentence in sentence_set:
-        all_elem |= set([elem for elem in sentence])
-    return all_elem - non_terminal_set
+        all_element |= set(sentence)
+    return all_element - non_terminal_set - {configure.boson_null_symbol}
 
 
-def bs_non_terminal_first_set(sentence_set):
+def bs_non_terminal_first_set(sentence_set: set) -> dict:
     first_set = {}
     non_terminal_set = bs_non_terminal_set(sentence_set)
     old_set_size = {non_terminal: 0 for non_terminal in non_terminal_set}
@@ -53,11 +49,9 @@ def bs_non_terminal_first_set(sentence_set):
     return first_set
 
 
-def bs_non_terminal_follow_set(sentence_set, first_set=None):
+def bs_non_terminal_follow_set(sentence_set: set, first_set: set = None) -> dict:
     if first_set is None:
         first_set = bs_non_terminal_first_set(sentence_set)
-    else:
-        first_set = copy.deepcopy(first_set)
     follow_set = {configure.boson_augmented_start: {configure.boson_end_symbol}}
     non_terminal_set = bs_non_terminal_set(sentence_set)
     old_set_size = {non_terminal: 0 for non_terminal in non_terminal_set}
@@ -105,20 +99,23 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
     return follow_set
 
 
-def bs_non_terminal_closure(non_terminal, sentence_set, non_terminal_set, visited=None):
-    closure = set()
-    if visited is None:
-        visited = set()
-    for sentence in sentence_set:
-        if non_terminal == sentence[0]:
-            closure.add(sentence)
-            if sentence[1] in non_terminal_set and sentence[1] not in visited:
-                visited.add(sentence[1])
-                closure |= bs_non_terminal_closure(sentence[1], sentence_set, non_terminal_set, visited)
-    return closure
+def bs_non_terminal_closure(non_terminal: str, sentence_set: set, non_terminal_set: set) -> set:
+    non_terminal_closure = set()
+    visited_non_terminal_set = set()
+    non_terminal_list = [non_terminal]
+    while len(non_terminal_list) > 0:
+        non_terminal = non_terminal_list.pop()
+        visited_non_terminal_set.add(non_terminal)
+        for sentence in sentence_set:
+            if non_terminal == sentence[0]:
+                non_terminal_closure.add(sentence)
+                next_symbol = sentence[1]
+                if next_symbol in non_terminal_set and next_symbol not in visited_non_terminal_set:
+                    non_terminal_list.append(next_symbol)
+    return non_terminal_closure
 
 
-def bs_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
+def bs_mark_postfix(flag_sentence_list: list, non_terminal_set: set, first_set: dict) -> set:
     flag_sentence_set = set()
     loop_continue = True
     while loop_continue:

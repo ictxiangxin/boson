@@ -69,7 +69,7 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
         }
         self.__lexical_function = {}
 
-    def _invoke_lexical_function(self, symbol: str, token_string: str):
+    def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
         self.__skip = {{ configure.boson_lexical_default_skip }}
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
@@ -81,28 +81,28 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
                     self.newline()
         return token_string
 
-    def _generate_token(self, state: int, token_string: str):
+    def _generate_token(self, state: int, token_string: str) -> None:
         symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
         token_string = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
             self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
 
-    def skip(self):
+    def skip(self) -> None:
         self.__skip = True
 
-    def newline(self):
+    def newline(self) -> None:
         self.__line += 1
 
-    def token_list(self):
+    def token_list(self) -> list:
         return self.__token_list
 
-    def error_line(self):
+    def error_line(self) -> int:
         return self.__error_line
 
-    def no_error_line(self):
+    def no_error_line(self) -> int:
         return self.__no_error_line
 
-    def tokenize(self, text: str):
+    def tokenize(self, text: str) -> int:
         self.__token_list = []
         self.__error_line = self.__no_error_line
         self.__line = {{ configure.boson_lexical_start_line }}
@@ -256,7 +256,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
         self.__reduce_symbol_sum = {{ analyzer_table.reduce_symbol_sum }}
         self.__reduce_to_non_terminal_index = {{ analyzer_table.reduce_to_non_terminal_index }}
 
-    def __generate_grammar_tuple(self, statement_index: int, node_tuple: tuple, symbol_package: list):
+    def __generate_grammar_tuple(self, statement_index: int, node_tuple: tuple, symbol_package: list) -> {{ configure.boson_option['grammar_node_class_name'] }}:
         grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
         for i in node_tuple:
             if isinstance(i, str):
@@ -281,7 +281,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
         grammar_node.reduce_number = statement_index
         return grammar_node
 
-    def grammar_analysis(self, token_list):
+    def grammar_analysis(self, token_list: list) -> {{ configure.boson_option['grammar_class_name'] }}:
         grammar = {{ configure.boson_option['grammar_class_name'] }}()
         analysis_stack = [0]
         symbol_stack = []
@@ -368,11 +368,11 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
         self.__semantics_entity = {}
 
     @staticmethod
-    def __default_semantics_entity(grammar_entity):
+    def __default_semantics_entity(grammar_entity: list) -> list:
         return grammar_entity
 
     @staticmethod
-    def __naive_semantics_entity(grammar_entity):
+    def __naive_semantics_entity(grammar_entity: list):
         if len(grammar_entity) == 0:
             return None
         elif len(grammar_entity) == 1:
@@ -398,8 +398,8 @@ class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
     def semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
         return self.__semantics_analysis(grammar_tree)
 
-    def semantics_entity(self, sign):
-        def decorator(f):
+    def semantics_entity(self, sign: (int, str)) -> callable:
+        def decorator(f: callable):
             if isinstance(sign, int):
                 name = '{{ configure.boson_grammar_name_prefix }}{}'.format(sign)
             elif isinstance(sign, str):
