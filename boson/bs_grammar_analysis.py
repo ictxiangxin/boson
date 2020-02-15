@@ -72,10 +72,8 @@ class BosonScriptAnalyzer:
 
         @semantic_analyzer.semantics_entity('lexical_define')
         def _semantic_lexical_define(grammar_entity):
-            lexical_name, lexicon_list = grammar_entity
-            first_element = lexicon_list[0]
-            lexicon_list[0] = first_element[1:-1]
-            self.__lexical_regular_expression_map[lexical_name] = lexicon_list
+            grammar_entity[1] = grammar_entity[1][1:-1]
+            self.__lexical_regular_expression_map[grammar_entity[0]] = grammar_entity[1:]
 
         @semantic_analyzer.semantics_entity('regular_expression')
         def _semantic_regular_expression(grammar_entity):

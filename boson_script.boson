@@ -34,9 +34,7 @@ statement : command_statement
 
 command_statement : command (name | string)+ ';' = command($0, *$1($?));
 
-lexicon_statement : name '=' lexical_define ';' = lexical_define($0, $2);
-
-lexical_define : regular ['!'] ['@' '{' lexical_function '}'] = ($0, *$1($?), $2(*$2));
+lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3($?), $4(*$2));
 
 lexical_function : name (',' name)* = ($0, *$1($1));
 

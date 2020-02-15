@@ -3,7 +3,7 @@ import boson.bs_configure as configure
 
 
 def bs_non_terminal_set(sentence_set):
-    return set([sentence[0] for sentence in sentence_set])
+    return {sentence[0] for sentence in sentence_set}
 
 
 def bs_terminal_set(sentence_set, non_terminal_set=None):
@@ -27,27 +27,24 @@ def bs_non_terminal_first_set(sentence_set):
         continue_loop = False
         for sentence in sentence_set:
             left = sentence[0]
-            if left not in first_set:
-                first_set[left] = set()
+            first_set.setdefault(left, set())
+            left_first_set = first_set[left]
             scan_index = 1
             while True:
                 target = sentence[scan_index]
                 if target in non_terminal_set:
-                    if target not in first_set:
-                        first_set[target] = set()
+                    first_set.setdefault(target, set())
+                    target_first_set = first_set[target]
+                    left_first_set |= target_first_set - {configure.boson_null_symbol}
+                    if configure.boson_null_symbol in target_first_set:
+                        scan_index += 1
+                        if scan_index == len(sentence):
+                            left_first_set.add(configure.boson_null_symbol)
+                            break
                     else:
-                        temp_first_set = copy.copy(first_set[target])
-                        if configure.boson_null_symbol in temp_first_set:
-                            temp_first_set.remove(configure.boson_null_symbol)
-                        first_set[left] |= temp_first_set
+                        break
                 else:
-                    first_set[left].add(target)
-                if target in non_terminal_set and configure.boson_null_symbol in first_set[target]:
-                    scan_index += 1
-                else:
-                    break
-                if scan_index >= len(sentence):
-                    first_set[left].add(configure.boson_null_symbol)
+                    left_first_set.add(target)
                     break
         for non_terminal in non_terminal_set:
             if len(first_set[non_terminal]) != old_set_size[non_terminal]:
@@ -62,52 +59,43 @@ def bs_non_terminal_follow_set(sentence_set, first_set=None):
     else:
         first_set = copy.deepcopy(first_set)
     follow_set = {configure.boson_augmented_start: {configure.boson_end_symbol}}
-    non_terminal_set = set([sentence[0] for sentence in sentence_set])
+    non_terminal_set = bs_non_terminal_set(sentence_set)
     old_set_size = {non_terminal: 0 for non_terminal in non_terminal_set}
     continue_loop = True
     while continue_loop:
         continue_loop = False
         for sentence in sentence_set:
             left = sentence[0]
-            if left in non_terminal_set and left not in follow_set:
-                follow_set[left] = set()
+            follow_set.setdefault(left, set())
             scan_index = 1
             while scan_index < len(sentence):
                 current_symbol = sentence[scan_index]
                 if current_symbol in non_terminal_set:
-                    if current_symbol in non_terminal_set and current_symbol not in follow_set:
-                        follow_set[current_symbol] = set()
+                    follow_set.setdefault(current_symbol, set())
                     if scan_index != len(sentence) - 1:
                         next_symbol_list = sentence[scan_index + 1:]
                         next_symbol_first = set()
                         sub_scan_index = 0
+                        next_symbol_null_pass = False
                         while True:
                             target = next_symbol_list[sub_scan_index]
                             if target in non_terminal_set:
-                                temp_first_set = copy.copy(first_set[target])
-                                if configure.boson_null_symbol in temp_first_set:
-                                    temp_first_set.remove(configure.boson_null_symbol)
-                                next_symbol_first |= temp_first_set
+                                target_first_set = first_set[target]
+                                next_symbol_first |= target_first_set - {configure.boson_null_symbol}
+                                if configure.boson_null_symbol in target_first_set:
+                                    sub_scan_index += 1
+                                    if sub_scan_index == len(next_symbol_list):
+                                        next_symbol_null_pass = True
+                                        break
+                                else:
+                                    break
                             else:
                                 next_symbol_first.add(target)
-                            if target in non_terminal_set and configure.boson_null_symbol in first_set[target]:
-                                sub_scan_index += 1
-                            else:
                                 break
-                            if sub_scan_index >= len(next_symbol_list):
-                                next_symbol_first.add(configure.boson_null_symbol)
-                                break
-                        temp_symbol_first = copy.copy(next_symbol_first)
-                        if configure.boson_null_symbol in temp_symbol_first:
-                            temp_symbol_first.remove(configure.boson_null_symbol)
-                        follow_set[current_symbol] |= temp_symbol_first
-                        if configure.boson_null_symbol in next_symbol_first:
-                            if left in non_terminal_set and left not in follow_set:
-                                follow_set[left] = set()
+                        follow_set[current_symbol] |= next_symbol_first
+                        if next_symbol_null_pass:
                             follow_set[current_symbol] |= follow_set[left]
                     else:
-                        if left in non_terminal_set and left not in follow_set:
-                            follow_set[left] = set()
                         follow_set[current_symbol] |= follow_set[left]
                 scan_index += 1
         for non_terminal in non_terminal_set:
@@ -142,33 +130,38 @@ def bs_mark_postfix(flag_sentence_list, non_terminal_set, first_set):
                 if flag < len(real_sentence):
                     symbol = real_sentence[flag]
                     if symbol in non_terminal_set:
-                        if flag < len(real_sentence) - 1:
-                            next_symbol = real_sentence[flag + 1]
-                            if next_symbol in non_terminal_set:
-                                temp_first_set = copy.copy(first_set[next_symbol])
-                                if configure.boson_null_symbol in temp_first_set:
-                                    temp_first_set.remove(configure.boson_null_symbol)
-                                    temp_first_set |= postfix_set
-                                non_terminal_mark = frozenset(temp_first_set)
+                        non_terminal_mark = set()
+                        scan_index = flag + 1
+                        while True:
+                            if scan_index < len(real_sentence):
+                                target = real_sentence[scan_index]
+                                if target in non_terminal_set:
+                                    target_first_set = first_set[target]
+                                    non_terminal_mark |= target_first_set - {configure.boson_null_symbol}
+                                    if configure.boson_null_symbol in target_first_set:
+                                        non_terminal_mark |= postfix_set
+                                        scan_index += 1
+                                    else:
+                                        break
+                                else:
+                                    non_terminal_mark |= {target}
+                                    break
                             else:
-                                non_terminal_mark = frozenset({next_symbol})
-                        else:
-                            non_terminal_mark = frozenset(postfix_set)
+                                non_terminal_mark |= postfix_set
+                                break
                         for flag_sentence_index in range(len(flag_sentence_list)):
                             flag_sentence = flag_sentence_list[flag_sentence_index]
                             if isinstance(flag_sentence[0][1], frozenset):
                                 if flag_sentence[0][0][0] == symbol:
-                                    old_mark_sum = len(flag_sentence_list[flag_sentence_index][0][1])
-                                    temp_mark_set = set(flag_sentence_list[flag_sentence_index][0][1])
+                                    old_mark_sum = len(flag_sentence[0][1])
+                                    temp_mark_set = set(flag_sentence[0][1])
                                     temp_mark_set |= non_terminal_mark
-                                    flag_sentence_list[flag_sentence_index] = \
-                                        ((flag_sentence[0][0], frozenset(temp_mark_set)), flag_sentence[1])
-                                    if len(flag_sentence_list[flag_sentence_index][0][1]) > old_mark_sum:
+                                    flag_sentence_list[flag_sentence_index] = ((flag_sentence[0][0], frozenset(temp_mark_set)), flag_sentence[1])
+                                    if len(temp_mark_set) > old_mark_sum:
                                         loop_continue = True
                             else:
                                 if flag_sentence[0][0] == symbol:
-                                    flag_sentence_list[flag_sentence_index] = \
-                                        ((flag_sentence[0], non_terminal_mark), flag_sentence[1])
+                                    flag_sentence_list[flag_sentence_index] = ((flag_sentence[0], frozenset(non_terminal_mark)), flag_sentence[1])
                                     loop_continue = True
     for flag_sentence in flag_sentence_list:
         flag_sentence_set.add(((flag_sentence[0][0], frozenset(flag_sentence[0][1])), flag_sentence[1]))
