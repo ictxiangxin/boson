@@ -59,5 +59,26 @@ boson_option = {
     'generate_semantics_analyzer': 'yes',
     'generate_lexical_analyzer': 'yes',
     'code_comment': 'yes',
-    'sparse_table': 'no',
+    'sparse_table': 'yes',
+    'conflict_resolver': 'no',
+    'shift_reduce_conflict_resolver': 'shift',
+    'reduce_reduce_conflict_resolver': 'long',
+}
+
+boson_option_enumeration = {
+    'start_symbol': None,
+    'lexical_analyzer_class_name': None,
+    'lexical_token_class_name': None,
+    'grammar_analyzer_class_name': None,
+    'grammar_class_name': None,
+    'grammar_node_class_name': None,
+    'semantics_analyzer_class_name': None,
+    'semantics_node_class_name': None,
+    'generate_semantics_analyzer': {'yes', 'no'},
+    'generate_lexical_analyzer': {'yes', 'no'},
+    'code_comment': {'yes', 'no'},
+    'sparse_table': {'yes', 'no'},
+    'conflict_resolver': {'yes', 'no'},
+    'shift_reduce_conflict_resolver': {'shift', 'reduce'},
+    'reduce_reduce_conflict_resolver': {'long', 'short'},
 }

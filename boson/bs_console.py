@@ -27,7 +27,7 @@ def welcome():
     display('{} - {}'.format(configure.boson_title, configure.boson_description))
     display('    Author: {}'.format(configure.boson_author))
     display('    Email:  {}'.format(configure.boson_email))
-    display('    URL:   {}'.format(configure.boson_url))
+    display('    URL:    {}'.format(configure.boson_url))
     display('')
 
 
@@ -69,10 +69,13 @@ def console_main():
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
         display('    Generate Lexical Analysis Table... ', newline=False)
-        start_time = time.time()
-        lexical_package = bs_lexical_analysis(grammar_package.lexical_regular_expression_map)
-        end_time = time.time()
-        display('Done [{:.4f}s]'.format(end_time - start_time))
+        if configure.boson_option['generate_lexical_analyzer'] == 'yes' and len(grammar_package.lexical_regular_expression_map) > 0:
+            start_time = time.time()
+            lexical_package = bs_lexical_analysis(grammar_package.lexical_regular_expression_map)
+            end_time = time.time()
+            display('Done [{:.4f}s]'.format(end_time - start_time))
+        else:
+            lexical_package = None
         display('    Generate {} Grammar Analysis Table... '.format(arguments.analyzer.upper()), newline=False)
         start_time = time.time()
         analyzer_table = grammar_generate_table[arguments.analyzer](grammar_package.sentence_set)

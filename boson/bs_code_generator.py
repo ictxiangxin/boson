@@ -4,13 +4,13 @@ import boson.bs_configure as configure
 from boson.bs_data_package import AnalyzerTable, LexicalPackage, GrammarPackage
 
 
-def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_package: LexicalPackage, grammar_package: GrammarPackage) -> str:
+def bs_generate_code(language: str, analyzer_table: AnalyzerTable, lexical_package: (LexicalPackage, None), grammar_package: GrammarPackage) -> str:
     none_grammar_tuple_reduce = [analyzer_table.sentence_list.index(sentence) for sentence in grammar_package.none_grammar_tuple_set]
     none_grammar_tuple_reduce.sort()
     none_grammar_tuple_reduce = list(map(str, none_grammar_tuple_reduce))
     sparse_table = configure.boson_option['sparse_table'] == 'yes'
     generate_semantics_analyzer = configure.boson_option['generate_semantics_analyzer'] == 'yes'
-    generate_lexical_analyzer = configure.boson_option['generate_lexical_analyzer'] == 'yes'
+    generate_lexical_analyzer = configure.boson_option['generate_lexical_analyzer'] == 'yes' and isinstance(lexical_package, LexicalPackage)
     if sparse_table:
         sparse_action_table = {}
         action_table = analyzer_table.action_table

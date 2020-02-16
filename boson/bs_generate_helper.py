@@ -35,6 +35,7 @@ def bs_reduce_information(sentence_list: list, non_terminal_index: dict) -> tupl
 
 
 def bs_generate_action_goto_table(sentence_list: list, terminal_index: dict, non_terminal_index: dict, dfa_state: list, dfa_move: dict) -> tuple:
+    conflict_resolver_enable = configure.boson_option['conflict_resolver']  == 'yes'
     action_table = [[configure.boson_table_sign_error] * (len(terminal_index) + 1) for _ in range(len(dfa_state))]
     goto_table = [[configure.boson_invalid_goto] * len(non_terminal_index) for _ in range(len(dfa_state))]
     for state, move_map in dfa_move.items():
@@ -52,14 +53,27 @@ def bs_generate_action_goto_table(sentence_list: list, terminal_index: dict, non
                 for terminal in sentence[1]:
                     reduce_number = sentence_list.index(sentence[0])
                     if action_table[state_index][terminal_index[terminal]] != configure.boson_table_sign_error:
-                        old_sign = action_table[state_index][terminal_index[terminal]][0]
-                        if old_sign in [configure.boson_table_sign_reduce, configure.boson_table_sign_accept]:
-                            conflict_list.append((state_index, configure.boson_conflict_reduce_reduce, terminal))
+                        old_action = action_table[state_index][terminal_index[terminal]]
+                        old_sign = old_action[0]
+                        if old_sign in {configure.boson_table_sign_reduce, configure.boson_table_sign_accept}:
+                            if conflict_resolver_enable:
+                                old_reduce_number = int(old_action[1:])
+                                old_shorter = len(sentence_list[old_reduce_number]) < len(sentence[0])
+                                longer = configure.boson_option['reduce_reduce_conflict_resolver'] == 'long'
+                                if not (old_shorter ^ longer):
+                                    action_table[state_index][terminal_index[terminal]] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                            else:
+                                conflict_list.append((state_index, configure.boson_conflict_reduce_reduce, terminal))
                         elif old_sign == configure.boson_table_sign_shift:
-                            conflict_list.append((state_index, configure.boson_conflict_shift_reduce, terminal))
+                            if conflict_resolver_enable:
+                                if configure.boson_option['shift_reduce_conflict_resolver'] == 'reduce':
+                                    action_table[state_index][terminal_index[terminal]] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                            else:
+                                conflict_list.append((state_index, configure.boson_conflict_shift_reduce, terminal))
                         else:
                             raise ValueError('Invalid action: {}'.format(action_table[state_index][terminal_index[terminal]]))
-                        action_table[state_index][terminal_index[terminal]] += '/{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                        if not conflict_resolver_enable:
+                            action_table[state_index][terminal_index[terminal]] += '/{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
                     else:
                         if reduce_number == 0:
                             action_table[state_index][terminal_index[terminal]] = configure.boson_table_sign_accept

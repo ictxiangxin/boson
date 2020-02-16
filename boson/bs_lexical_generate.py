@@ -179,7 +179,7 @@ class LexicalDFA:
             new_lexical_symbol_mapping[new_state_number_mapping[state]] = lexical_symbol
         self.__move_table = new_move_table
         self.__state_set = set(range(new_number))
-        self.__start_state = new_state_number_mapping[self.__start_state]
+        self.__start_state = new_state_number_mapping.get(self.__start_state, configure.boson_lexical_default_start_state)
         self.__end_state_set = new_end_state_set
         self.__lexical_symbol_mapping = new_lexical_symbol_mapping
 
