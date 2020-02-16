@@ -49,8 +49,7 @@ def bs_slr_generate_dfa(sentence_set: set) -> tuple:
                                 temp_closure_set.add(((temp_sentence, frozenset(follow_set[temp_sentence[0]])), 1))
                         new_state |= temp_closure_set
             hashable_new_state = frozenset(new_state)
-            if scan_index not in state_transfer:
-                state_transfer[scan_index] = {}
+            state_transfer.setdefault(scan_index, {})
             if hashable_new_state in state_list:
                 old_index = state_list.index(hashable_new_state)
                 state_transfer[scan_index][move] = old_index

@@ -35,7 +35,7 @@ def bs_reduce_information(sentence_list: list, non_terminal_index: dict) -> tupl
 
 
 def bs_generate_action_goto_table(sentence_list: list, terminal_index: dict, non_terminal_index: dict, dfa_state: list, dfa_move: dict) -> tuple:
-    conflict_resolver_enable = configure.boson_option['conflict_resolver']  == 'yes'
+    conflict_resolver_enable = configure.boson_option['conflict_resolver'] == 'yes'
     action_table = [[configure.boson_table_sign_error] * (len(terminal_index) + 1) for _ in range(len(dfa_state))]
     goto_table = [[configure.boson_invalid_goto] * len(non_terminal_index) for _ in range(len(dfa_state))]
     for state, move_map in dfa_move.items():
