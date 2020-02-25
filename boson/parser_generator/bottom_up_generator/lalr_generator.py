@@ -1,8 +1,8 @@
-from boson.bs_data_package import AnalyzerTable
-from boson.bs_generate_helper import bs_generate_table
-from boson.bs_slr_generate import bs_slr_generate_dfa
-from boson.bs_lr_generate import bs_lr_generate_dfa
-import boson.bs_configure as configure
+from boson.data_package import AnalyzerTable
+from boson.generate_helper import bs_generate_table
+from boson.parser_generator.bottom_up_generator.slr_generator import bs_slr_generate_dfa
+from boson.parser_generator.bottom_up_generator.lr_generator import bs_lr_generate_dfa
+import boson.configure as configure
 
 
 def bs_kernel_of_state(state: frozenset) -> frozenset:

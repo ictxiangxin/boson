@@ -1,0 +1,128 @@
+class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
+    def __init__(self):
+        self.__token_list = []
+        self.__line = {{ configure.boson_lexical_start_line }}
+        self.__error_line = {{ configure.boson_lexical_no_error_line }}
+        self.__no_error_line = {{ configure.boson_lexical_no_error_line }}
+        self.__skip = {{ configure.boson_lexical_default_skip }}
+        self.__move_table = {
+            {%- for state, state_move_table in lexer.compact_move_table.items() %}
+            {{ state }}: [
+                {%- for each in state_move_table %}
+                {{ each }}
+                {%- if not loop.last %},{% endif -%}
+                {%- endfor %}
+            ]
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        self.__character_set = {{ lexer.character_set }}
+        self.__start_state = {{ lexer.start_state }}
+        self.__end_state_set = {{ lexer.end_state_set }}
+        self.__lexical_symbol_mapping = {
+            {%- for state, symbol in lexer.lexical_symbol_mapping.items() %}
+            {{ state }}: '{{ symbol }}'
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        self.__non_greedy_state_set = {{ lexer.non_greedy_state_set }}
+        self.__symbol_function_mapping = {
+            {%- for symbol, function_list in lexer.symbol_function_mapping.items() %}
+            '{{ symbol }}': {{ function_list }}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        self.__lexical_function = {}
+
+    def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
+        self.__skip = {{ configure.boson_lexical_default_skip }}
+        if symbol in self.__symbol_function_mapping:
+            for function in self.__symbol_function_mapping[symbol]:
+                if function in self.__lexical_function:
+                    token_string = self.__lexical_function[function](token_string)
+                elif function == 'skip':
+                    self.skip()
+                elif function == 'newline':
+                    self.newline()
+        return token_string
+
+    def _generate_token(self, state: int, token_string: str) -> None:
+        symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
+        token_string = self._invoke_lexical_function(symbol, token_string)
+        if not self.__skip:
+            self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
+
+    def skip(self) -> None:
+        self.__skip = True
+
+    def newline(self) -> None:
+        self.__line += 1
+
+    def token_list(self) -> list:
+        return self.__token_list
+
+    def error_line(self) -> int:
+        return self.__error_line
+
+    def no_error_line(self) -> int:
+        return self.__no_error_line
+
+    def tokenize(self, text: str) -> int:
+        self.__token_list = []
+        self.__error_line = self.__no_error_line
+        self.__line = {{ configure.boson_lexical_start_line }}
+        state = self.__start_state
+        token_string = ''
+        index = 0
+        while index < len(text):
+            character = text[index]
+            index += 1
+            get_token = False
+            if state in self.__non_greedy_state_set:
+                get_token = True
+            if not get_token and state in self.__move_table:
+                for attribute, character_set, range_list, next_state in self.__move_table[state]:
+                    if attribute == 2:
+                        condition = character not in character_set
+                        for min_character, max_character in range_list:
+                            condition &= character < min_character or character > max_character
+                    else:
+                        condition = character in character_set
+                        if attribute == 1 and character not in self.__character_set:
+                            condition = True
+                        for min_character, max_character in range_list:
+                            if condition or min_character <= character <= max_character:
+                                condition = True
+                                break
+                    if condition:
+                        token_string += character
+                        state = next_state
+                        break
+                else:
+                    if state in self.__end_state_set:
+                        get_token = True
+                    else:
+                        self.__error_line = self.__line
+                        return self.__error_line
+            else:
+                if get_token or state in self.__end_state_set:
+                    get_token = True
+                else:
+                    raise ValueError('Invalid state: state={}'.format(state))
+            if get_token:
+                self._generate_token(state, token_string)
+                token_string = ''
+                state = self.__start_state
+                index -= 1
+        if state in self.__end_state_set:
+            self._generate_token(state, token_string)
+        else:
+            raise ValueError('Invalid state: state={}'.format(state))
+        self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
+        return self.__error_line
+
+    def lexical_function_entity(self, function_name: str) -> callable:
+        def decorator(f: callable):
+            self.__lexical_function[function_name] = f
+            return f
+        return decorator

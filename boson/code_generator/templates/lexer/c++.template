@@ -1,0 +1,233 @@
+class {{ configure.boson_option['lexical_analyzer_class_name'] }} {
+public:
+    using lexical_function = std::function<std::string &(std::string &)>;
+
+    {{ configure.boson_option['lexical_analyzer_class_name'] }}() = default;
+
+    std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> &token_list() {
+        return this->_token_list;
+    }
+
+    void skip() {
+        this->_skip = true;
+    }
+
+    void newline() {
+        this->_line++;
+    }
+
+    int error_line() {
+        return _error_line;
+    }
+
+    int no_error_line() {
+        return _no_error_line;
+    }
+
+    int tokenize(std::string text) {
+        this->_token_list.clear();
+        this->_line = {{ configure.boson_lexical_start_line }};
+        int state = this->_start_state;
+        std::string token_string{};
+        unsigned long index = 0;
+        while (index < text.length()) {
+            char character = text[index];
+            index++;
+            bool get_token = false;
+            if (this->_non_greedy_state_set.count(state)) {
+                get_token = true;
+            }
+            if (this->_move_table_attribute.count(state)) {
+                std::vector<int> &attribute_list = this->_move_table_attribute[state];
+                std::vector<std::set<char>> &character_set_list = this->_move_table_character_set[state];
+                std::vector<std::vector<std::vector<int>>> &state_range_list = this->_move_table_range_list[state];
+                std::vector<int> &next_state_list = this->_move_table_next_state[state];
+                unsigned long i;
+                for (i = 0; i < attribute_list.size(); i++) {
+                    int attribute = attribute_list[i];
+                    std::set<char> &character_set = character_set_list[i];
+                    std::vector<std::vector<int>> &range_list = state_range_list[i];
+                    int next_state = next_state_list[i];
+                    bool condition;
+                    if (attribute == 2) {
+                        condition = !character_set.count(character);
+                        for (auto & range : range_list) {
+                            condition &= character < range[0] || character > range[1];
+                        }
+                    } else {
+                        condition = character_set.count(character);
+                        if (attribute == 1 && this->_character_set.count(character) == 0) {
+                            condition = true;
+                        }
+                        for (auto & range : range_list) {
+                            if (condition || (range[0] <= character && character <= range[1])) {
+                                condition = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (condition) {
+                        token_string += character;
+                        state = next_state;
+                        break;
+                    }
+                }
+                if (i == attribute_list.size()) {
+                    if (this->_end_state_set.count(state)) {
+                        get_token = true;
+                    } else {
+                        this->_error_line = this->_line;
+                        return this->_error_line;
+                    }
+                }
+            } else {
+                if (this->_end_state_set.count(state)) {
+                    get_token = true;
+                } else {
+                    this->_error_line = this->_line;
+                    return this->_error_line;
+                }
+            }
+            if (get_token) {
+                this->_generate_token(state, token_string);
+                token_string = "";
+                state = this->_start_state;
+                index--;
+            }
+        }
+        if (this->_end_state_set.count(state)) {
+            this->_generate_token(state, token_string);
+        } else {
+            throw std::runtime_error("Invalid state.");
+        }
+        this->_token_list.emplace_back("", this->_line, "{{ configure.boson_end_symbol }}");
+        return this->_error_line;
+    }
+
+    void lexical_function_entity(std::string &function_name, lexical_function &function) {
+        this->_lexical_function[function_name] = function;
+    }
+
+private:
+    std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> _token_list{};
+    int _line = {{ configure.boson_lexical_start_line }};
+    int _error_line = {{ configure.boson_lexical_no_error_line }};
+    int _no_error_line = {{ configure.boson_lexical_no_error_line }};
+    bool _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
+    std::unordered_map<int, std::vector<int>> _move_table_attribute = {
+        {%- for state, state_move_table in lexer.compact_move_table.items() %}
+        { {{- state }}, {
+            {%- for each in state_move_table -%}
+            {{ each[0] }}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}
+        }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::unordered_map<int, std::vector<std::set<char>>> _move_table_character_set = {
+        {%- for state, state_move_table in lexer.compact_move_table.items() %}
+        { {{- state }}, {
+            {%- for each in state_move_table -%}
+                { {%- for character in each[1] -%}
+                    '{{ '\\x%s' % character.encode().hex() }}'
+                {%- if not loop.last %},{% endif -%}
+                {%- endfor -%}}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}
+        }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::unordered_map<int, std::vector<std::vector<std::vector<int>>>> _move_table_range_list = {
+        {%- for state, state_move_table in lexer.compact_move_table.items() %}
+        { {{- state }}, {
+            {%- for each in state_move_table -%}
+                { {%- for character_range in each[2] -%}
+                    {'{{ '\\x%s' % character_range[0].encode().hex() }}', '{{ '\\x%s' % character_range[1].encode().hex() }}'}
+                {%- if not loop.last %},{% endif -%}
+                {%- endfor -%}}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}
+        }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::unordered_map<int, std::vector<int>> _move_table_next_state = {
+        {%- for state, state_move_table in lexer.compact_move_table.items() %}
+        { {{- state }}, {
+            {%- for each in state_move_table -%}
+            {{ each[3] }}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}
+        }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::set<char> _character_set = {
+        {%- for character in lexer.character_set -%}
+            '{{ '\\x%s' % character.encode().hex() }}'
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor -%}
+    };
+    int _start_state = {{ lexer.start_state }};
+    std::set<int> _end_state_set = {
+        {%- for state in lexer.end_state_set -%}
+            {{ state }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor -%}
+    };
+    std::unordered_map<int, std::string> _lexical_symbol_mapping = {
+        {%- for state, symbol in lexer.lexical_symbol_mapping.items() %}
+        { {{- state }}, "{{ symbol }}"}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::set<int> _non_greedy_state_set = {
+        {%- for state in lexer.non_greedy_state_set -%}
+            state
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor -%}
+    };
+    std::unordered_map<std::string, std::vector<std::string>> _symbol_function_mapping = {
+        {%- for symbol, function_list in lexer.symbol_function_mapping.items() %}
+        {"{{ symbol }}", {
+            {%- for function in function_list -%}
+            "{{ function }}"
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}
+        }}
+        {%- if not loop.last %},{% endif -%}
+        {%- endfor %}
+    };
+    std::unordered_map<std::string, lexical_function> _lexical_function{};
+
+    std::string &_invoke_lexical_function(std::string &symbol, std::string &token_string) {
+        this->_skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
+        if (this->_symbol_function_mapping.count(symbol)) {
+            for (const auto& function : this->_symbol_function_mapping[symbol]) {
+                if (this->_lexical_function.count(function)) {
+                    token_string = this->_lexical_function[function](token_string);
+                } else if (function == "skip") {
+                    this->skip();
+                } else if (function == "newline") {
+                    this->newline();
+                }
+            }
+        }
+        return token_string;
+    }
+
+    void _generate_token(int state, std::string &token_string) {
+        std::string symbol;
+        if (this->_lexical_symbol_mapping.count(state)) {
+            symbol = this->_lexical_symbol_mapping[state];
+        } else {
+            symbol = "{{ configure.boson_default_symbol }}";
+        }
+        token_string = this->_invoke_lexical_function(symbol, token_string);
+        if (!this->_skip) {
+            this->_token_list.emplace_back(token_string, this->_line, symbol);
+        }
+    }
+};
