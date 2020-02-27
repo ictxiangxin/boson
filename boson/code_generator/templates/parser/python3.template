@@ -113,7 +113,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
                 token_index += 1
                 symbol_stack.append(token.text)
             elif operation_flag == '{{ configure.boson_table_sign_reduce }}':
-                statement_index = int(operation[1:]) - 1
+                statement_index = int(operation[1:])
                 reduce_count = self.__reduce_symbol_count[statement_index]
                 for _ in range(reduce_count):
                     analysis_stack.pop()

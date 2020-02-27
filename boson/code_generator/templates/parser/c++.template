@@ -173,7 +173,7 @@ public:
                 {{ configure.boson_option['grammar_node_class_name'] }} grammar_node(token.text);
                 symbol_stack.push(grammar_node);
             } else if (operation_flag == '{{ configure.boson_table_sign_reduce }}') {
-                int statement_index = (int) strtol(operation.c_str() + 1, nullptr, 10) - 1;
+                int statement_index = (int) strtol(operation.c_str() + 1, nullptr, 10);
                 int reduce_count = this->_reduce_symbol_count[statement_index];
                 for (int i = 0; i < reduce_count; i++) {
                     analysis_stack.pop();

@@ -109,7 +109,7 @@ def console_main():
             display('        > Non-Terminal Symbol Count: {}'.format(len(parser_generator.non_terminal_set())))
             display('        > Terminal Symbol Count: {}'.format(len(parser_generator.terminal_set())))
             if isinstance(parser_generator, BottomUpParserGenerator):
-                display('        > PDA State Count: {}'.format(len(parser_generator.state_list())))
+                display('        > PDA State Count: {}'.format(len(parser_generator.state_reduce_mapping())))
                 if isinstance(parser_generator, BottomUpCanonicalParserGenerator):
                     action_table_size = sum([len(line) for line in parser_generator.action_table()])
                     sparse_action_table_size = sum([len(line) for _, line in parser_generator.sparse_action_table().items()])

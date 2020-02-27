@@ -9,18 +9,37 @@ class LexicalNFA:
         self.__end_state_set: set = set()
         self.__state_set: set = set()
         self.__character_set: set = set()
+        self.__state_epsilon_closure_mapping: dict = {}
         self.__lexical_symbol_mapping: dict = {}
         self.__reverse_delay_construct: bool = False
         self.__reverse_character_set: set = set()
         self.__delay_construct_reverse_set_list: list = []
         self.__delay_construct_base_state_list: list = []
 
-    def __alphabet(self, dfa_state: frozenset) -> set:
-        alphabet = set()
-        for state in dfa_state:
-            if state in self.__move_table:
-                alphabet |= set(self.__move_table[state])
-        return alphabet - {configure.boson_lexical_epsilon_transition}
+    def __generate_state_epsilon_closure_mapping(self):
+        self.__state_epsilon_closure_mapping = {}
+        for state, state_move_table in self.__move_table.items():
+            epsilon_transition_set = state_move_table.get(configure.boson_lexical_epsilon_transition, None)
+            if epsilon_transition_set:
+                self.__state_epsilon_closure_mapping[state] = set(epsilon_transition_set)
+        available_state_set = set(self.__state_epsilon_closure_mapping)
+        variable_state_set = set(self.__state_epsilon_closure_mapping)
+        continue_loop = True
+        while continue_loop:
+            continue_loop = False
+            for state, epsilon_closure in self.__state_epsilon_closure_mapping.items():
+                if state in variable_state_set:
+                    update_state_set = available_state_set & epsilon_closure
+                    if update_state_set:
+                        old_closure_size = len(epsilon_closure)
+                        update_closure = set(epsilon_closure)
+                        for update_state in update_state_set:
+                            update_closure |= self.__state_epsilon_closure_mapping[update_state]
+                        if old_closure_size < len(update_closure):
+                            self.__state_epsilon_closure_mapping[state] = update_closure
+                            continue_loop = True
+                    else:
+                        variable_state_set.remove(state)
 
     def set_start_state(self, state: int) -> None:
         self.__start_state = state
@@ -71,57 +90,44 @@ class LexicalNFA:
     def move_table(self) -> dict:
         return self.__move_table
 
-    def epsilon_closure(self, state: (set, frozenset, int)) -> set:
-        if isinstance(state, int):
-            wait_set = {state}
-        else:
-            wait_set = set(state)
-        closure = set()
-        while len(wait_set) > 0:
-            check_state = wait_set.pop()
-            closure.add(check_state)
-            wait_set |= self.move_table().get(check_state, {}).get(configure.boson_lexical_epsilon_transition, set()) - closure
-        return closure
-
-    def move_closure(self, state_set: (set, frozenset), character: str) -> set:
-        closure = set()
-        for state in state_set:
-            closure |= self.move_table().get(state, {}).get(character, set())
-        return closure
-
     def transform_to_dfa(self) -> LexicalDFA:
-        dfa_state_set = set()
-        dfa_state_wait_list = []
-        dfa_state_map = {}
+        self.__generate_state_epsilon_closure_mapping()
         dfa_state_number = configure.boson_lexical_default_state
         dfa_entity = LexicalDFA()
-        dfa_start = frozenset(self.epsilon_closure(self.start_state()))
-        dfa_state_set.add(dfa_start)
-        dfa_state_map[dfa_start] = dfa_state_number
+        dfa_start_state = frozenset(self.__state_epsilon_closure_mapping.get(self.__start_state, set()) | {self.__start_state})
+        dfa_state_number_mapping = {dfa_start_state: dfa_state_number}
         dfa_entity.set_start_state(dfa_state_number)
-        if len(self.end_state_set() & dfa_start) > 0:
+        if len(self.end_state_set() & dfa_start_state) > 0:
             dfa_entity.add_end_state(dfa_state_number)
         dfa_state_number += 1
-        dfa_state_wait_list.append(dfa_start)
         lexical_end_state_set = set(self.__lexical_symbol_mapping)
-        while len(dfa_state_wait_list) > 0:
+        dfa_state_wait_list = [dfa_start_state]
+        while dfa_state_wait_list:
             dfa_state = dfa_state_wait_list.pop()
-            for character in self.__alphabet(dfa_state):
-                new_dfa_state = frozenset(self.epsilon_closure(self.move_closure(dfa_state, character)))
-                if len(new_dfa_state) == 0:
-                    continue
-                if new_dfa_state not in dfa_state_set:
-                    dfa_state_set.add(new_dfa_state)
-                    dfa_state_map[new_dfa_state] = dfa_state_number
+            from_state_number = dfa_state_number_mapping[dfa_state]
+            move_closure_mapping = {}
+            for nfa_state in dfa_state:
+                for character, next_state_set in self.__move_table.get(nfa_state, {}).items():
+                    if character != configure.boson_lexical_epsilon_transition:
+                        move_closure_mapping.setdefault(character, set())
+                        move_closure_mapping[character] |= next_state_set
+            for character, move_closure in move_closure_mapping.items():
+                move_closure_epsilon_closure = set()
+                for nfa_state in move_closure:
+                    move_closure_epsilon_closure |= self.__state_epsilon_closure_mapping.get(nfa_state, set())
+                new_dfa_state = frozenset(move_closure | move_closure_epsilon_closure)
+                if new_dfa_state in dfa_state_number_mapping:
+                    to_state_number = dfa_state_number_mapping[new_dfa_state]
+                else:
+                    to_state_number = dfa_state_number
+                    dfa_state_number_mapping[new_dfa_state] = dfa_state_number
                     dfa_state_number += 1
                     dfa_state_wait_list.append(new_dfa_state)
-                from_state = dfa_state_map[dfa_state]
-                to_state = dfa_state_map[new_dfa_state]
-                dfa_entity.add_move(from_state, character, to_state)
+                dfa_entity.add_move(from_state_number, character, to_state_number)
                 if len(self.end_state_set() & new_dfa_state) > 0:
-                    dfa_entity.add_end_state(to_state)
+                    dfa_entity.add_end_state(to_state_number)
                 for lexical_state in lexical_end_state_set & new_dfa_state:
-                    dfa_entity.add_lexical_symbol(to_state, self.__lexical_symbol_mapping[lexical_state])
+                    dfa_entity.add_lexical_symbol(to_state_number, self.__lexical_symbol_mapping[lexical_state])
         dfa_entity.set_character_set(self.character_set())
         return dfa_entity
 
