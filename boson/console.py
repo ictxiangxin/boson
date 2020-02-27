@@ -11,13 +11,14 @@ from boson.parser_generator import \
     BottomUpParserGenerator, \
     BottomUpCanonicalParserGenerator, \
     SLRParserGenerator, \
-    LRParserGenerator
+    LRParserGenerator, \
+    LALRParserGenerator
 from boson.code_generator import CodeGenerator
 
 parser_generator_library = {
     'slr': SLRParserGenerator,
     'lr': LRParserGenerator,
-    # 'lalr': bs_lalr_generate_table,
+    'lalr': LALRParserGenerator,
 }
 
 

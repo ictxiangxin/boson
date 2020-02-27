@@ -1,52 +1,24 @@
-from boson.data_package import AnalyzerTable
-from boson.generate_helper import bs_generate_table
-from boson.parser_generator.bottom_up_generator.slr_generator import bs_slr_generate_dfa
-from boson.parser_generator.bottom_up_generator.lr_generator import bs_lr_generate_dfa
+from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 import boson.configure as configure
 
 
-def bs_kernel_of_state(state: frozenset) -> frozenset:
-    kernel = set()
-    for sentence in state:
-        kernel.add((sentence[0][0], sentence[1]))
-    return frozenset(kernel)
+class LALRParserGenerator(BottomUpCanonicalParserGenerator):
+    def __init__(self, sentence_set: set):
+        super().__init__(sentence_set)
 
+    def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
+        first_set = self._sentence_first_set(sentence[flag + 1:])
+        if configure.boson_null_symbol in first_set:
+            first_set.remove(configure.boson_null_symbol)
+            first_set |= look_ahead_set
+        return frozenset(first_set)
 
-def bs_search_index(slr_state: list, state_kernel: frozenset) -> (int, None):
-    for state_index in range(len(slr_state)):
-        slr_state_kernel = bs_kernel_of_state(slr_state[state_index])
-        if state_kernel == slr_state_kernel:
-            return state_index
-    return None
-
-
-def bs_lalr_generate_dfa(sentence_set: set) -> tuple:
-    sentence_set.add((configure.boson_augmented_start, configure.boson_option['start_symbol']))
-    sentence_postfix_mark = {}
-    slr_state, slr_transfer = bs_slr_generate_dfa(sentence_set)
-    lr_state, lr_transfer = bs_lr_generate_dfa(sentence_set)
-    lalr_state = []
-    lalr_transfer = slr_transfer
-    for state in lr_state:
-        state_kernel = bs_kernel_of_state(state)
-        state_number = bs_search_index(slr_state, state_kernel)
-        if state_number not in sentence_postfix_mark:
-            sentence_postfix_mark[state_number] = {}
-        for sentence in state:
-            real_sentence = (sentence[0][0], sentence[1])
-            if real_sentence not in sentence_postfix_mark[state_number]:
-                sentence_postfix_mark[state_number][real_sentence] = set()
-            sentence_postfix_mark[state_number][real_sentence] |= sentence[0][1]
-    for state_number in range(len(slr_state)):
-        temp_state = set()
-        for sentence in slr_state[state_number]:
-            real_sentence = (sentence[0][0], sentence[1])
-            temp_state.add(((sentence[0][0], frozenset(sentence_postfix_mark[state_number][real_sentence])), sentence[1]))
-        lalr_state.append(frozenset(temp_state))
-    return lalr_state, lalr_transfer
-
-
-def bs_lalr_generate_table(sentence_set: set) -> AnalyzerTable:
-    lr_dfa_state, lr_dfa_move = bs_lalr_generate_dfa(sentence_set)
-    analyzer_table = bs_generate_table(sentence_set, lr_dfa_state, lr_dfa_move)
-    return analyzer_table
+    def _end_processing(self) -> None:
+        self._dfa_state_reduce_mapping = {}
+        for dfa_state, dfa_state_number in self._dfa_state_number_mapping.items():
+            dfa_state_reduce = []
+            for nfa_state_number in dfa_state:
+                sentence, flag, look_ahead_set = self._nfa_state_number_inverted_mapping[nfa_state_number]
+                if flag == len(sentence):
+                    dfa_state_reduce.append((self._sentence_index_mapping[sentence], look_ahead_set))
+            self._dfa_state_reduce_mapping[dfa_state_number] = dfa_state_reduce

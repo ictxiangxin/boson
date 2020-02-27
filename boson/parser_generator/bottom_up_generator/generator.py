@@ -26,41 +26,45 @@ class BottomUpParserGenerator(ParserGenerator):
             self._non_terminal_reduction_mapping[sentence[0]].append(sentence)
 
     def generate_parser_dfa(self):
-        start_nfa_state = ((configure.boson_augmented_start,), 0, None)
+        start_non_terminal_sentence = (configure.boson_augmented_start,)
+        start_look_ahead_set = self._non_terminal_look_ahead_set(start_non_terminal_sentence, 0, {configure.boson_end_symbol})
+        start_nfa_state = (start_non_terminal_sentence, 0, start_look_ahead_set)
         nfa_move_table = {}
-        nfa_state_number_mapping = {start_nfa_state: 0}
-        self._nfa_state_number_inverted_mapping = {0: start_nfa_state}
-        nfa_state_number = 1
+        nfa_state_number = configure.boson_grammar_default_state
+        nfa_state_number_mapping = {start_nfa_state: nfa_state_number}
+        self._nfa_state_number_inverted_mapping = {nfa_state_number: start_nfa_state}
+        nfa_state_number += 1
         non_terminal_nfa_state_number_set = {0}
-        visited_non_terminal_set = set()
+        visited_nfa_state_set = set()
         nfa_state_stack = [start_nfa_state]
         while nfa_state_stack:
-            state = nfa_state_stack.pop()
-            sentence, flag, look_ahead = state
+            nfa_state = nfa_state_stack.pop()
+            sentence, flag, look_ahead_set = nfa_state
             if flag == 0:
-                if sentence not in visited_non_terminal_set:
+                if nfa_state not in visited_nfa_state_set:
                     epsilon_move_set = set()
                     for reduction_sentence in self._non_terminal_reduction_mapping[sentence[0]]:
                         init_flag = 2 if reduction_sentence[-1] == configure.boson_null_symbol else 1
-                        new_state = (reduction_sentence, init_flag, None)
+                        new_state = (reduction_sentence, init_flag, look_ahead_set)
                         nfa_state_number_mapping[new_state] = nfa_state_number
                         self._nfa_state_number_inverted_mapping[nfa_state_number] = new_state
                         nfa_state_stack.append(new_state)
                         epsilon_move_set.add(nfa_state_number)
                         nfa_state_number += 1
-                    visited_non_terminal_set.add(sentence)
-                    nfa_move_table[nfa_state_number_mapping[state]] = epsilon_move_set
+                    visited_nfa_state_set.add(nfa_state)
+                    nfa_move_table[nfa_state_number_mapping[nfa_state]] = epsilon_move_set
             else:
                 if flag < len(sentence):
                     symbol = sentence[flag]
-                    new_state = (sentence, flag + 1, look_ahead)
+                    new_state = (sentence, flag + 1, look_ahead_set)
                     nfa_state_number_mapping[new_state] = nfa_state_number
                     self._nfa_state_number_inverted_mapping[nfa_state_number] = new_state
                     nfa_state_stack.append(new_state)
                     move_state_number = nfa_state_number
                     nfa_state_number += 1
                     if symbol in self._non_terminal_set:
-                        non_terminal_state = ((symbol,), 0, None)
+                        non_terminal_look_ahead_set = self._non_terminal_look_ahead_set(sentence, flag, look_ahead_set)
+                        non_terminal_state = ((symbol,), 0, non_terminal_look_ahead_set)
                         if non_terminal_state in nfa_state_number_mapping:
                             non_terminal_nfa_state_number = nfa_state_number_mapping[non_terminal_state]
                         else:
@@ -72,21 +76,21 @@ class BottomUpParserGenerator(ParserGenerator):
                             nfa_state_number += 1
                     else:
                         non_terminal_nfa_state_number = None
-                    nfa_move_table[nfa_state_number_mapping[state]] = (non_terminal_nfa_state_number, symbol, move_state_number)
+                    nfa_move_table[nfa_state_number_mapping[nfa_state]] = (non_terminal_nfa_state_number, symbol, move_state_number)
         state_epsilon_closure_mapping = {}
-        for state, state_move_table in nfa_move_table.items():
+        for nfa_state, state_move_table in nfa_move_table.items():
             if isinstance(state_move_table, set):
-                state_epsilon_closure_mapping[state] = set(state_move_table)
+                state_epsilon_closure_mapping[nfa_state] = set(state_move_table)
             else:
                 if state_move_table[0] is not None:
-                    state_epsilon_closure_mapping[state] = {state_move_table[0]}
+                    state_epsilon_closure_mapping[nfa_state] = {state_move_table[0]}
         available_state_set = set(state_epsilon_closure_mapping)
         variable_state_set = set(state_epsilon_closure_mapping)
         continue_loop = True
         while continue_loop:
             continue_loop = False
-            for state, epsilon_closure in state_epsilon_closure_mapping.items():
-                if state in variable_state_set:
+            for nfa_state, epsilon_closure in state_epsilon_closure_mapping.items():
+                if nfa_state in variable_state_set:
                     update_state_set = available_state_set & epsilon_closure
                     if update_state_set:
                         old_closure_size = len(epsilon_closure)
@@ -94,14 +98,15 @@ class BottomUpParserGenerator(ParserGenerator):
                         for update_state in update_state_set:
                             update_closure |= state_epsilon_closure_mapping[update_state]
                         if old_closure_size < len(update_closure):
-                            state_epsilon_closure_mapping[state] = update_closure
+                            state_epsilon_closure_mapping[nfa_state] = update_closure
                             continue_loop = True
                     else:
-                        variable_state_set.remove(state)
-        dfa_state_number = 0
+                        variable_state_set.remove(nfa_state)
+        dfa_state_number = configure.boson_grammar_default_state
         dfa_start_state = frozenset(state_epsilon_closure_mapping[0] | {0})
         dfa_state_wait_list = [dfa_start_state]
         self._dfa_state_number_mapping = {dfa_start_state: dfa_state_number}
+        dfa_state_number += 1
         self._dfa_move_table = {}
         while dfa_state_wait_list:
             dfa_state = dfa_state_wait_list.pop()
@@ -127,24 +132,12 @@ class BottomUpParserGenerator(ParserGenerator):
                     dfa_state_wait_list.append(new_dfa_state)
                 self._dfa_move_table.setdefault(dfa_from_state_number, {})
                 self._dfa_move_table[dfa_from_state_number][symbol] = dfa_to_state_number
-        self.end_processing()
+        self._end_processing()
 
     @abstractmethod
-    def initialize_start_state(self):
-        raise AttributeError('Bottom Up Grammar Parser must implement "initialize_start_state" Method.')
+    def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
+        pass
 
     @abstractmethod
-    def sentence_look_ahead_set(self, sentence: tuple) -> (frozenset, None):
-        raise AttributeError('Bottom Up Grammar Parser must implement "sentence_look_ahead_set" Method.')
-
-    @abstractmethod
-    def state_pre_processing(self, state: frozenset) -> frozenset:
-        raise AttributeError('Bottom Up Grammar Parser must implement "state_pre_processing" Method.')
-
-    @abstractmethod
-    def state_post_processing(self, state: set) -> set:
-        raise AttributeError('Bottom Up Grammar Parser must implement "state_post_processing" Method.')
-
-    @abstractmethod
-    def end_processing(self) -> None:
-        raise AttributeError('Bottom Up Grammar Parser must implement "end_processing" Method.')
+    def _end_processing(self) -> None:
+        pass

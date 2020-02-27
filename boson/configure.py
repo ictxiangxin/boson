@@ -25,6 +25,7 @@ boson_grammar_tuple_prefix = '$'
 boson_grammar_tuple_unpack = '*'
 boson_grammar_no_error_index = -1
 boson_grammar_default_reduce_number = -1
+boson_grammar_default_state = 0
 
 boson_lexical_reserved_character = chr(0xffff)
 boson_lexical_hidden_prefix = '_'

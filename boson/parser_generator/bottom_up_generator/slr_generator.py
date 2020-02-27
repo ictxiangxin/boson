@@ -1,5 +1,4 @@
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
-import boson.configure as configure
 
 
 class SLRParserGenerator(BottomUpCanonicalParserGenerator):
@@ -10,19 +9,10 @@ class SLRParserGenerator(BottomUpCanonicalParserGenerator):
         super().initialize()
         self._generate_non_terminal_follow_set()
 
-    def initialize_start_state(self):
-        pass
+    def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
+        return None
 
-    def sentence_look_ahead_set(self, sentence: tuple) -> (frozenset, None):
-        return frozenset(self._follow_set_mapping[sentence[0]])
-
-    def state_pre_processing(self, state: frozenset) -> frozenset:
-        return state
-
-    def state_post_processing(self, state: set) -> set:
-        return state
-
-    def end_processing(self) -> None:
+    def _end_processing(self) -> None:
         self._dfa_state_reduce_mapping = {}
         for dfa_state, dfa_state_number in self._dfa_state_number_mapping.items():
             dfa_state_reduce = []

@@ -97,7 +97,7 @@ class LexicalNFA:
         dfa_start_state = frozenset(self.__state_epsilon_closure_mapping.get(self.__start_state, set()) | {self.__start_state})
         dfa_state_number_mapping = {dfa_start_state: dfa_state_number}
         dfa_entity.set_start_state(dfa_state_number)
-        if len(self.end_state_set() & dfa_start_state) > 0:
+        if self.end_state_set() & dfa_start_state:
             dfa_entity.add_end_state(dfa_state_number)
         dfa_state_number += 1
         lexical_end_state_set = set(self.__lexical_symbol_mapping)

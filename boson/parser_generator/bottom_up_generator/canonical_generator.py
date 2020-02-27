@@ -50,8 +50,10 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                         old_action = self._action_table[state_number][terminal_index]
                         old_sign = old_action[0]
                         if old_sign in {configure.boson_table_sign_reduce, configure.boson_table_sign_accept}:
+                            old_reduce_number = int(old_action[1:])
+                            if old_reduce_number == reduce_number:
+                                continue
                             if conflict_resolver_enable:
-                                old_reduce_number = int(old_action[1:])
                                 old_shorter = len(self._sentence_list[old_reduce_number]) < len(self._sentence_list[reduce_number])
                                 longer = configure.boson_option['reduce_reduce_conflict_resolver'] == 'long'
                                 if not (old_shorter ^ longer):
@@ -93,17 +95,9 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                 self._sparse_goto_table[state] = sparse_state_goto_table
 
     @abstractmethod
-    def initialize_start_state(self):
-        raise AttributeError('Bottom Up Canonical Grammar Parser must implement "initialize_start_state" Method.')
+    def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
+        pass
 
     @abstractmethod
-    def sentence_look_ahead_set(self, sentence: tuple) -> (frozenset, None):
-        raise AttributeError('Bottom Up Canonical Grammar Parser must implement "sentence_look_ahead_set" Method.')
-
-    @abstractmethod
-    def state_post_processing(self, state: set) -> set:
-        raise AttributeError('Bottom Up Canonical Grammar Parser must implement "state_post_processing" Method.')
-
-    @abstractmethod
-    def end_processing(self) -> None:
-        raise AttributeError('Bottom Up Canonical Grammar Parser must implement "end_processing" Method.')
+    def _end_processing(self) -> None:
+        pass
