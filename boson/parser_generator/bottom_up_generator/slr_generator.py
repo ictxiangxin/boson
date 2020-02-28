@@ -15,9 +15,9 @@ class SLRParserGenerator(BottomUpCanonicalParserGenerator):
     def _end_processing(self) -> None:
         self._dfa_state_reduce_mapping = {}
         for dfa_state, dfa_state_number in self._dfa_state_number_mapping.items():
-            dfa_state_reduce = []
+            dfa_state_reduce = {}
             for nfa_state_number in dfa_state:
                 sentence, flag, _ = self._nfa_state_number_inverted_mapping[nfa_state_number]
                 if flag == len(sentence):
-                    dfa_state_reduce.append((self._sentence_index_mapping[sentence], self._follow_set_mapping[sentence[0]]))
+                    dfa_state_reduce[self._sentence_index_mapping[sentence]] = self._follow_set_mapping[sentence[0]]
             self._dfa_state_reduce_mapping[dfa_state_number] = dfa_state_reduce

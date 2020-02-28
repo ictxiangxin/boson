@@ -42,8 +42,8 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                     self._action_table[state_number][self._terminal_index_mapping[symbol]] = '{}{}'.format(configure.boson_table_sign_shift, next_state)
                 else:
                     self._goto_table[state_number][self._non_terminal_index_mapping[symbol]] = next_state
-        for state_number, reduce_sentence_list in self._dfa_state_reduce_mapping.items():
-            for reduce_number, terminal_set in reduce_sentence_list:
+        for state_number, reduce_terminal_set_mapping in self._dfa_state_reduce_mapping.items():
+            for reduce_number, terminal_set in reduce_terminal_set_mapping.items():
                 for terminal in terminal_set:
                     terminal_index = self._terminal_index_mapping[terminal]
                     if self._action_table[state_number][terminal_index] != configure.boson_table_sign_error:

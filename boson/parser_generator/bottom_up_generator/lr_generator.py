@@ -16,9 +16,10 @@ class LRParserGenerator(BottomUpCanonicalParserGenerator):
     def _end_processing(self) -> None:
         self._dfa_state_reduce_mapping = {}
         for dfa_state, dfa_state_number in self._dfa_state_number_mapping.items():
-            dfa_state_reduce = []
+            dfa_state_reduce = {}
             for nfa_state_number in dfa_state:
                 sentence, flag, look_ahead_set = self._nfa_state_number_inverted_mapping[nfa_state_number]
                 if flag == len(sentence):
-                    dfa_state_reduce.append((self._sentence_index_mapping[sentence], look_ahead_set))
+                    dfa_state_reduce.setdefault(self._sentence_index_mapping[sentence], set())
+                    dfa_state_reduce[self._sentence_index_mapping[sentence]] |= look_ahead_set
             self._dfa_state_reduce_mapping[dfa_state_number] = dfa_state_reduce
