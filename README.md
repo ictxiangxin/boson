@@ -1,68 +1,84 @@
-# Boson - Grammar Analyzer Generator
+# Boson - 语法分析器生成器
 
 ![Version](https://img.shields.io/badge/Version-1.2-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.7.0-green.svg)
-![C++](https://img.shields.io/badge/C++-17-green.svg)
+![C++](https://img.shields.io/badge/C++-11-green.svg)
 
-Boson can use production sentences like EBNF which given by user to generate grammar analyzer code.
+Boson是一个语法分析器生成器（也能生成词法分析器）。采用自有的Boson脚本（Boson Script）来定义语法和词法，
+Boson根据输入的脚本内容和命令参数生成相应的语法分析器及词法分析器的代码。
 
-> Only support Python3.
-
-* * *
-
-## Install
-
-> Use `pip`: `pip install boson`
-
-This way may get the lastest release version.
-
-> Install from source code
-
-You just need download the ZIP file, and unZIP it, type the command:
- `python3 setup.py install` or `sudo python3 setup.py install`
-
-Or Clone it from Github:
-
-`git clone https://github.com/ictxiangxin/boson`
-
- Type the command: `python3 setup.py install` or `sudo python3 setup.py install`
+> Boson需要Python3的运行环境。
 
 * * *
 
-### Usage
+## 安装
 
-> Use console command boson to generate code.
+Boson可通过pip命令安装或从源码进行安装：
 
-You can execute `boson` by type "boson" at console interface.
-You can see the usage of console command `boson -h`.
+### pip命令安装
+ 
+> `pip install boson`
 
-The usage of `boson` is:
+### 从源码安装
+
+从GitHub的代码仓库下载或克隆Boson的源代码，在源码根目录下执行：
+`python setup.py install`或`python3 setup.py install`
+命令进行安装。
+
+* * *
+
+### 使用手册
+
+安装Boson之后，在控制台输入`boson`即可运行Boson。
+输入`boson -h`以查看Boson的简要的使用说明：
 
 ```
 usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3,c++}] [-f] [-q]
-             grammar_file
+             boson_script_file
 
-Boson v0.9 - Grammar analyzer generator
+Boson v1.3 - Grammar analyzer generator
 
 positional arguments:
-  grammar_file          Inpute grammar description file.
+  boson_script_file     Input Boson Script File.
 
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
-                        Output grammar analyzer code.
+                        Output Lexer&Parser Code File.
   -a {slr,lr,lalr}, --analyzer {slr,lr,lalr}
-                        Analyzer type (default is LALR).
-                          slr  - SLR (Simple LR)
-                          lr   - LR (Canonical LR)
-                          lalr - LALR (Look-Ahead LR)
+                        Grammar Analyzer Type (Default Is LALR).
+                          slr  - SLR(1) (Simple LR)
+                          lr   - LR(1) (Canonical LR)
+                          lalr - LALR(1) (Look-Ahead LR)
   -l {python3,c++}, --language {python3,c++}
-                        Generate code language (default is Python3).
-                          python3 - Python3 code.
-                          c++ - C++ code.
-  -f, --force           Force generate code when exist conflict.
-  -q, --quiet           Do not output code when executing boson script.
+                        Generate Code Program Language (Default Is Python3).
+                          python3 - Python3 Code.
+                          c++ - C++ Code.
+  -f, --force           Force Generate Parse Table When Exist Conflicts.
+  -q, --quiet           Display Nothing.
 ```
+
+Boson运行命令形式简单，可归纳为`boson <Boson脚本文件> <其他各项参数>`。
+
+上述所列参数详细说明如下：
+
+1.`-h`或`--help`，Boson将显示简要的使用说明。
+2.`-o`或`--output`，该参数后跟输出代码文件的文件名（包括文件路径）。
+3.`-a`或`--analyzer`，指定Boson使用的语法分析器，目前支持`slr`、`lr`、`lalr`，默认为`lalr`。
+4.`-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`，默认为`c++`。
+5.`-f`或`--force`，在有语法冲突时，强制生成代码，后续手动解决冲突问题。
+6.`-q`或`--quiet`，安静模式，Boson运行时不输出任何信息。
+
+### Boson的自举
+
+Boson自身的部分代码也由Boson生成（该过程称为“自举”）。
+
+> `boson/boson_script/boson_script_parser.py`文件是由`boson boson_script.boson -a lalr -l python3 -o boson_script_parser.py`生成。
+
+> `boson/lexer_generator/regular_parser.py`文件是由`boson regular.boson -a lalr -l python3 -o regular_parser.py`生成。
+
+上述命令中用到的`boson_script.boson`文件和`regular.boson`是两个Boson脚本文件，可在Boson源码的根目录找到。
+
 
 ## Boson Script
 
