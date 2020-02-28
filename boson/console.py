@@ -21,9 +21,12 @@ parser_generator_library = {
     'lalr': LALRParserGenerator,
 }
 
+quiet = False
+
 
 def display(text: str, newline: bool = True, file=sys.stdout):
-    print(text, end=('\n' if newline else ''), flush=True, file=file)
+    if not quiet:
+        print(text, end=('\n' if newline else ''), flush=True, file=file)
 
 
 def welcome():
@@ -37,24 +40,26 @@ def welcome():
 def console_main():
     parse = argparse.ArgumentParser(description='{} - {}'.format(configure.boson_title, configure.boson_description),
                                     formatter_class=RawTextHelpFormatter)
-    parse.add_argument('grammar_file',
-                       help='Inpute grammar description file.')
+    parse.add_argument('boson_script_file',
+                       help='Input Boson Script File.')
     parse.add_argument('-o', '--output',
-                       help='Output grammar analyzer code.')
+                       help='Output Lexer&Parser Code File.')
     parse.add_argument('-a', '--analyzer', default='lalr', choices=['slr', 'lr', 'lalr'],
-                       help='Analyzer type (default is LALR).\n'
-                            '  slr  - SLR (Simple LR)\n'
-                            '  lr   - LR (Canonical LR)\n'
-                            '  lalr - LALR (Look-Ahead LR)\n')
+                       help='Grammar Analyzer Type (Default Is LALR).\n'
+                            '  slr  - SLR(1) (Simple LR)\n'
+                            '  lr   - LR(1) (Canonical LR)\n'
+                            '  lalr - LALR(1) (Look-Ahead LR)\n')
     parse.add_argument('-l', '--language', default='python3', choices=['python3', 'c++'],
-                       help='Generate code language (default is Python3).\n'
-                            '  python3 - Python3 code.\n'
-                            '  c++ - C++ code.\n')
+                       help='Generate Code Program Language (Default Is Python3).\n'
+                            '  python3 - Python3 Code.\n'
+                            '  c++ - C++ Code.\n')
     parse.add_argument('-f', '--force', action='store_true',
-                       help='Force generate code when exist conflict.')
+                       help='Force Generate Parse Table When Exist Conflicts.')
     parse.add_argument('-q', '--quiet', action='store_true',
-                       help='Do not output code when executing boson script.')
+                       help='Display Nothing.')
     arguments = parse.parse_args()
+    global quiet
+    quiet = arguments.quiet
     welcome()
     source_file = None
     output_file = None
@@ -67,7 +72,7 @@ def console_main():
         display('    [{}] Parse Boson Script... '.format(step), newline=False)
         start_time = time.time()
         global_start_time = start_time
-        source_file = open(arguments.grammar_file, 'r', encoding='utf-8')
+        source_file = open(arguments.boson_script_file, 'r', encoding=configure.boson_default_encoding)
         script_analyzer = BosonScriptAnalyzer()
         script_analyzer.tokenize_and_parse(source_file.read())
         command_executor = CommandExecutor()
@@ -135,8 +140,8 @@ def console_main():
         else:
             parser_generator = None
         if arguments.output is not None:
-            output_file = open(arguments.output, 'w', encoding='utf-8')
-        elif arguments.quiet:
+            output_file = open(arguments.output, 'w', encoding=configure.boson_default_encoding)
+        elif quiet:
             output_file = None
         else:
             output_file = sys.stdout

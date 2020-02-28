@@ -9,6 +9,8 @@ boson_url = 'https://github.com/ictxiangxin/boson'
 boson_description = 'Grammar analyzer generator'
 boson_license = 'GPL v3'
 
+boson_default_encoding = 'utf-8'
+
 boson_template_directory = 'code_generator/templates'
 boson_template_postfix = '.template'
 

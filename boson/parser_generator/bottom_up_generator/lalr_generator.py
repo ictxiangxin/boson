@@ -50,6 +50,7 @@ class LALRParserGenerator(BottomUpCanonicalParserGenerator):
                     look_ahead_set |= dfa_state_reduce[sentence_index]
             else:
                 self._dfa_state_reduce_mapping[dfa_state_core_number] = dfa_state_reduce
+        self._dfa_state_number_mapping = dfa_state_core_number_mapping
         new_dfa_move_table = {}
         for state_number, state_move_table in self._dfa_move_table.items():
             new_state_move_table = {}
