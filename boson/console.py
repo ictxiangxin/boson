@@ -114,10 +114,10 @@ def console_main():
                 if isinstance(parser_generator, BottomUpCanonicalParserGenerator):
                     action_table_size = sum([len(line) for line in parser_generator.action_table()])
                     sparse_action_table_size = sum([len(line) for _, line in parser_generator.sparse_action_table().items()])
-                    action_table_compression_rate = sparse_action_table_size / action_table_size if action_table_size > 0 else 0
+                    action_table_compression_rate = sparse_action_table_size / action_table_size * 100 if action_table_size > 0 else 0
                     goto_table_size = sum([len(line) for line in parser_generator.goto_table()])
                     sparse_goto_table_size = sum([len(line) for _, line in parser_generator.sparse_goto_table().items()])
-                    goto_table_compression_rate = sparse_goto_table_size / goto_table_size if goto_table_size > 0 else 0
+                    goto_table_compression_rate = sparse_goto_table_size / goto_table_size * 100 if goto_table_size > 0 else 0
                     display('        > Action Table Size/Sparse-Size (Rate): {}/{} ({:.2f}%)'.format(action_table_size, sparse_action_table_size, action_table_compression_rate))
                     display('        > Goto Table Size/Sparse-Size (Rate): {}/{} ({:.2f}%)'.format(goto_table_size, sparse_goto_table_size, goto_table_compression_rate))
             if parser_generator.conflict_list():
