@@ -84,7 +84,7 @@ Boson自身的部分代码也由Boson生成（该过程称为“自举”）。
 
 上述命令中用到的`boson_script.boson`文件和`regular.boson`是两个Boson脚本文件，可在Boson源码的根目录找到。
 
-## Boson脚本
+# Boson脚本
 
 Boson脚本可分为三部分：
 
@@ -97,7 +97,7 @@ Boson脚本可分为三部分：
 Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、数字加下划线的组合（数字不能出现在首位）。
 “符号”是命令、词法定义和语法定义的重要组成部分。
 
-### 命令
+## 命令
 
 命令的结构较为简单，都为如下形式：
 
@@ -111,15 +111,15 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 在当前的Boson版本中，实现的所有命令都只有一个参数，以下为所有命令的清单:
 
 |命令名|参数范围|默认值|备注|
-|:-|:-:|:-|:-|
-|%start_symbol|任意符号量名|start|指明脚本中语法定义的起始语法符号。|
+|:-|:-:|:-:|:-|
+|%start_symbol|任意符号名|start|指明脚本中语法定义的起始语法符号。|
 |%lexical_token_class_name|任意变量名|BosonToken|生成代码中词法符号的类名。|
 |%lexical_analyzer_class_name|任意变量名|BosonLexicalAnalyzer|生成代码中词法分析器类名。|
 |%grammar_analyzer_class_name|任意变量名|BosonGrammarAnalyzer|生成代码中语法分析器类名。|
 |%grammar_class_name|任意变量名|BosonGrammar|生成代码中语法结构类名。|
 |%grammar_node_class_name|任意变量名|BosonGrammarNode|生成代码中语法节点类名。|
-|%semantics_analyzer_class_name|BosonSemanticsAnalyzer|任意变量名|生成代码中语义分析器类名。|
-|%semantics_node_class_name|BosonSemanticsNode|任意变量名|生成代码中语义节点类名。|
+|%semantics_analyzer_class_name|任意变量名|BosonSemanticsAnalyzer|生成代码中语义分析器类名。|
+|%semantics_node_class_name|任意变量名|BosonSemanticsNode|生成代码中语义节点类名。|
 |%generate_semantics_analyzer|yes/no|yes|是否生成语义分析器代码。|
 |%generate_lexical_analyzer|yes/no|yes|是否生成词法分析器代码。|
 |%code_comment|yes/no|yes|是否在生成代码中显示版本版权等信息。|
@@ -128,7 +128,7 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 |%shift_reduce_conflict_resolver|shift/reduce|shift|“移入-规约”冲突的解决方式，“shift”为移入优先，“reduce”为规约优先。|
 |%reduce_reduce_conflict_resolver|long/short|long|“规约-规约”冲突的解决方式，“long”为最长优先，“short”为最短优先。|
 
-#### 示例
+### 示例
 
 1. 设置脚本的语法定义起始符号为`S`：`%StartSymbol S;`
 
@@ -136,7 +136,7 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 
 3. 设置“移入-规约”冲突的解决方式为规约优先：`%ShiftReduceConflictResolver reduce;`
 
-### 词法定义
+## 词法定义
 
 词法定义的结构为如下形式：
 
@@ -144,12 +144,12 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 词法符号 : 正则表达式 [!] [@{ 词法函数列表 }];
 ```
 
-#### 词法符号
+### 词法符号
 
 `词法符号`为任意合法的符号。当词法符号以`_`（下划线）开头时，该词法定义将被视为隐藏定义，
 不会纳入至最终的词法定义中，词法的隐藏定义通常用于正则表达式中的“引用”。
 
-#### 正则表达式
+### 正则表达式
 
 Boson的正则表达式由一对尖括号包围（`<`、`>`），起表达式结构对于词法定义进行设计和化简，基本语法与主流正则表达式相近。
 
@@ -197,25 +197,24 @@ Boson正则表达式支持语法如下：
 13. 引用，使用花括号包围（`{`、`}`）的其他词法符号为引用该词法符号。
 例如有词法定义`_number = <[0-9]+>`，则`<boson{_number}>`匹配以“boson”开头后接任意数字组合的文本。
 
-##### 示例
+#### 示例
 
 * `<[_a-zA-Z][_a-zA-Z0-9]*>`为下划线、字母和数字的任意组合，其中数字不能出现在首位。
-
 * `<".*[^\\]"|'.*[^\\]'>`为双引号`"`或单引号`'`包围的字符串。
 
-#### 词法定义后缀
+### 词法定义后缀
 
 词法定义后缀分为两部分组成，前者为非贪婪标志，用`!`表示；
 后者为词法函数列表，由`@`符号引出，花括号（`{`、`}`）包围的词法函数名。
 这两部分均为可选项。
 
-##### 非贪婪标志
+#### 非贪婪标志
 
 在词法定义的正则表达式之后加入`!`代表该表达式为非贪婪匹配，当检索到相匹配的文本时立即生成对应的词法单元。
 
 例如`string = <".*[^\\]"|'.*[^\\]'>!;`表明字符串的词法定义是非贪婪匹配。
 
-##### 词法函数列表
+#### 词法函数列表
 
 词法函数列表中可包含任意合法的符号名，有多个以空格隔开。
 目前Boson有两个内置词法函数，分别为`skip`和`newline`。
@@ -226,120 +225,265 @@ Boson正则表达式支持语法如下：
 
 例如`newline = <\n\r|\n>@{skip, newline};`代表在匹配到换行时，忽略这些换行符，并且使行计数器加1。
 
-### 语法定义
+## 语法定义
 
-`derivation` looks like EBNF, but that is a little different.
+Boson的语法定义类似EBNF的写法，但所用符号上更接近正则表达式的写法。
 
-Derivation is made up by a list of symbols which split by blank space:
-
+语法定义的结构通常如下：
 ```
-symbol1 symbol2 ...
-```
-
-You can use `(` and `)` to group a set of symbols to form a sub-derivation:
-
-```
-symbols1 (symbol2 symbols3) symbols4 ...
+语法符号 : 规约式 [= [语法元组名称]语法元组定义] | 规约式 [= [语法元组名称]语法元组] | ...;
 ```
 
-Each symbol or sub-derivation can use `*` or `+` to present it is a closure:
+### 语法符号
 
+`语法符号`为为任意合法的符号。所有语法定义中必须包含一个语法符号为`起始语法符号`。
+
+`起始语法符号`是整个脚本语法定义的起始，可通过`%start_symbol`命令进行设定，也可直接使用默认的`start`符号。
+
+### 规约式
+
+`规约式`是由若干个`语法符号`、`词法符号`和`文本词法`以类似EBNF的方式组成。
+
+> 其中`文本词法`为语法定义的特殊元素，其表现形式为普通的字符串，代表该位置为一个以该字符串表示的词法单元。
+
+下文中`symbolN`表示为`语法符号`、`词法符号`和`文本词法`中的一种。
+
+#### 常规规约式
+
+`规约式`可由上述元素以空格隔开的方式进行排列：
 ```
-symbols1+ (symbols2 symbols3)* symbols4 ...
+symbol0 : symbol1 symbol2 symbol3;
 ```
 
-Closure types:
-* `*` present kleene closure which means it's count between 0 and infinite.
-* `+` present positive closure which means it's count between 1 and infinite.
+#### 子规约式
 
-For example, We need a number list derivation which at least 1 element:
+使用圆括号（`(`、`)`）包围的规约式称为`子规约式`:
+```
+symbol0 : symbol1 (symbol2 symbol3) symbol4;
+```
+> `子规约式`将构造一个隐藏的语法符号和对应的`规约式`
 
+上述示例将实际扩展为：
+```
+symbol0 : symbol1 hidden_symbol0 symbol4;
+hidden_symbol0 : symbol2 symbol3;
+```
+其中`hidden_symbol0`为Boson生成的隐藏语法符号。
+
+#### 闭包
+
+所有`规约式`元素（包括`symbolN`、`子规约式`等）均可使用`闭包后缀`构造闭包：
+```
+symbol0 : symbol1+ (symbol2 symbol3)* symbol4;
+```
+闭包后缀的分为2种，其含义与正则表达式中的闭包类似:
+* `*`为克林闭包，代表该元素可以为0个或重复任意多个。
+* `+`为正闭包，代表该元素至少为1个或重复任意多个。
+> `闭包`同样会生成相应的`隐藏语法符号`和`规约式`。
+
+##### 示例
+
+列表的词法符号`list`的规约式为至少1个或任意多个`number`构成：
 ```
 list: number+;
 ```
-
-Or it can present empty list:
-
+或者该列表可以为空:
 ```
 list: number*;
 ```
 
-#### Grammar Tuple
+#### 可选项
 
-`(grammar tuple)` is the AST node structure of this production and it's not necessary.
-
-**Notice**
-
-1.`[grammar name]` satisfied `[_a-zA-Z][_a-zA-Z0-0]*`, it used to name this derivation to help semantics analyzer and it is not necessary.
-
-2.`(grammar tuple)` satisfied `($$, $0, $1, ...)`, it surround with `(` and `)`, contains a set of node symbols.
-
-> node symbols `$$, $0, $1, ...` has special meaning:
-
-* `$$`, the number of this derivation.
-* `$?`, all elements of sub-derivation.
-* `$0 $1 $2 ...`, the index of element of this derivation(base-0).
-
-> You can write more complex grammar tuple.
-
-Example:
+使用方括号（`[`、`]`）包围的规约式称为`可选项`：
 ```
-function: func_name '(' arg (',' arg)* ')' = func_sign($0, $2, *$3($1));
+symbol0 : [symbol1 symbol2] symbol3;
+```
+`可选项`的含义要么存在要么不存在。
+
+上述语法定义等价于：
+```
+symbol0 : symbol3;
+symbol0 : symbol1 symbol2 symbol3;
 ```
 
-Then you can get `arg (',' arg)*` as a list like `[arg, arg, arg, ...]`.
+#### 选择项
 
-The `func_sign` is grammar name, which use for semantic analyzing.
-
-### Simple Example
-
-A example of arithmetic grammar like this:
-
+使用竖线（`|`）隔开的元素为`选择项`：
 ```
-start : E ;
-E : E plus T | E minus T | T ;
-T : T times F | T div F | F ;
-F : F power D | D ;
-D : bl E br | N ;
-N : int | float ;
+symbol0 : symbol1 | symbol2 | symbol3;
+```
+等价于：
+```
+symbol0 : symbol1;
+symbol0 : symbol2;
+symbol0 : symbol3;
 ```
 
-You also can write literal terminal like this:
+### 语法元组
 
+`语法元组`是`语法定义`中的一个可选特性，用于修改、化简、构造由`语法定义`描述的`抽象语法树`。
+
+语法元组包含2部分：
+* `语法元组名称`，用于`语义分析`时语义动作的注册和定位。
+* `语法元组定义`，描述该语法定义的`语法元组`结构。
+
+#### 语法元组名称
+
+`语法元组名称`为任意合法的符号，同名的语法元组名称将获得相同的语义分析动作。
+
+#### 语法元组定义
+
+`语法元组定义`大致结构如下：
 ```
-start : E ;
-E : E '+' T | E '-' T | T ;
-T : T '*' F | T '/' F | F ;
-F : F '^' D | D ;
-D : '(' E ')' | N ;
-N : int | float ;
+(元组元素, 元组元素, ...)
+```
+`元组元素`可为下列6种形式：
+1. `语法节点`
+2. `*语法节点`
+3. `语法节点 子语法元组定义`
+4. `*语法节点 子语法元组定义`
+5. `语法节点 *子语法元组定义`
+6. `*语法节点 *子语法元组定义`
+
+其中：
+* `语法节点`可表示为`$N`，`N`代表语法元素在`规约式`中的下标。
+* `子语法元组定义`以圆括号（`(`、`)`）包围，代表规约式中`子规约式`（含`闭包`）或`可选项`内部的`语法元组定义`。
+* `*`通常在`语法节点`之前或`子语法元组定义`之前，代表其后的`语法节点`或`子语法元组定义`构造`抽象语法树节点`需解包。
+
+#### 基本用法
+对于`常规规约式`，可通过`语法元组定义`改变其`抽象语法树`中的元素顺序或舍弃部分无语义的元素。
+
+例如中置运算符的计算式的语法定义使用逆波兰式的语法元组：
+```
+expression : a '+' b = ($1, $0, $2);
+```
+在解析过程中产生的`抽象语法树`节点将被构造成`('+', a, b)`。
+
+或子计算中舍弃无语义的标点符号：
+```
+expression : '(' expression ')' = ($1);
 ```
 
-> NOTICE: The null reduce production present as "~" (without quotation marks) or write nothing.
+#### 包含“子规约式”和“可选项”的用法
+对于这类规约式，需定义`子规约式`和`可选项`的`语法元组`就需要用到`子语法元组定义`。
 
-#### Console command
+##### 基本用法
 
-Use "example/arithmetic_grammar.txt" to generate "example/arithmetic_grammar_code.py":
-
+中置运算符`语法定义`的扩展：
 ```
-> boson example/arithmetic_grammar.txt -a slr -l python3 -o example/arithmetic_grammar_code.py
+expression : a ('+' | '-' | '*' | '/') b = ($1, *$0, $2);
+```
+其`语法元组定义`生成的`抽象语法树节点`结构为`(运算符, a, b)`，其中`运算符`为`+`、`-`、`*`、`/`中的一种。
+
+##### 复杂用法
+
+例如一个函数调用的`语法定义`如下：
+```
+invoke_function : function_name '(' argument (',' argument)* ')' = ($0, $2, *$3*($1));
+```
+其`语法元组定义`生成的`抽象语法树节点`结构为`(function_name, argument, argument, ...)`。
+
+具体分析如下：
+* `$0`代表取`规约式`中索引为`0`的语法元素，也就是`function_name`。
+* `$2`代表取`规约式`中索引为`2`的语法元素，也就是`argument`。
+* `*$3*($1)`为上述`元组元素`的第6种情况`*语法节点 *子语法元组定义`。
+
+对于`*$3*($1)`，拆解出`$3`代表定义索引为`3`的语法元素，
+也就是`(',' argument)*`。
+
+而`*$3`中的`*`代表该语法元素需要解包。
+如果此处没有`*`，那么`抽象语法树节点`结构将变为`(function_name, argument, (argument, ...))`，
+因此“解包”的含义也一目了然。
+
+后续`*($1)`中的`($1)`为`子语法元组定义`，其定义是`(',' argument)*`的`语法元组`，该语法由两层组成，
+第一层为`克林闭包`：`(...)*`，第二层为克林闭包内部的`(',' argument)`。因此该`子语法元组定义`定义的便是
+`(',' argument)`的`语法元组`。容易理解`$1`代表索引为`1`的语法元素也就是`argument`。
+而`*($1)`中的`*`代表该语法元素需要解包。如果此处没有`*`，
+那么`抽象语法树节点`结构将变为`(function_name, argument, (argument), (argument)...)`。
+
+## 使用Boson生成的分析器
+
+目前Boson可生成`Python3`和`C++`两种语言的代码。
+
+### Python3
+
+在编写完Boson脚本文件之后，例如`test.boson`，使用Boson生成其对应的分析器代码（使用`lalr`分析器）：
+> `boson test.boson -a lalr -l python3 -o test.py`
+
+执行成功之后，当前目录下便会生成`test.py`文件。
+
+使用方式也较为简便，假设从文件`test.txt`获取将要解析的文本：
+```python
+with open('test.txt', 'r', encoding='utf-8') as f:
+    text = f.read()
 ```
 
-## Algorithm
+构造`test.py`文件中的词法分析器并对文本进行解析获得`词法单元`列表：
+```python
+from test import BosonLexicalAnalyzer
 
-Boson can generate SLR, LR, LALR analyzer.
+with open('test.txt', 'r', encoding='utf-8') as f:
+    text = f.read()
+    lexer = BosonLexicalAnalyzer()
+    if lexer.tokenize(text) != lexer.no_error_line():
+        "到这里说明文本有词法错误"
+    token_list = lexer.token_list()
+```
 
-1.SLR(Simple LR) in boson means SLR(1), it is fast and simple, but it only can recognize a few grammars.
+接下来调用`test.py`文件中的语法分析器构造`抽象语法树`：
+```python
+from test import BosonLexicalAnalyzer, BosonGrammarAnalyzer
 
-2.LR(Canonical LR) in boson means LR(1), it is slower than SLR, but can recognize more grammar. And its table will bigger than SLR.
+with open('test.txt', 'r', encoding='utf-8') as f:
+    text = f.read()
+    lexer = BosonLexicalAnalyzer()
+    if lexer.tokenize(text) != lexer.no_error_line():
+        "到这里说明文本有词法错误"
+    token_list = lexer.token_list()
+    parser = BosonGrammarAnalyzer()
+    grammar = parser.grammar_analysis(token_list)
+    if grammar.error_index != grammar.no_error_index():
+        "到这里说明有语法错误"
+```
 
-3.LALR(Look-Ahead LR) in boson means LALR(1), it is slow like LR, and can recognize more grammar than SLR, but less than LR.
-The feature is that its table size is the same as SLR.
+到这一步分析器已经生成完整的`抽象语法树`，使用者可以选择自行去解析`抽象语法树`做相应的后续语义分析等工作。
+也可以使用Boson生成的语义分析器进行便捷的语义分析。
 
-* * *
+加入`test.boson`中定义了如下语法：
+```
+print_string: 'print' '(' string ')' = print($2);
+```
+那么就需要向语义分析器注册名为`print`的语义动作：
+```python
+from test import BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
 
-## Author
+with open('test.txt', 'r', encoding='utf-8') as f:
+    text = f.read()
+    lexer = BosonLexicalAnalyzer()
+    if lexer.tokenize(text) != lexer.no_error_line():
+        "到这里说明文本有词法错误"
+    token_list = lexer.token_list()
+    parser = BosonGrammarAnalyzer()
+    grammar = parser.grammar_analysis(token_list)
+    if grammar.error_index != grammar.no_error_index():
+        "到这里说明有语法错误"
+    semantics_analyzer = BosonSemanticsAnalyzer()
+    @semantic_analyzer.semantics_entity('reduce')
+        def _print(grammar_entity): # 根据语法元组定义只有一个参数，因此len(grammar_entity) == 1。
+            print(grammar_entity[0])
+    semantics_analyzer.semantics_analysis(grammar.grammar_tree) # 对抽象语法树执行语义分析。
+```
 
-Author: ict
+至此，程序已经结束。使用Boson生成分析器代码，可以很方便进行调用，进行许多涉及语法分析的工作。
 
-Email: ictxiangxin@hotmail.com
+### C++
+
+此处有一个利用Boson和mpfr构造高精度计算器的例子（有详细构造过程和使用说明）：
+
+[Github地址](https://github.com/ictxiangxin/calculator)
+
+## 联系作者
+
+> 作者：ict
+
+> 电子邮件：ictxiangxin@hotmail.com
