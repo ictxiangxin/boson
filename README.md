@@ -468,7 +468,7 @@ with open('test.txt', 'r', encoding='utf-8') as f:
     if grammar.error_index != grammar.no_error_index():
         "到这里说明有语法错误"
     semantics_analyzer = BosonSemanticsAnalyzer()
-    @semantic_analyzer.semantics_entity('reduce')
+    @semantic_analyzer.semantics_entity('print')
         def _print(grammar_entity): # 根据语法元组定义只有一个参数，因此len(grammar_entity) == 1。
             print(grammar_entity[0])
     semantics_analyzer.semantics_analysis(grammar.grammar_tree) # 对抽象语法树执行语义分析。
