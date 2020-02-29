@@ -53,8 +53,8 @@ boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
 
 boson_option = {
     'start_symbol': 'start',
-    'lexical_analyzer_class_name': 'BosonLexicalAnalyzer',
     'lexical_token_class_name': 'BosonToken',
+    'lexical_analyzer_class_name': 'BosonLexicalAnalyzer',
     'grammar_analyzer_class_name': 'BosonGrammarAnalyzer',
     'grammar_class_name': 'BosonGrammar',
     'grammar_node_class_name': 'BosonGrammarNode',

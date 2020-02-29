@@ -5,8 +5,8 @@ class CommandExecutor:
     def __init__(self):
         self.__boson_option_enumeration = {
             'start_symbol': None,
-            'lexical_analyzer_class_name': None,
             'lexical_token_class_name': None,
+            'lexical_analyzer_class_name': None,
             'grammar_analyzer_class_name': None,
             'grammar_class_name': None,
             'grammar_node_class_name': None,
