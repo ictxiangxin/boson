@@ -5,17 +5,18 @@ class CommandExecutor:
     def __init__(self):
         self.__boson_option_enumeration = {
             'start_symbol': None,
-            'lexical_token_class_name': None,
-            'lexical_analyzer_class_name': None,
-            'grammar_analyzer_class_name': None,
+            'token_class_name': None,
+            'lexer_class_name': None,
+            'parser_class_name': None,
             'grammar_class_name': None,
             'grammar_node_class_name': None,
-            'semantics_analyzer_class_name': None,
-            'semantics_node_class_name': None,
-            'generate_semantics_analyzer': {'yes', 'no'},
-            'generate_lexical_analyzer': {'yes', 'no'},
+            'interpreter_class_name': None,
+            'semantic_node_class_name': None,
+            'generate_interpreter': {'yes', 'no'},
+            'generate_lexer': {'yes', 'no'},
             'code_comment': {'yes', 'no'},
-            'sparse_table': {'yes', 'no'},
+            'parser_sparse_table': {'yes', 'no'},
+            'lexer_compact_table': {'yes', 'no'},
             'conflict_resolver': {'yes', 'no'},
             'shift_reduce_conflict_resolver': {'shift', 'reduce'},
             'reduce_reduce_conflict_resolver': {'long', 'short'},
@@ -45,4 +46,4 @@ class CommandExecutor:
                 else:
                     raise ValueError('[Command Executor] Command "{}" can only be {}'.format(command, value_enumeration))
             else:
-                raise ValueError('Invalid command: %s' % ' '.join(command_line))
+                raise ValueError('Invalid command: {}'.format(command))

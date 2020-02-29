@@ -1,11 +1,11 @@
-%LexicalTokenClassName LexicalToken;
-%LexicalAnalyzerClassName BosonLexicalAnalyzer;
-%GrammarAnalyzerClassName BosonGrammarAnalyzer;
-%SemanticsAnalyzerClassName BosonSemanticsAnalyzer;
-%GenerateSemanticsAnalyzer yes;
-%GenerateLexicalAnalyzer yes;
+%TokenClassName LexicalToken;
+%LexerClassName BosonLexer;
+%ParserClassName BosonParser;
+%InterpreterClassName BosonInterpreter;
+%GenerateInterpreter yes;
+%GenerateLexer yes;
 %CodeComment no;
-%SparseTable yes;
+%ParserSparseTable yes;
 %StartSymbol boson;
 
 

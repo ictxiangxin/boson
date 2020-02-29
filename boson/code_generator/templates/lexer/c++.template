@@ -1,10 +1,10 @@
-class {{ configure.boson_option['lexical_analyzer_class_name'] }} {
+class {{ configure.boson_option['lexer_class_name'] }} {
 public:
     using lexical_function = std::function<std::string &(std::string &)>;
 
-    {{ configure.boson_option['lexical_analyzer_class_name'] }}() = default;
+    {{ configure.boson_option['lexer_class_name'] }}() = default;
 
-    std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> &token_list() {
+    std::vector<{{ configure.boson_option['token_class_name'] }}> &token_list() {
         return this->_token_list;
     }
 
@@ -104,12 +104,12 @@ public:
         return this->_error_line;
     }
 
-    void lexical_function_entity(std::string &function_name, lexical_function &function) {
+    void register_function(std::string &function_name, lexical_function &function) {
         this->_lexical_function[function_name] = function;
     }
 
 private:
-    std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> _token_list{};
+    std::vector<{{ configure.boson_option['token_class_name'] }}> _token_list{};
     int _line = {{ configure.boson_lexical_start_line }};
     int _error_line = {{ configure.boson_lexical_no_error_line }};
     int _no_error_line = {{ configure.boson_lexical_no_error_line }};

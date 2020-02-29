@@ -9,14 +9,14 @@ class LexicalToken:
         self.symbol = symbol
 
 
-class BosonLexicalAnalyzer:
+class BosonLexer:
     def __init__(self):
-        self.__token_list = []
-        self.__line = 1
-        self.__error_line = -1
-        self.__no_error_line = -1
-        self.__skip = False
-        self.__move_table = {
+        self.__token_list: list = []
+        self.__line: int = 1
+        self.__error_line: int = -1
+        self.__no_error_line: int = -1
+        self.__skip: bool = False
+        self.__move_table: dict = {
             0: [
                 [0, {'_'}, [('A', 'Z'), ('a', 'z')], 1],
                 [0, {'"'}, [], 33],
@@ -63,33 +63,33 @@ class BosonLexicalAnalyzer:
                 [0, {'_'}, [('A', 'Z'), ('a', 'z')], 25]
             ],
             2: [
-                [2, {'\r', '\n'}, [], 2]
+                [2, {'\n', '\r'}, [], 2]
             ],
             27: [
                 [2, {'\\'}, [], 26],
                 [0, {'\\'}, [], 27]
             ],
             26: [
-                [2, {'>', '\\'}, [], 26],
-                [0, {'>'}, [], 28],
-                [0, {'\\'}, [], 27]
+                [2, {'\\', '>'}, [], 26],
+                [0, {'\\'}, [], 27],
+                [0, {'>'}, [], 28]
             ],
             28: [
-                [2, {'>', '\\'}, [], 26],
-                [0, {'>'}, [], 28],
-                [0, {'\\'}, [], 27]
+                [2, {'\\', '>'}, [], 26],
+                [0, {'\\'}, [], 27],
+                [0, {'>'}, [], 28]
             ],
             30: [
                 [2, {'\\'}, [], 29],
                 [0, {'\\'}, [], 30]
             ],
             29: [
-                [2, {'\\', "'"}, [], 29],
+                [2, {"'", '\\'}, [], 29],
                 [0, {"'"}, [], 31],
                 [0, {'\\'}, [], 30]
             ],
             31: [
-                [2, {'\\', "'"}, [], 29],
+                [2, {"'", '\\'}, [], 29],
                 [0, {"'"}, [], 31],
                 [0, {'\\'}, [], 30]
             ],
@@ -99,22 +99,22 @@ class BosonLexicalAnalyzer:
             ],
             32: [
                 [0, {'"'}, [], 34],
-                [2, {'"', '\\'}, [], 32],
+                [2, {'\\', '"'}, [], 32],
                 [0, {'\\'}, [], 33]
             ],
             34: [
-                [2, {'"', '\\'}, [], 32],
-                [0, {'"'}, [], 34],
-                [0, {'\\'}, [], 33]
+                [2, {'\\', '"'}, [], 32],
+                [0, {'\\'}, [], 33],
+                [0, {'"'}, [], 34]
             ],
             1: [
                 [0, {'_'}, [('0', '9'), ('A', 'Z'), ('a', 'z')], 1]
             ]
         }
-        self.__character_set = {'V', 'Q', ')', '2', '_', 'd', '6', 'g', ' ', 'y', 'e', 'u', 'a', 'z', 'J', '4', ';', 'S', '(', 'X', '8', '0', '9', 'F', '+', 'c', 'l', 't', "'", 'h', 'q', 'W', 'T', 'N', 'k', 'Z', 'f', 'm', '%', '<', 'b', 'n', 'E', '7', 'A', '3', 'G', 'D', 'Y', '"', '>', ',', '5', 's', 'I', '1', ']', 'O', '}', 'x', '{', '\\', 'r', 'B', '#', '=', 'M', 'R', 'v', 'K', 'L', 'w', '\n', 'i', '\r', 'j', '@', '$', 'p', '[', 'H', '|', 'U', 'o', 'C', '~', '*', ':', 'P', '!', '\t'}
-        self.__start_state = 0
-        self.__end_state_set = {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 28, 31, 34}
-        self.__lexical_symbol_mapping = {
+        self.__character_set: set = {'e', 'w', '\n', 'g', '5', 'm', 'x', '%', ']', "'", 'c', 'z', 'I', 'U', '_', 'b', 's', 'Z', '\t', '@', 'k', ':', 'B', 'C', 'r', '{', 'N', 'o', 'q', 'X', 'Y', 'y', 'M', '=', 'p', '7', '\r', 'A', '4', 'P', '9', '<', 'u', 'S', 'd', 'T', 'n', 'a', 'J', '*', ',', 'R', 'G', '}', '6', '1', ' ', '\\', '(', 'h', 'E', '~', 'i', '>', '+', ';', 'L', 'j', 't', '2', 'F', 'D', 'H', 'V', 'l', 'Q', 'W', ')', '3', '#', '!', 'K', 'O', 'f', '$', '"', '0', '[', '|', '8', 'v'}
+        self.__start_state: int = 0
+        self.__end_state_set: set = {1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 28, 31, 34}
+        self.__lexical_symbol_mapping: dict = {
             1: 'name',
             2: 'comment',
             4: 'skip',
@@ -142,8 +142,8 @@ class BosonLexicalAnalyzer:
             31: 'string',
             34: 'string'
         }
-        self.__non_greedy_state_set = {34, 28, 31}
-        self.__symbol_function_mapping = {
+        self.__non_greedy_state_set: set = {34, 28, 31}
+        self.__symbol_function_mapping: dict = {
             'name': [],
             'node': [],
             'string': [],
@@ -153,7 +153,7 @@ class BosonLexicalAnalyzer:
             'skip': ['skip'],
             'newline': ['skip', 'newline']
         }
-        self.__lexical_function = {}
+        self.__lexical_function: dict = {}
 
     def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
         self.__skip = False
@@ -242,7 +242,7 @@ class BosonLexicalAnalyzer:
         self.__token_list.append(LexicalToken('', self.__line, '$'))
         return self.__error_line
 
-    def lexical_function_entity(self, function_name: str) -> callable:
+    def register(self, function_name: str) -> callable:
         def decorator(f: callable):
             self.__lexical_function[function_name] = f
             return f
@@ -252,7 +252,7 @@ class BosonLexicalAnalyzer:
 class BosonGrammarNode:
     def __init__(self):
         self.reduce_number = -1
-        self.__data = []
+        self.__data: list = []
 
     def __getitem__(self, item):
         return self.__data[item]
@@ -261,258 +261,258 @@ class BosonGrammarNode:
         self.__data += other
         return self
 
-    def append(self, item):
+    def append(self, item) -> None:
         self.__data.append(item)
 
-    def insert(self, index, item):
+    def insert(self, index, item) -> None:
         self.__data.insert(index, item)
 
-    def data(self):
+    def data(self) -> list:
         return self.__data
 
 
 class BosonGrammar:
     def __init__(self):
-        self.__grammar_tree = None
-        self.__error_index = -1
-        self.__no_error_index = -1
+        self.__grammar_tree: (BosonGrammarNode, None) = None
+        self.__error_index: int = -1
+        self.__no_error_index: int = -1
 
-    def get_grammar_tree(self):
+    def get_grammar_tree(self) -> (BosonGrammarNode, None):
         return self.__grammar_tree
 
-    def set_grammar_tree(self, grammar_tree: tuple):
+    def set_grammar_tree(self, grammar_tree: BosonGrammarNode) -> None:
         self.__grammar_tree = grammar_tree
 
     grammar_tree = property(get_grammar_tree, set_grammar_tree)
 
-    def get_error_index(self):
+    def get_error_index(self) -> int:
         return self.__error_index
 
-    def set_error_index(self, error_index: int):
+    def set_error_index(self, error_index: int) -> None:
         self.__error_index = error_index
 
     error_index = property(get_error_index, set_error_index)
 
-    def no_error_index(self):
+    def no_error_index(self) -> int:
         return self.__no_error_index
 
 
-class BosonGrammarAnalyzer:
+class BosonParser:
     def __init__(self):
-        self.__terminal_index_mapping = {
-            '!symbol_7': 0,
-            '!symbol_1': 1,
-            '!symbol_13': 2,
-            'node': 3,
-            '!symbol_5': 4,
-            'command': 5,
-            'string': 6,
-            '!symbol_16': 7,
-            '$': 8,
-            '!symbol_14': 9,
-            'regular': 10,
-            '!symbol_10': 11,
-            '!symbol_6': 12,
-            '!symbol_9': 13,
-            'name': 14,
-            '!symbol_15': 15,
-            '!symbol_2': 16,
-            '!symbol_4': 17,
-            '!symbol_8': 18,
-            '!symbol_3': 19,
-            '!symbol_12': 20,
-            '!symbol_11': 21
+        self.__terminal_index_mapping: dict = {
+            'name': 0,
+            'regular': 1,
+            '!symbol_7': 2,
+            '!symbol_10': 3,
+            'string': 4,
+            '!symbol_16': 5,
+            '!symbol_9': 6,
+            '!symbol_14': 7,
+            '!symbol_11': 8,
+            '!symbol_3': 9,
+            '!symbol_2': 10,
+            '!symbol_12': 11,
+            '!symbol_13': 12,
+            'command': 13,
+            'node': 14,
+            '!symbol_4': 15,
+            '$': 16,
+            '!symbol_8': 17,
+            '!symbol_5': 18,
+            '!symbol_1': 19,
+            '!symbol_15': 20,
+            '!symbol_6': 21
         }
-        self.__sparse_action_table = {
-            0: {5: 's7', 14: 's8'},
-            1: {8: 'a'},
-            2: {5: 's7', 8: 'r70', 14: 's8'},
-            3: {5: 'r23', 8: 'r23', 14: 'r23'},
-            4: {5: 'r6', 8: 'r6', 14: 'r6'},
-            5: {5: 'r16', 8: 'r16', 14: 'r16'},
-            6: {5: 'r35', 8: 'r35', 14: 'r35'},
-            7: {6: 's92', 14: 's93'},
-            8: {16: 's9', 18: 's10'},
-            9: {10: 's73'},
-            10: {1: 'r36', 6: 's16', 9: 's13', 11: 's20', 13: 'r36', 14: 's17', 16: 'r36', 21: 's14'},
-            11: {1: 'r37', 2: 's58', 6: 'r37', 7: 's59', 9: 'r37', 13: 'r37', 14: 'r37', 15: 'r37', 16: 'r37', 20: 'r37', 21: 'r37'},
-            12: {1: 'r65', 6: 'r65', 9: 'r65', 13: 'r65', 14: 'r65', 15: 'r65', 16: 'r65', 20: 'r65', 21: 'r65'},
-            13: {6: 's16', 9: 's13', 14: 's17', 21: 's14'},
-            14: {6: 's16', 9: 's13', 14: 's17', 21: 's14'},
-            15: {1: 's72'},
-            16: {1: 'r68', 2: 'r68', 6: 'r68', 7: 'r68', 9: 'r68', 13: 'r68', 14: 'r68', 15: 'r68', 16: 'r68', 20: 'r68', 21: 'r68'},
-            17: {1: 'r71', 2: 'r71', 6: 'r71', 7: 'r71', 9: 'r71', 13: 'r71', 14: 'r71', 15: 'r71', 16: 'r71', 20: 'r71', 21: 'r71'},
-            18: {1: 'r38', 13: 'r38'},
-            19: {1: 'r50', 13: 'r50', 16: 's26'},
-            20: {1: 'r47', 13: 'r47', 16: 'r47'},
-            21: {1: 'r67', 6: 's16', 9: 's13', 13: 'r67', 14: 's17', 16: 'r67', 21: 's14'},
-            22: {1: 'r3', 6: 'r3', 9: 'r3', 13: 'r3', 14: 'r3', 16: 'r3', 21: 'r3'},
-            23: {1: 'r13', 6: 'r13', 9: 'r13', 13: 'r13', 14: 'r13', 16: 'r13', 21: 'r13'},
-            24: {1: 'r54', 13: 'r54'},
-            25: {1: 'r51', 13: 'r51'},
-            26: {14: 's28', 21: 'r14'},
-            27: {21: 'r41'},
-            28: {21: 'r64'},
-            29: {21: 's30'},
-            30: {2: 's33', 3: 'r7'},
-            31: {1: 'r55', 13: 'r55'},
-            32: {3: 'r40'},
-            33: {3: 'r21'},
-            34: {0: 'r52', 20: 'r52'},
-            35: {3: 's36'},
-            36: {0: 'r48', 2: 's41', 20: 'r48', 21: 'r19'},
-            37: {0: 'r49', 20: 'r49'},
-            38: {0: 'r75', 20: 'r75'},
-            39: {21: 's30'},
-            40: {21: 'r61'},
-            41: {21: 'r69'},
-            42: {0: 'r10', 20: 'r10'},
-            43: {0: 's45', 20: 's46'},
-            44: {0: 'r56', 20: 'r56'},
-            45: {2: 's33', 3: 'r7'},
-            46: {0: 'r39', 1: 'r39', 13: 'r39', 20: 'r39'},
-            47: {0: 'r34', 20: 'r34'},
-            48: {1: 'r31', 13: 's49'},
-            49: {1: 'r36', 6: 's16', 9: 's13', 11: 's20', 13: 'r36', 14: 's17', 16: 'r36', 21: 's14'},
-            50: {1: 'r60', 13: 'r60'},
-            51: {1: 'r25', 13: 'r25'},
-            52: {20: 's56'},
-            53: {6: 'r18', 9: 'r18', 13: 's69', 14: 'r18', 15: 'r18', 20: 'r18', 21: 'r18'},
-            54: {6: 's16', 9: 's13', 14: 's17', 15: 'r59', 20: 'r59', 21: 's14'},
-            55: {6: 'r2', 9: 'r2', 14: 'r2', 15: 'r2', 20: 'r2', 21: 'r2'},
-            56: {1: 'r33', 2: 's58', 6: 'r33', 7: 's59', 9: 'r33', 13: 'r33', 14: 'r33', 15: 'r33', 16: 'r33', 20: 'r33', 21: 'r33'},
-            57: {1: 'r5', 6: 'r5', 9: 'r5', 13: 'r5', 14: 'r5', 15: 'r5', 16: 'r5', 20: 'r5', 21: 'r5'},
-            58: {1: 'r29', 6: 'r29', 9: 'r29', 13: 'r29', 14: 'r29', 15: 'r29', 16: 'r29', 20: 'r29', 21: 'r29'},
-            59: {1: 'r46', 6: 'r46', 9: 'r46', 13: 'r46', 14: 'r46', 15: 'r46', 16: 'r46', 20: 'r46', 21: 'r46'},
-            60: {1: 'r57', 6: 'r57', 9: 'r57', 13: 'r57', 14: 'r57', 15: 'r57', 16: 'r57', 20: 'r57', 21: 'r57'},
-            61: {1: 'r26', 6: 'r26', 9: 'r26', 13: 'r26', 14: 'r26', 15: 'r26', 16: 'r26', 20: 'r26', 21: 'r26'},
-            62: {15: 's63'},
-            63: {1: 'r27', 6: 'r27', 9: 'r27', 13: 'r27', 14: 'r27', 15: 'r27', 16: 'r27', 20: 'r27', 21: 'r27'},
-            64: {1: 'r24', 6: 'r24', 9: 'r24', 13: 'r24', 14: 'r24', 15: 'r24', 16: 'r24', 20: 'r24', 21: 'r24'},
-            65: {1: 'r32', 6: 'r32', 9: 'r32', 13: 'r32', 14: 'r32', 15: 'r32', 16: 'r32', 20: 'r32', 21: 'r32'},
-            66: {1: 'r66', 6: 'r66', 9: 'r66', 13: 'r66', 14: 'r66', 15: 'r66', 16: 'r66', 20: 'r66', 21: 'r66'},
-            67: {13: 's69', 15: 'r53', 20: 'r53'},
-            68: {13: 'r62', 15: 'r62', 20: 'r62'},
-            69: {6: 's16', 9: 's13', 14: 's17', 21: 's14'},
-            70: {13: 'r1', 15: 'r1', 20: 'r1'},
-            71: {13: 'r9', 15: 'r9', 20: 'r9'},
-            72: {5: 'r58', 8: 'r58', 14: 'r58'},
-            73: {1: 'r42', 17: 'r42', 19: 's74'},
-            74: {1: 'r22', 17: 'r22'},
-            75: {1: 'r20', 17: 's78'},
-            76: {1: 'r45', 17: 'r45'},
-            77: {1: 'r72'},
-            78: {4: 's81'},
-            79: {1: 's80'},
-            80: {5: 'r15', 8: 'r15', 14: 'r15'},
-            81: {14: 's83'},
-            82: {12: 's88'},
-            83: {0: 'r74', 12: 'r74'},
-            84: {0: 's85', 12: 'r44'},
-            85: {14: 's87'},
-            86: {0: 'r11', 12: 'r11'},
-            87: {0: 'r63', 12: 'r63'},
-            88: {1: 'r43'},
-            89: {1: 's94', 6: 's92', 14: 's93'},
-            90: {1: 'r17', 6: 'r17', 14: 'r17'},
-            91: {1: 'r30', 6: 'r30', 14: 'r30'},
-            92: {1: 'r8', 6: 'r8', 14: 'r8'},
-            93: {1: 'r12', 6: 'r12', 14: 'r12'},
-            94: {5: 'r28', 8: 'r28', 14: 'r28'},
-            95: {1: 'r4', 6: 'r4', 14: 'r4'},
-            96: {5: 'r73', 8: 'r73', 14: 'r73'}
+        self.__sparse_action_table: dict = {
+            0: {0: 's1', 13: 's8'},
+            1: {10: 's17', 17: 's18'},
+            2: {16: 'a'},
+            3: {0: 's1', 13: 's8', 16: 'r45'},
+            4: {0: 'r71', 13: 'r71', 16: 'r71'},
+            5: {0: 'r2', 13: 'r2', 16: 'r2'},
+            6: {0: 'r51', 13: 'r51', 16: 'r51'},
+            7: {0: 'r72', 13: 'r72', 16: 'r72'},
+            8: {0: 's10', 4: 's11'},
+            9: {0: 'r11', 4: 'r11', 19: 'r11'},
+            10: {0: 'r28', 4: 'r28', 19: 'r28'},
+            11: {0: 'r68', 4: 'r68', 19: 'r68'},
+            12: {0: 's10', 4: 's11', 19: 's14'},
+            13: {0: 'r20', 4: 'r20', 19: 'r20'},
+            14: {0: 'r73', 13: 'r73', 16: 'r73'},
+            15: {0: 'r65', 4: 'r65', 19: 'r65'},
+            16: {0: 'r48', 13: 'r48', 16: 'r48'},
+            17: {1: 's81'},
+            18: {0: 's19', 3: 's28', 4: 's20', 6: 'r22', 7: 's25', 8: 's24', 10: 'r22', 19: 'r22'},
+            19: {0: 'r7', 4: 'r7', 5: 'r7', 6: 'r7', 7: 'r7', 8: 'r7', 10: 'r7', 11: 'r7', 12: 'r7', 19: 'r7', 20: 'r7'},
+            20: {0: 'r63', 4: 'r63', 5: 'r63', 6: 'r63', 7: 'r63', 8: 'r63', 10: 'r63', 11: 'r63', 12: 'r63', 19: 'r63', 20: 'r63'},
+            21: {19: 's80'},
+            22: {0: 'r8', 4: 'r8', 5: 's65', 6: 'r8', 7: 'r8', 8: 'r8', 10: 'r8', 11: 'r8', 12: 's66', 19: 'r8', 20: 'r8'},
+            23: {0: 'r69', 4: 'r69', 6: 'r69', 7: 'r69', 8: 'r69', 10: 'r69', 11: 'r69', 19: 'r69', 20: 'r69'},
+            24: {0: 's19', 4: 's20', 7: 's25', 8: 's24'},
+            25: {0: 's19', 4: 's20', 7: 's25', 8: 's24'},
+            26: {6: 'r60', 19: 'r60'},
+            27: {6: 'r50', 10: 's33', 19: 'r50'},
+            28: {6: 'r43', 10: 'r43', 19: 'r43'},
+            29: {0: 's19', 4: 's20', 6: 'r75', 7: 's25', 8: 's24', 10: 'r75', 19: 'r75'},
+            30: {0: 'r3', 4: 'r3', 6: 'r3', 7: 'r3', 8: 'r3', 10: 'r3', 19: 'r3'},
+            31: {0: 'r52', 4: 'r52', 6: 'r52', 7: 'r52', 8: 'r52', 10: 'r52', 19: 'r52'},
+            32: {6: 'r13', 19: 'r13'},
+            33: {0: 's37', 8: 'r57'},
+            34: {6: 'r9', 19: 'r9'},
+            35: {8: 's39'},
+            36: {8: 'r42'},
+            37: {8: 'r17'},
+            38: {6: 'r25', 19: 'r25'},
+            39: {12: 's43', 14: 'r37'},
+            40: {2: 'r10', 11: 'r10'},
+            41: {14: 's44'},
+            42: {14: 'r18'},
+            43: {14: 'r64'},
+            44: {2: 'r1', 8: 'r12', 11: 'r1', 12: 's48'},
+            45: {2: 'r23', 11: 'r23'},
+            46: {8: 's39'},
+            47: {8: 'r27'},
+            48: {8: 'r19'},
+            49: {2: 'r61', 11: 'r61'},
+            50: {2: 'r67', 11: 'r67'},
+            51: {2: 's53', 11: 's52'},
+            52: {2: 'r70', 6: 'r70', 11: 'r70', 19: 'r70'},
+            53: {12: 's43', 14: 'r37'},
+            54: {2: 'r38', 11: 'r38'},
+            55: {2: 'r47', 11: 'r47'},
+            56: {6: 's58', 19: 'r39'},
+            57: {6: 'r31', 19: 'r31'},
+            58: {0: 's19', 3: 's28', 4: 's20', 6: 'r22', 7: 's25', 8: 's24', 10: 'r22', 19: 'r22'},
+            59: {6: 'r21', 19: 'r21'},
+            60: {0: 's19', 4: 's20', 7: 's25', 8: 's24', 11: 'r5', 20: 'r5'},
+            61: {0: 'r24', 4: 'r24', 6: 's72', 7: 'r24', 8: 'r24', 11: 'r24', 20: 'r24'},
+            62: {20: 's63'},
+            63: {0: 'r46', 4: 'r46', 6: 'r46', 7: 'r46', 8: 'r46', 10: 'r46', 11: 'r46', 19: 'r46', 20: 'r46'},
+            64: {11: 's74'},
+            65: {0: 'r26', 4: 'r26', 6: 'r26', 7: 'r26', 8: 'r26', 10: 'r26', 11: 'r26', 19: 'r26', 20: 'r26'},
+            66: {0: 'r35', 4: 'r35', 6: 'r35', 7: 'r35', 8: 'r35', 10: 'r35', 11: 'r35', 19: 'r35', 20: 'r35'},
+            67: {0: 'r62', 4: 'r62', 6: 'r62', 7: 'r62', 8: 'r62', 10: 'r62', 11: 'r62', 19: 'r62', 20: 'r62'},
+            68: {0: 'r41', 4: 'r41', 6: 'r41', 7: 'r41', 8: 'r41', 10: 'r41', 11: 'r41', 19: 'r41', 20: 'r41'},
+            69: {0: 'r32', 4: 'r32', 6: 'r32', 7: 'r32', 8: 'r32', 10: 'r32', 11: 'r32', 19: 'r32', 20: 'r32'},
+            70: {6: 's72', 11: 'r58', 20: 'r58'},
+            71: {6: 'r56', 11: 'r56', 20: 'r56'},
+            72: {0: 's19', 4: 's20', 7: 's25', 8: 's24'},
+            73: {6: 'r40', 11: 'r40', 20: 'r40'},
+            74: {0: 'r30', 4: 'r30', 5: 's65', 6: 'r30', 7: 'r30', 8: 'r30', 10: 'r30', 11: 'r30', 12: 's66', 19: 'r30', 20: 'r30'},
+            75: {0: 'r55', 4: 'r55', 6: 'r55', 7: 'r55', 8: 'r55', 10: 'r55', 11: 'r55', 19: 'r55', 20: 'r55'},
+            76: {0: 'r33', 4: 'r33', 6: 'r33', 7: 'r33', 8: 'r33', 10: 'r33', 11: 'r33', 19: 'r33', 20: 'r33'},
+            77: {0: 'r6', 4: 'r6', 6: 'r6', 7: 'r6', 8: 'r6', 10: 'r6', 11: 'r6', 19: 'r6', 20: 'r6'},
+            78: {6: 'r14', 11: 'r14', 20: 'r14'},
+            79: {0: 'r15', 4: 'r15', 7: 'r15', 8: 'r15', 11: 'r15', 20: 'r15'},
+            80: {0: 'r59', 13: 'r59', 16: 'r59'},
+            81: {9: 's84', 15: 'r53', 19: 'r53'},
+            82: {15: 's85', 19: 'r16'},
+            83: {15: 'r29', 19: 'r29'},
+            84: {15: 'r34', 19: 'r34'},
+            85: {18: 's89'},
+            86: {19: 's88'},
+            87: {19: 'r44'},
+            88: {0: 'r49', 13: 'r49', 16: 'r49'},
+            89: {0: 's91'},
+            90: {21: 's96'},
+            91: {2: 'r36', 21: 'r36'},
+            92: {2: 's94', 21: 'r4'},
+            93: {2: 'r54', 21: 'r54'},
+            94: {0: 's95'},
+            95: {2: 'r66', 21: 'r66'},
+            96: {19: 'r74'}
         }
-        self.__sparse_goto_table = {
-            0: {2: 4, 11: 5, 13: 2, 33: 3, 35: 6, 41: 1},
-            2: {2: 4, 11: 5, 33: 96, 35: 6},
-            7: {10: 91, 14: 90, 31: 89},
-            10: {0: 21, 5: 19, 15: 15, 18: 18, 23: 11, 25: 12, 43: 22},
-            11: {36: 64, 39: 65, 45: 66},
-            13: {7: 62, 12: 54, 23: 11, 25: 12, 43: 53},
-            14: {7: 52, 12: 54, 23: 11, 25: 12, 43: 53},
-            18: {44: 48},
-            19: {19: 25, 22: 24},
-            21: {23: 11, 25: 12, 43: 23},
-            26: {8: 27, 32: 29},
-            29: {1: 31},
-            30: {3: 32, 26: 34, 29: 35},
-            34: {17: 43},
-            36: {6: 38, 34: 40, 37: 37, 40: 39},
-            39: {1: 42},
-            43: {21: 44},
-            45: {3: 32, 26: 47, 29: 35},
-            48: {48: 50},
-            49: {0: 21, 5: 19, 18: 51, 23: 11, 25: 12, 43: 22},
-            53: {24: 67, 42: 68},
-            54: {23: 11, 25: 12, 43: 55},
-            56: {27: 61, 45: 57, 47: 60},
-            67: {42: 71},
-            69: {23: 11, 25: 12, 43: 70},
-            73: {30: 75, 38: 76},
-            75: {4: 79, 28: 77},
-            81: {16: 82},
-            83: {9: 84},
-            84: {20: 86},
-            89: {10: 91, 14: 95}
+        self.__sparse_goto_table: dict = {
+            0: {4: 3, 10: 5, 25: 2, 27: 7, 35: 6, 41: 4},
+            3: {10: 5, 27: 7, 35: 6, 41: 16},
+            8: {22: 9, 30: 12, 32: 13},
+            12: {22: 9, 32: 15},
+            18: {13: 26, 19: 22, 23: 29, 31: 23, 36: 27, 38: 21, 40: 30},
+            22: {3: 69, 5: 67, 9: 68},
+            24: {16: 60, 19: 22, 31: 23, 40: 61, 44: 64},
+            25: {16: 60, 19: 22, 31: 23, 40: 61, 44: 62},
+            26: {45: 56},
+            27: {2: 32, 39: 34},
+            29: {19: 22, 31: 23, 40: 31},
+            33: {0: 35, 6: 36},
+            35: {18: 38},
+            39: {37: 41, 42: 42, 48: 40},
+            40: {14: 51},
+            44: {8: 46, 12: 47, 15: 45, 20: 49},
+            46: {18: 50},
+            51: {43: 54},
+            53: {37: 41, 42: 42, 48: 55},
+            56: {17: 57},
+            58: {13: 59, 19: 22, 23: 29, 31: 23, 36: 27, 40: 30},
+            60: {19: 22, 31: 23, 40: 79},
+            61: {1: 70, 7: 71},
+            70: {7: 78},
+            72: {19: 22, 31: 23, 40: 73},
+            74: {3: 76, 11: 75, 47: 77},
+            81: {24: 83, 46: 82},
+            82: {33: 87, 34: 86},
+            89: {29: 90},
+            91: {28: 92},
+            92: {21: 93}
         }
-        self.__sentence_index_grammar_tuple_mapping = {
-            53: ('0', '*1'),
-            1: ('1',),
-            59: ('*0',),
-            9: ('*0', '*1'),
-            2: ('*0', '1'),
-            27: ('1',),
-            57: ('1', '*3'),
-            33: (),
-            26: ('*0',),
-            68: ('0',),
-            24: ('0', '*1'),
-            37: (),
-            32: ('*0',),
-            49: ('*0', '1', '*2'),
-            10: ('*0', '1'),
-            48: (),
-            75: ('*0',),
-            19: (),
-            61: ('*0',),
-            7: (),
-            40: ('*0',),
-            39: ('1', '*2'),
-            34: ('1',),
-            52: (),
-            56: ('*0', '*1'),
-            67: ('*0',),
-            13: ('*0', '1'),
-            54: ('0', '*1'),
-            55: ('*1', '2'),
-            50: (),
-            51: ('*0',),
-            14: (),
+        self.__sentence_index_grammar_tuple_mapping: dict = {
+            58: ('0', '*1'),
+            40: ('1',),
+            5: ('*0',),
+            14: ('*0', '*1'),
+            15: ('*0', '1'),
+            46: ('1',),
+            6: ('1', '*3'),
+            30: (),
+            55: ('*0',),
+            63: ('0',),
+            62: ('0', '*1'),
+            8: (),
             41: ('*0',),
-            31: ('0', '*1'),
-            25: ('1',),
-            38: (),
-            60: ('*0', '*1'),
-            58: ('0', '2'),
-            44: ('0', '*1'),
-            63: ('1',),
-            74: (),
-            11: ('*0', '*1'),
-            15: ('0', '2', '*3', '4'),
-            43: ('*2',),
-            20: (),
-            72: ('*0',),
-            42: (),
-            45: ('*0',),
-            28: ('0', '*1'),
-            4: ('*0', '1'),
-            73: ('*0', '1'),
-            62: ('*0',)
+            61: ('*0', '1', '*2'),
+            67: ('*0', '1'),
+            1: (),
+            23: ('*0',),
+            12: (),
+            27: ('*0',),
+            37: (),
+            18: ('*0',),
+            70: ('1', '*2'),
+            47: ('1',),
+            10: (),
+            38: ('*0', '*1'),
+            75: ('*0',),
+            52: ('*0', '1'),
+            9: ('0', '*1'),
+            25: ('*1', '2'),
+            50: (),
+            13: ('*0',),
+            57: (),
+            42: ('*0',),
+            39: ('0', '*1'),
+            21: ('1',),
+            60: (),
+            31: ('*0', '*1'),
+            59: ('0', '2'),
+            4: ('0', '*1'),
+            66: ('1',),
+            36: (),
+            54: ('*0', '*1'),
+            49: ('0', '2', '*3', '4'),
+            74: ('*2',),
+            16: (),
+            44: ('*0',),
+            53: (),
+            29: ('*0',),
+            73: ('0', '*1'),
+            65: ('*0', '1'),
+            48: ('*0', '1'),
+            56: ('*0',)
         }
-        self.__reduce_symbol_count = [1, 2, 2, 1, 2, 1, 1, 0, 1, 2, 2, 2, 1, 2, 0, 6, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 1, 3, 3, 1, 1, 2, 1, 0, 2, 1, 0, 0, 0, 4, 1, 1, 0, 4, 2, 1, 1, 1, 0, 3, 0, 1, 0, 2, 2, 3, 2, 4, 4, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 1]
-        self.__reduce_non_terminal_index = [46, 42, 12, 0, 31, 27, 33, 29, 10, 24, 6, 9, 10, 0, 32, 11, 33, 31, 12, 40, 4, 3, 38, 13, 43, 48, 47, 25, 35, 45, 14, 15, 36, 47, 21, 33, 5, 36, 44, 1, 29, 32, 30, 28, 16, 30, 45, 5, 37, 26, 22, 22, 17, 7, 18, 19, 17, 25, 2, 7, 44, 40, 24, 20, 8, 43, 39, 5, 23, 34, 41, 23, 4, 13, 9, 37]
+        self.__reduce_symbol_count: list = [1, 0, 1, 1, 2, 1, 4, 1, 0, 2, 0, 1, 0, 1, 2, 2, 0, 1, 1, 1, 1, 2, 0, 1, 1, 3, 1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 0, 0, 2, 2, 2, 1, 1, 1, 1, 1, 3, 2, 2, 6, 0, 1, 2, 0, 2, 1, 1, 0, 2, 4, 0, 3, 2, 1, 1, 2, 2, 2, 1, 1, 4, 1, 1, 3, 4, 1]
+        self.__reduce_non_terminal_index: list = [26, 20, 41, 23, 29, 44, 31, 19, 5, 13, 14, 32, 8, 39, 1, 16, 34, 6, 37, 12, 30, 17, 36, 20, 16, 2, 3, 8, 22, 46, 47, 45, 9, 11, 24, 3, 28, 37, 14, 38, 7, 5, 0, 36, 34, 25, 31, 43, 4, 27, 39, 41, 23, 46, 28, 47, 1, 0, 44, 35, 45, 48, 40, 19, 42, 30, 21, 15, 22, 40, 18, 4, 41, 10, 33, 36]
 
-    def grammar_analysis(self, token_list: list) -> BosonGrammar:
+    def parse(self, token_list: list) -> BosonGrammar:
         grammar = BosonGrammar()
         analysis_stack = [0]
         symbol_stack = []
@@ -553,7 +553,7 @@ class BosonGrammarAnalyzer:
                             grammar_node.append(symbol_package[int(node)])
                     grammar_node.reduce_number = statement_index
                     symbol_stack.append(grammar_node)
-                elif statement_index in {0, 3, 5, 6, 8, 12, 16, 17, 18, 21, 22, 23, 29, 30, 35, 36, 46, 47, 64, 65, 66, 69, 70, 71}:
+                elif statement_index in {0, 2, 3, 7, 11, 17, 19, 20, 22, 24, 26, 28, 32, 33, 34, 35, 43, 45, 51, 64, 68, 69, 71, 72}:
                     grammar_node = BosonGrammarNode()
                     for _ in range(reduce_count):
                         grammar_node.insert(0, symbol_stack.pop())
@@ -569,53 +569,51 @@ class BosonGrammarAnalyzer:
         raise RuntimeError('Analyzer unusual exit.')
 
 
-class BosonSemanticsAnalyzer:
+class BosonInterpreter:
     def __init__(self):
-        self.__reduce_number_grammar_name_mapping = {
-            28: 'command',
-            15: 'lexical_define',
-            58: 'reduce',
-            49: 'grammar_node',
-            24: 'name_closure',
-            68: 'literal',
-            57: 'complex_closure',
-            27: 'complex_optional',
-            53: 'select'
+        self.__reduce_number_grammar_name_mapping: dict = {
+            73: 'command',
+            49: 'lexical_define',
+            59: 'reduce',
+            61: 'grammar_node',
+            62: 'name_closure',
+            63: 'literal',
+            6: 'complex_closure',
+            46: 'complex_optional',
+            58: 'select'
         }
-        self.__naive_reduce_number_set = {65, 35, 68, 36, 6, 71, 8, 12, 46, 47, 16, 29}
-        self.__semantics_entity = {}
+        self.__naive_reduce_number_set: set = {2, 35, 68, 69, 7, 72, 43, 51, 22, 26, 28, 63}
+        self.__semantic_action_mapping: dict = {}
 
-    @staticmethod
-    def __default_semantics_entity(grammar_entity: list) -> list:
-        return grammar_entity
-
-    @staticmethod
-    def __naive_semantics_entity(grammar_entity: list):
-        if len(grammar_entity) == 0:
-            return None
-        elif len(grammar_entity) == 1:
-            return grammar_entity[0]
-        else:
-            return grammar_entity
-
-    def __semantics_analysis(self, grammar_tree: BosonGrammarNode):
+    def __semantic_analysis(self, grammar_tree: BosonGrammarNode):
         if grammar_tree.reduce_number in self.__reduce_number_grammar_name_mapping:
             grammar_name = self.__reduce_number_grammar_name_mapping[grammar_tree.reduce_number]
         else:
             grammar_name = '!grammar_hidden'
-        grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, BosonGrammarNode) else g, grammar_tree.data()))
-        if grammar_name in self.__semantics_entity:
-            return self.__semantics_entity[grammar_name](grammar_entity)
+        semantic_node_list = []
+        for grammar_node in grammar_tree.data():
+            if isinstance(grammar_node, BosonGrammarNode):
+                semantic_node = self.__semantic_analysis(grammar_node)
+            else:
+                semantic_node = grammar_node
+            semantic_node_list.append(semantic_node)
+        if grammar_name in self.__semantic_action_mapping:
+            return self.__semantic_action_mapping[grammar_name](semantic_node_list)
         elif grammar_tree.reduce_number in self.__naive_reduce_number_set:
-            return self.__naive_semantics_entity(grammar_entity)
+            if len(semantic_node_list) == 0:
+                return None
+            elif len(semantic_node_list) == 1:
+                return semantic_node_list[0]
+            else:
+                return semantic_node_list
         else:
-            return self.__default_semantics_entity(grammar_entity)
+            return semantic_node_list
 
-    def semantics_analysis(self, grammar_tree: BosonGrammarNode):
-        return self.__semantics_analysis(grammar_tree)
+    def execute(self, grammar_tree: BosonGrammarNode):
+        return self.__semantic_analysis(grammar_tree)
 
-    def semantics_entity(self, name: str) -> callable:
+    def register_action(self, name: str) -> callable:
         def decorator(f: callable):
-            self.__semantics_entity[name] = f
+            self.__semantic_action_mapping[name] = f
             return f
         return decorator

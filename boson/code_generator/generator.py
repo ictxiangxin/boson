@@ -20,10 +20,10 @@ class CodeGenerator:
     def dispose_lexer(self, lexer_generator: LexerGenerator) -> None:
         self.__template_data['option']['generate_lexer'] = True
         self.__template_data['lexer'] = {
+            'move_table': lexer_generator.move_table(),
             'compact_move_table': lexer_generator.compact_move_table(),
             'symbol_function_mapping': lexer_generator.symbol_function_mapping(),
             'non_greedy_state_set': lexer_generator.non_greedy_state_set(),
-            'move_table': lexer_generator.move_table(),
             'character_set': lexer_generator.character_set(),
             'start_state': lexer_generator.start_state(),
             'end_state_set': lexer_generator.end_state_set(),

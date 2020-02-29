@@ -82,7 +82,7 @@ def console_main():
         display('        > Commands Count: {}'.format(len(script_analyzer.command_list())))
         display('        > Lexical Definition: {}'.format('Yes' if script_analyzer.lexical_definition() else 'No'))
         display('        > Grammar Definition: {}'.format('Yes' if script_analyzer.sentence_set() else 'No'))
-        if configure.boson_option['generate_lexical_analyzer'] == 'yes' and script_analyzer.lexical_definition():
+        if configure.boson_option['generate_lexer'] == 'yes' and script_analyzer.lexical_definition():
             step += 1
             display('    [{}] Generate Lexical Analysis Table... '.format(step), newline=False)
             start_time = time.time()

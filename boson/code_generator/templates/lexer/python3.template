@@ -1,11 +1,11 @@
-class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
+class {{ configure.boson_option['lexer_class_name'] }}:
     def __init__(self):
-        self.__token_list = []
-        self.__line = {{ configure.boson_lexical_start_line }}
-        self.__error_line = {{ configure.boson_lexical_no_error_line }}
-        self.__no_error_line = {{ configure.boson_lexical_no_error_line }}
-        self.__skip = {{ configure.boson_lexical_default_skip }}
-        self.__move_table = {
+        self.__token_list: list = []
+        self.__line: int = {{ configure.boson_lexical_start_line }}
+        self.__error_line: int = {{ configure.boson_lexical_no_error_line }}
+        self.__no_error_line: int = {{ configure.boson_lexical_no_error_line }}
+        self.__skip: bool = {{ configure.boson_lexical_default_skip }}
+        self.__move_table: dict = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             {{ state }}: [
                 {%- for each in state_move_table %}
@@ -16,23 +16,23 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__character_set = {{ lexer.character_set }}
-        self.__start_state = {{ lexer.start_state }}
-        self.__end_state_set = {{ lexer.end_state_set }}
-        self.__lexical_symbol_mapping = {
+        self.__character_set: set = {{ lexer.character_set }}
+        self.__start_state: int = {{ lexer.start_state }}
+        self.__end_state_set: set = {{ lexer.end_state_set }}
+        self.__lexical_symbol_mapping: dict = {
             {%- for state, symbol in lexer.lexical_symbol_mapping.items() %}
             {{ state }}: '{{ symbol }}'
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__non_greedy_state_set = {{ lexer.non_greedy_state_set }}
-        self.__symbol_function_mapping = {
+        self.__non_greedy_state_set: set = {{ lexer.non_greedy_state_set }}
+        self.__symbol_function_mapping: dict = {
             {%- for symbol, function_list in lexer.symbol_function_mapping.items() %}
             '{{ symbol }}': {{ function_list }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__lexical_function = {}
+        self.__lexical_function: dict = {}
 
     def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
         self.__skip = {{ configure.boson_lexical_default_skip }}
@@ -50,7 +50,7 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
         symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
         token_string = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
-            self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}(token_string, self.__line, symbol))
+            self.__token_list.append({{ configure.boson_option['token_class_name'] }}(token_string, self.__line, symbol))
 
     def skip(self) -> None:
         self.__skip = True
@@ -118,10 +118,10 @@ class {{ configure.boson_option['lexical_analyzer_class_name'] }}:
             self._generate_token(state, token_string)
         else:
             raise ValueError('Invalid state: state={}'.format(state))
-        self.__token_list.append({{ configure.boson_option['lexical_token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
+        self.__token_list.append({{ configure.boson_option['token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
         return self.__error_line
 
-    def lexical_function_entity(self, function_name: str) -> callable:
+    def register_function(self, function_name: str) -> callable:
         def decorator(f: callable):
             self.__lexical_function[function_name] = f
             return f

@@ -113,17 +113,18 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 |命令名|参数范围|默认值|备注|
 |:-|:-:|:-:|:-|
 |%start_symbol|任意符号名|start|指明脚本中语法定义的起始语法符号。|
-|%lexical_token_class_name|任意变量名|BosonToken|生成代码中词法符号的类名。|
-|%lexical_analyzer_class_name|任意变量名|BosonLexicalAnalyzer|生成代码中词法分析器类名。|
-|%grammar_analyzer_class_name|任意变量名|BosonGrammarAnalyzer|生成代码中语法分析器类名。|
+|%token_class_name|任意变量名|BosonToken|生成代码中词法符号的类名。|
+|%lexer_class_name|任意变量名|BosonLexer|生成代码中词法分析器类名。|
+|%parser_class_name|任意变量名|BosonParser|生成代码中语法分析器类名。|
 |%grammar_class_name|任意变量名|BosonGrammar|生成代码中语法结构类名。|
 |%grammar_node_class_name|任意变量名|BosonGrammarNode|生成代码中语法节点类名。|
-|%semantics_analyzer_class_name|任意变量名|BosonSemanticsAnalyzer|生成代码中语义分析器类名。|
-|%semantics_node_class_name|任意变量名|BosonSemanticsNode|生成代码中语义节点类名。|
-|%generate_semantics_analyzer|yes/no|yes|是否生成语义分析器代码。|
-|%generate_lexical_analyzer|yes/no|yes|是否生成词法分析器代码。|
+|%interpreter_class_name|任意变量名|BosonInterpreter|生成代码中语义分析器类名。|
+|%semantic_node_class_name|任意变量名|BosonSemanticsNode|生成代码中语义节点类名。|
+|%generate_interpreter|yes/no|yes|是否生成语义分析器代码。|
+|%generate_lexer|yes/no|yes|是否生成词法分析器代码。|
 |%code_comment|yes/no|yes|是否在生成代码中显示版本版权等信息。|
-|%sparse_table|yes/no|yes|是否生成稀疏分析表。|
+|%parser_sparse_table|yes/no|yes|语法分析器是否生成稀疏分析表。|
+|%lexer_compact_table|yes/no|yes|词法分析器是否生成压缩分析表。|
 |%conflict_resolver|yes/no|no|是否开启内置冲突解决器。|
 |%shift_reduce_conflict_resolver|shift/reduce|shift|“移入-规约”冲突的解决方式，“shift”为移入优先，“reduce”为规约优先。|
 |%reduce_reduce_conflict_resolver|long/short|long|“规约-规约”冲突的解决方式，“long”为最长优先，“short”为最短优先。|
@@ -441,7 +442,7 @@ with open('test.txt', 'r', encoding='utf-8') as f:
         "到这里说明文本有词法错误"
     token_list = lexer.token_list()
     parser = BosonGrammarAnalyzer()
-    grammar = parser.grammar_analysis(token_list)
+    grammar = parser.parse(token_list)
     if grammar.error_index != grammar.no_error_index():
         "到这里说明有语法错误"
 ```
@@ -455,23 +456,23 @@ print_string: 'print' '(' string ')' = print($2);
 ```
 那么就需要向语义分析器注册名为`print`的语义动作：
 ```python
-from test import BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
+from test import BosonLexer, BosonParser, BosonInterpreter
 
 with open('test.txt', 'r', encoding='utf-8') as f:
     text = f.read()
-    lexer = BosonLexicalAnalyzer()
+    lexer = BosonLexer()
     if lexer.tokenize(text) != lexer.no_error_line():
         "到这里说明文本有词法错误"
     token_list = lexer.token_list()
-    parser = BosonGrammarAnalyzer()
-    grammar = parser.grammar_analysis(token_list)
+    parser = BosonParser()
+    grammar = parser.parse(token_list)
     if grammar.error_index != grammar.no_error_index():
         "到这里说明有语法错误"
-    semantics_analyzer = BosonSemanticsAnalyzer()
-    @semantic_analyzer.semantics_entity('print')
-        def _print(grammar_entity): # 根据语法元组定义只有一个参数，因此len(grammar_entity) == 1。
-            print(grammar_entity[0])
-    semantics_analyzer.semantics_analysis(grammar.grammar_tree) # 对抽象语法树执行语义分析。
+    interpreter = BosonInterpreter()
+    @interpreter.register_action('print')
+    def _print(grammar_entity): # 根据语法元组定义只有一个参数，因此len(grammar_entity) == 1。
+        print(grammar_entity[0])
+    interpreter.execute(grammar.grammar_tree) # 对抽象语法树执行语义分析。
 ```
 
 至此，程序已经结束。使用Boson生成分析器代码，可以很方便进行调用，进行许多涉及语法分析的工作。

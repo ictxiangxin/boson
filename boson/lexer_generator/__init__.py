@@ -12,5 +12,5 @@ from boson.lexer_generator.lexical_nfa import \
     bs_create_nfa_reverse_delay_construct
 from boson.lexer_generator.regular_parser import \
     BosonGrammarNode, \
-    RegularAnalyzer, \
-    RegularSemanticsAnalyzer
+    RegularParser, \
+    RegularInterpreter

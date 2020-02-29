@@ -1,5 +1,5 @@
 from boson.lexer_generator.lexical_nfa import LexicalNFA
-from boson.lexer_generator.regular_parser import RegularLexicalAnalyzer
+from boson.lexer_generator.regular_parser import RegularLexer
 from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
 import boson.configure as configure
 
@@ -37,10 +37,10 @@ class LexerGenerator:
         return self.__lexical_dfa.lexical_symbol_mapping()
 
     def generate_lexical_dfa(self) -> None:
-        tokenizer = RegularLexicalAnalyzer()
+        tokenizer = RegularLexer()
         reference_set = set()
 
-        @tokenizer.lexical_function_entity('reference')
+        @tokenizer.register_function('reference')
         def _record_reference_symbol(token_string: str) -> str:
             reference_set.add(token_string[1:-1])
             return token_string

@@ -1,13 +1,13 @@
 import boson.configure as configure
-from boson.boson_script.boson_script_parser import BosonGrammarNode, BosonLexicalAnalyzer, BosonGrammarAnalyzer, BosonSemanticsAnalyzer
+from boson.boson_script.boson_script_parser import BosonGrammarNode, BosonLexer, BosonParser, BosonInterpreter
 
 
-semantic_analyzer = BosonSemanticsAnalyzer()
+interpreter = BosonInterpreter()
 
 
 class BosonScriptAnalyzer:
     def __init__(self):
-        self.__grammar_analyzer: BosonGrammarAnalyzer = BosonGrammarAnalyzer()
+        self.__parser: BosonParser = BosonParser()
         self.__sentence_set: set = set()
         self.__sentence_grammar_tuple_mapping: dict = {}
         self.__none_grammar_tuple_set: set = set()
@@ -92,23 +92,23 @@ class BosonScriptAnalyzer:
         return self.__naive_sentence_set
 
     def init_semantic(self):
-        @semantic_analyzer.semantics_entity('command')
-        def _semantic_command(grammar_entity):
-            self.__command_list.append(grammar_entity)
+        @interpreter.register_action('command')
+        def _semantic_command(semantic_node_list):
+            self.__command_list.append(semantic_node_list)
 
-        @semantic_analyzer.semantics_entity('lexical_define')
-        def _semantic_lexical_define(grammar_entity):
-            grammar_entity[1] = grammar_entity[1][1:-1]
-            self.__lexical_definition[grammar_entity[0]] = grammar_entity[1:]
+        @interpreter.register_action('lexical_define')
+        def _semantic_lexical_define(semantic_node_list):
+            semantic_node_list[1] = semantic_node_list[1][1:-1]
+            self.__lexical_definition[semantic_node_list[0]] = semantic_node_list[1:]
 
-        @semantic_analyzer.semantics_entity('regular_expression')
-        def _semantic_regular_expression(grammar_entity):
-            return [grammar_entity[0][1:-1], grammar_entity[1] if len(grammar_entity) > 1 else []]
+        @interpreter.register_action('regular_expression')
+        def _semantic_regular_expression(semantic_node_list):
+            return [semantic_node_list[0][1:-1], semantic_node_list[1] if len(semantic_node_list) > 1 else []]
 
-        @semantic_analyzer.semantics_entity('reduce')
-        def _semantic_reduce(grammar_entity):
-            reduce_name = grammar_entity[0]
-            derivation_list = grammar_entity[1]
+        @interpreter.register_action('reduce')
+        def _semantic_reduce(semantic_node_list):
+            reduce_name = semantic_node_list[0]
+            derivation_list = semantic_node_list[1]
             for derivation in derivation_list:
                 derivation_body = derivation[0]
                 if isinstance(derivation_body, str):
@@ -137,23 +137,23 @@ class BosonScriptAnalyzer:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
                 self.__grammar_number += 1
 
-        @semantic_analyzer.semantics_entity('name_closure')
-        def _semantic_name_closure(grammar_entity):
-            name = grammar_entity[0]
-            if len(grammar_entity) == 2:
-                if grammar_entity[1] == '+':
+        @interpreter.register_action('name_closure')
+        def _semantic_name_closure(semantic_node_list):
+            name = semantic_node_list[0]
+            if len(semantic_node_list) == 2:
+                if semantic_node_list[1] == '+':
                     name = self.__add_positive_closure(name)
-                elif grammar_entity[1] == '*':
+                elif semantic_node_list[1] == '*':
                     name = self.__add_colin_closure(name)
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
             return name
 
-        @semantic_analyzer.semantics_entity('complex_closure')
-        def _semantic_complex_closure(grammar_entity):
-            name = self.__add_hidden_derivation(grammar_entity[0])
-            if len(grammar_entity) == 2:
-                closure = grammar_entity[1][0]
+        @interpreter.register_action('complex_closure')
+        def _semantic_complex_closure(semantic_node_list):
+            name = self.__add_hidden_derivation(semantic_node_list[0])
+            if len(semantic_node_list) == 2:
+                closure = semantic_node_list[1][0]
                 if closure == '+':
                     name = self.__add_positive_closure(name)
                 elif closure == '*':
@@ -162,36 +162,36 @@ class BosonScriptAnalyzer:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
             return name
 
-        @semantic_analyzer.semantics_entity('complex_optional')
-        def _semantic_complex_optional(grammar_entity):
-            return self.__add_optional(self.__add_hidden_derivation(grammar_entity[0]))
+        @interpreter.register_action('complex_optional')
+        def _semantic_complex_optional(semantic_node_list):
+            return self.__add_optional(self.__add_hidden_derivation(semantic_node_list[0]))
 
-        @semantic_analyzer.semantics_entity('select')
-        def _semantic_select(grammar_entity):
-            return [self.__add_select(grammar_entity)]
+        @interpreter.register_action('select')
+        def _semantic_select(semantic_node_list):
+            return [self.__add_select(semantic_node_list)]
 
-        @semantic_analyzer.semantics_entity('grammar_node')
-        def _semantic_grammar_node(grammar_entity):
-            if len(grammar_entity) == 1:
-                return grammar_entity[0][1:]
-            elif len(grammar_entity) == 2:
-                if grammar_entity[0] == configure.boson_grammar_tuple_unpack:
-                    return grammar_entity[0] + grammar_entity[1][1:]
+        @interpreter.register_action('grammar_node')
+        def _semantic_grammar_node(semantic_node_list):
+            if len(semantic_node_list) == 1:
+                return semantic_node_list[0][1:]
+            elif len(semantic_node_list) == 2:
+                if semantic_node_list[0] == configure.boson_grammar_tuple_unpack:
+                    return semantic_node_list[0] + semantic_node_list[1][1:]
                 else:
-                    return grammar_entity[0][1:], tuple(grammar_entity[1])
-            elif len(grammar_entity) == 3:
-                if grammar_entity[0] == configure.boson_grammar_tuple_unpack:
-                    return grammar_entity[0] + grammar_entity[1][1:], tuple(grammar_entity[2])
+                    return semantic_node_list[0][1:], tuple(semantic_node_list[1])
+            elif len(semantic_node_list) == 3:
+                if semantic_node_list[0] == configure.boson_grammar_tuple_unpack:
+                    return semantic_node_list[0] + semantic_node_list[1][1:], tuple(semantic_node_list[2])
                 else:
-                    return grammar_entity[0], (grammar_entity[1],) + tuple(grammar_entity[2])
-            elif len(grammar_entity) == 4:
-                return grammar_entity[0] + grammar_entity[1][1:], (grammar_entity[2],) + tuple(grammar_entity[3])
+                    return semantic_node_list[0], (semantic_node_list[1],) + tuple(semantic_node_list[2])
+            elif len(semantic_node_list) == 4:
+                return semantic_node_list[0] + semantic_node_list[1][1:], (semantic_node_list[2],) + tuple(semantic_node_list[3])
             else:
                 raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
 
-        @semantic_analyzer.semantics_entity('literal')
-        def _semantic_literal(grammar_entity):
-            literal_string = grammar_entity[0][1: -1]
+        @interpreter.register_action('literal')
+        def _semantic_literal(semantic_node_list):
+            literal_string = semantic_node_list[0][1: -1]
             if literal_string in self.__literal_map:
                 literal_symbol = self.__literal_map[literal_string]
             else:
@@ -202,8 +202,8 @@ class BosonScriptAnalyzer:
                 self.__lexical_definition[literal_symbol] = ['\\' + '\\'.join(literal_string)]
             return literal_symbol
 
-    def grammar_analysis(self, token_list: list) -> BosonGrammarNode:
-        grammar = self.__grammar_analyzer.grammar_analysis(token_list)
+    def parse(self, token_list: list) -> BosonGrammarNode:
+        grammar = self.__parser.parse(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
         else:
@@ -230,9 +230,9 @@ class BosonScriptAnalyzer:
             raise ValueError(error_message)
 
     def tokenize_and_parse(self, boson_script_text: str):
-        tokenizer = BosonLexicalAnalyzer()
-        if tokenizer.tokenize(boson_script_text) != tokenizer.no_error_line():
-            raise ValueError('[Boson Script Analyzer] Invalid Token [Line: {}]'.format(tokenizer.error_line()))
+        lexer = BosonLexer()
+        if lexer.tokenize(boson_script_text) != lexer.no_error_line():
+            raise ValueError('[Boson Script Analyzer] Invalid Token [Line: {}]'.format(lexer.error_line()))
         self.__init__()
         self.init_semantic()
-        semantic_analyzer.semantics_analysis(self.grammar_analysis(tokenizer.token_list()))
+        interpreter.execute(self.parse(lexer.token_list()))

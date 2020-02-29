@@ -75,16 +75,16 @@ private:
     int _no_error_index = {{ configure.boson_grammar_no_error_index }};
 };
 
-{% if configure.boson_option['generate_semantics_analyzer'] == 'yes' %}
+{% if configure.boson_option['generate_interpreter'] == 'yes' %}
 template <class T>
-class {{ configure.boson_option['semantics_node_class_name'] }} {
+class {{ configure.boson_option['semantic_node_class_name'] }} {
 public:
-    {{ configure.boson_option['semantics_node_class_name'] }}() = default;
+    {{ configure.boson_option['semantic_node_class_name'] }}() = default;
 
-    explicit {{ configure.boson_option['semantics_node_class_name'] }}(T data): _data(data) {};
+    explicit {{ configure.boson_option['semantic_node_class_name'] }}(T data): _data(data) {};
 
-    static {{ configure.boson_option['semantics_node_class_name'] }} &null_node() {
-        static {{ configure.boson_option['semantics_node_class_name'] }} node;
+    static {{ configure.boson_option['semantic_node_class_name'] }} &null_node() {
+        static {{ configure.boson_option['semantic_node_class_name'] }} node;
         return node;
     }
 
@@ -112,45 +112,45 @@ public:
         this->_text = text;
     }
 
-    void append(const {{ configure.boson_option['semantics_node_class_name'] }} &item) {
+    void append(const {{ configure.boson_option['semantic_node_class_name'] }} &item) {
         this->_children.push_back(item);
     }
 
-    void insert(int index, const {{ configure.boson_option['semantics_node_class_name'] }} &item) {
+    void insert(int index, const {{ configure.boson_option['semantic_node_class_name'] }} &item) {
         this->_children.insert(this->_children.begin() + index, item);
     }
 
-    std::vector<{{ configure.boson_option['semantics_node_class_name'] }}> &children() {
+    std::vector<{{ configure.boson_option['semantic_node_class_name'] }}> &children() {
         return this->_children;
     }
 
-    {{ configure.boson_option['semantics_node_class_name'] }} &operator[](int index) {
+    {{ configure.boson_option['semantic_node_class_name'] }} &operator[](int index) {
         return this->_children[index];
     }
 
 protected:
     int _reduce_number = -1;
     std::string _text{};
-    std::vector<{{ configure.boson_option['semantics_node_class_name'] }}> _children{};
+    std::vector<{{ configure.boson_option['semantic_node_class_name'] }}> _children{};
     T _data;
 };
 
 
 {% endif -%}
-class {{ configure.boson_option['grammar_analyzer_class_name'] }} {
+class {{ configure.boson_option['parser_class_name'] }} {
 public:
-    {{ configure.boson_option['grammar_analyzer_class_name'] }}() = default;
+    {{ configure.boson_option['parser_class_name'] }}() = default;
 
-    {{ configure.boson_option['grammar_class_name'] }} grammar_analysis(std::vector<{{ configure.boson_option['lexical_token_class_name'] }}> token_list) {
+    {{ configure.boson_option['grammar_class_name'] }} parse(std::vector<{{ configure.boson_option['token_class_name'] }}> token_list) {
         {{ configure.boson_option['grammar_class_name'] }} grammar;
         std::stack<int> analysis_stack;
         std::stack<{{ configure.boson_option['grammar_node_class_name'] }}> symbol_stack;
         analysis_stack.push(0);
         int token_index = 0;
         while (token_index < token_list.size()) {
-            {{ configure.boson_option['lexical_token_class_name'] }} &token = token_list[token_index];
+            {{ configure.boson_option['token_class_name'] }} &token = token_list[token_index];
             int current_state = analysis_stack.top();
-            {%- if configure.boson_option['sparse_table'] == 'yes' %}
+            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
             std::string operation = "{{ configure.boson_table_sign_error }}";
             int terminal_index = this->_terminal_index_mapping[token.symbol];
             if (this->_sparse_action_table.count(current_state)) {
@@ -180,7 +180,7 @@ public:
                 }
                 current_state = analysis_stack.top();
                 int current_non_terminal_index_mapping = this->_reduce_non_terminal_index[statement_index];
-                {%- if configure.boson_option['sparse_table'] == 'yes' %}
+                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
                 int goto_next_state = -1;
                 if (this->_sparse_goto_table.count(current_state)) {
                     std::unordered_map<int, int> &goto_table = this->_sparse_goto_table[current_state];
@@ -253,7 +253,7 @@ private:
         {%- if not loop.last %},{% endif -%}
         {%- endfor %}
     };
-    {% if configure.boson_option['sparse_table'] == 'yes' %}
+    {% if configure.boson_option['parser_sparse_table'] == 'yes' %}
     std::unordered_map<int, std::unordered_map<int, std::string>> _sparse_action_table = {
         {%- for i, sub_table in parser.sparse_action_table.items() %}
         { {{- i }}, {
@@ -338,44 +338,27 @@ private:
 };
 
 
-{%- if configure.boson_option['generate_semantics_analyzer'] == 'yes' %}
+{%- if configure.boson_option['generate_interpreter'] == 'yes' %}
 
 
 template <class T>
-class {{ configure.boson_option['semantics_analyzer_class_name'] }} {
+class {{ configure.boson_option['interpreter_class_name'] }} {
 public:
-    using semantic_function = std::function<{{ configure.boson_option['semantics_node_class_name'] }}<T>({{ configure.boson_option['semantics_node_class_name'] }}<T> &)>;
+    using semantic_function = std::function<{{ configure.boson_option['semantic_node_class_name'] }}<T>({{ configure.boson_option['semantic_node_class_name'] }}<T> &)>;
 
-    {{ configure.boson_option['semantics_analyzer_class_name'] }}() = default;
+    {{ configure.boson_option['interpreter_class_name'] }}() = default;
 
-    {{ configure.boson_option['semantics_node_class_name'] }}<T> semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
+    {{ configure.boson_option['semantic_node_class_name'] }}<T> execute({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
         return this->_semantics_analysis(grammar_tree);
     }
 
-    static {{ configure.boson_option['semantics_node_class_name'] }}<T> default_semantics_entity({{ configure.boson_option['semantics_node_class_name'] }}<T> &semantics_node) {
-        return semantics_node;
-    }
-
-    static {{ configure.boson_option['semantics_node_class_name'] }}<T> naive_semantics_entity({{ configure.boson_option['semantics_node_class_name'] }}<T> &semantics_node) {
-        if (semantics_node.children().size() == 1) {
-            return semantics_node[0];
-        } else {
-            return semantics_node;
-        }
-    }
-
-    void semantics_entity(int reduce_number, semantic_function function) {
-        std::string reduce_name = "{{ configure.boson_grammar_name_prefix }}" + std::to_string(reduce_number);
-        this->semantics_entity(reduce_name, function);
-    }
-
-    void semantics_entity(const char *reduce_name, semantic_function function) {
+    void register_action(const char *reduce_name, semantic_function function) {
         std::string reduce_name_string(reduce_name);
-        this->semantics_entity(reduce_name_string, function);
+        this->register_action(reduce_name_string, function);
     }
 
-    void semantics_entity(std::string &reduce_name, semantic_function function) {
-        this->_semantics_entity[reduce_name] = function;
+    void register_action(std::string &reduce_name, semantic_function function) {
+        this->_semantic_action_mapping[reduce_name] = function;
     }
 
 private:
@@ -393,32 +376,36 @@ private:
         {%- endfor -%}
     };
 
-    std::unordered_map<std::string, semantic_function> _semantics_entity{};
+    std::unordered_map<std::string, semantic_function> _semantic_action_mapping{};
 
-    {{ configure.boson_option['semantics_node_class_name'] }}<T> _semantics_analysis(BosonGrammarNode &grammar_tree) {
+    {{ configure.boson_option['semantic_node_class_name'] }}<T> _semantics_analysis(BosonGrammarNode &grammar_tree) {
         std::string grammar_name{};
         if (this->_reduce_number_grammar_name_mapping.count(grammar_tree.get_reduce_number())) {
             grammar_name = this->_reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()];
         } else {
             grammar_name = "{{ configure.boson_grammar_name_prefix }}hidden";
         }
-        {{ configure.boson_option['semantics_node_class_name'] }}<T> semantics_node;
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> semantics_node;
         for (auto &node: grammar_tree.children()) {
             if (!node.children().empty()) {
                 semantics_node.append(this->_semantics_analysis(node));
             } else {
-                {{ configure.boson_option['semantics_node_class_name'] }}<T> temp_node;
+                {{ configure.boson_option['semantic_node_class_name'] }}<T> temp_node;
                 temp_node.set_reduce_number(node.get_reduce_number());
                 temp_node.set_text(node.get_text());
                 semantics_node.append(temp_node);
             }
         }
-        if (this->_semantics_entity.count(grammar_name)) {
-            return this->_semantics_entity[grammar_name](semantics_node);
+        if (this->_semantic_action_mapping.count(grammar_name)) {
+            return this->_semantic_action_mapping[grammar_name](semantics_node);
         } else if (this->_naive_reduce_number_set.count(grammar_tree.get_reduce_number())) {
-            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::naive_semantics_entity(semantics_node);
+            if (semantics_node.children().size() == 1) {
+                return semantics_node[0];
+            } else {
+                return semantics_node;
+            }
         } else {
-            return {{ configure.boson_option['semantics_analyzer_class_name'] }}::default_semantics_entity(semantics_node);
+            return semantics_node;
         }
     }
 };

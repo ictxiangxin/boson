@@ -1,7 +1,7 @@
 class {{ configure.boson_option['grammar_node_class_name'] }}:
     def __init__(self):
         self.reduce_number = {{ configure.boson_grammar_default_reduce_number }}
-        self.__data = []
+        self.__data: list = []
 
     def __getitem__(self, item):
         return self.__data[item]
@@ -10,87 +10,87 @@ class {{ configure.boson_option['grammar_node_class_name'] }}:
         self.__data += other
         return self
 
-    def append(self, item):
+    def append(self, item) -> None:
         self.__data.append(item)
 
-    def insert(self, index, item):
+    def insert(self, index, item) -> None:
         self.__data.insert(index, item)
 
-    def data(self):
+    def data(self) -> list:
         return self.__data
 
 
 class {{ configure.boson_option['grammar_class_name'] }}:
     def __init__(self):
-        self.__grammar_tree = None
-        self.__error_index = {{ configure.boson_grammar_no_error_index }}
-        self.__no_error_index = {{ configure.boson_grammar_no_error_index }}
+        self.__grammar_tree: ({{ configure.boson_option['grammar_node_class_name'] }}, None) = None
+        self.__error_index: int = {{ configure.boson_grammar_no_error_index }}
+        self.__no_error_index: int = {{ configure.boson_grammar_no_error_index }}
 
-    def get_grammar_tree(self):
+    def get_grammar_tree(self) -> ({{ configure.boson_option['grammar_node_class_name'] }}, None):
         return self.__grammar_tree
 
-    def set_grammar_tree(self, grammar_tree: tuple):
+    def set_grammar_tree(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}) -> None:
         self.__grammar_tree = grammar_tree
 
     grammar_tree = property(get_grammar_tree, set_grammar_tree)
 
-    def get_error_index(self):
+    def get_error_index(self) -> int:
         return self.__error_index
 
-    def set_error_index(self, error_index: int):
+    def set_error_index(self, error_index: int) -> None:
         self.__error_index = error_index
 
     error_index = property(get_error_index, set_error_index)
 
-    def no_error_index(self):
+    def no_error_index(self) -> int:
         return self.__no_error_index
 
 
-class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
+class {{ configure.boson_option['parser_class_name'] }}:
     def __init__(self):
-        self.__terminal_index_mapping = {
+        self.__terminal_index_mapping: dict = {
             {%- for terminal, index in parser.terminal_index_mapping.items() %}
             '{{ terminal }}': {{ index }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        {%- if configure.boson_option['sparse_table'] == 'yes' %}
-        self.__sparse_action_table = {
+        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        self.__sparse_action_table: dict = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             {{ i }}: {{ sub_table }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__sparse_goto_table = {
+        self.__sparse_goto_table: dict = {
             {%- for i, sub_table in parser.sparse_goto_table.items() %}
             {{ i }}: {{ sub_table }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         {%- else %}
-        self.__action_table = [
+        self.__action_table: list = [
             {%- for line in parser.action_table %}
             {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
-        self.__goto_table = [
+        self.__goto_table: list = [
             {%- for line in parser.goto_table %}
             {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
         {%- endif %}
-        self.__sentence_index_grammar_tuple_mapping = {
+        self.__sentence_index_grammar_tuple_mapping: dict = {
             {%- for sentence_index, grammar_tuple in parser.sentence_index_grammar_tuple_mapping.items() %}
             {{ sentence_index }}: {{ grammar_tuple }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__reduce_symbol_count = {{ parser.reduce_symbol_count }}
-        self.__reduce_non_terminal_index = {{ parser.reduce_non_terminal_index }}
+        self.__reduce_symbol_count: list = {{ parser.reduce_symbol_count }}
+        self.__reduce_non_terminal_index: list = {{ parser.reduce_non_terminal_index }}
 
-    def grammar_analysis(self, token_list: list) -> {{ configure.boson_option['grammar_class_name'] }}:
+    def parse(self, token_list: list) -> {{ configure.boson_option['grammar_class_name'] }}:
         grammar = {{ configure.boson_option['grammar_class_name'] }}()
         analysis_stack = [0]
         symbol_stack = []
@@ -98,7 +98,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
         while token_index < len(token_list):
             token = token_list[token_index]
             current_state = analysis_stack[-1]
-            {%- if configure.boson_option['sparse_table'] == 'yes' %}
+            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
             operation = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
             {%- else %}
             operation = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
@@ -119,7 +119,7 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
                     analysis_stack.pop()
                 current_state = analysis_stack[-1]
                 current_non_terminal_index = self.__reduce_non_terminal_index[statement_index]
-                {%- if configure.boson_option['sparse_table'] == 'yes' %}
+                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
                 goto_next_state = self.__sparse_goto_table.get(current_state, {}).get(current_non_terminal_index, {{ configure.boson_invalid_goto }})
                 {%- else %}
                 goto_next_state = self.__goto_table[current_state][current_non_terminal_index]
@@ -163,52 +163,50 @@ class {{ configure.boson_option['grammar_analyzer_class_name'] }}:
             else:
                 raise ValueError('Invalid action: action={}'.format(operation))
         raise RuntimeError('Analyzer unusual exit.')
-{%- if configure.boson_option['generate_semantics_analyzer'] == 'yes' %}
+{%- if configure.boson_option['generate_interpreter'] == 'yes' %}
 
 
-class {{ configure.boson_option['semantics_analyzer_class_name'] }}:
+class {{ configure.boson_option['interpreter_class_name'] }}:
     def __init__(self):
-        self.__reduce_number_grammar_name_mapping = {
+        self.__reduce_number_grammar_name_mapping: dict = {
             {%- for reduce_number, grammar_name in parser.reduce_number_grammar_name_mapping.items() %}
             {{ reduce_number }}: '{{ grammar_name }}'
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__naive_reduce_number_set = {{ parser.naive_reduce_number_set }}
-        self.__semantics_entity = {}
+        self.__naive_reduce_number_set: set = {{ parser.naive_reduce_number_set }}
+        self.__semantic_action_mapping: dict = {}
 
-    @staticmethod
-    def __default_semantics_entity(grammar_entity: list) -> list:
-        return grammar_entity
-
-    @staticmethod
-    def __naive_semantics_entity(grammar_entity: list):
-        if len(grammar_entity) == 0:
-            return None
-        elif len(grammar_entity) == 1:
-            return grammar_entity[0]
-        else:
-            return grammar_entity
-
-    def __semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
+    def __semantic_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
         if grammar_tree.reduce_number in self.__reduce_number_grammar_name_mapping:
             grammar_name = self.__reduce_number_grammar_name_mapping[grammar_tree.reduce_number]
         else:
             grammar_name = '{{ configure.boson_grammar_name_prefix }}hidden'
-        grammar_entity = list(map(lambda g: self.__semantics_analysis(g) if isinstance(g, {{ configure.boson_option['grammar_node_class_name'] }}) else g, grammar_tree.data()))
-        if grammar_name in self.__semantics_entity:
-            return self.__semantics_entity[grammar_name](grammar_entity)
+        semantic_node_list = []
+        for grammar_node in grammar_tree.data():
+            if isinstance(grammar_node, {{ configure.boson_option['grammar_node_class_name'] }}):
+                semantic_node = self.__semantic_analysis(grammar_node)
+            else:
+                semantic_node = grammar_node
+            semantic_node_list.append(semantic_node)
+        if grammar_name in self.__semantic_action_mapping:
+            return self.__semantic_action_mapping[grammar_name](semantic_node_list)
         elif grammar_tree.reduce_number in self.__naive_reduce_number_set:
-            return self.__naive_semantics_entity(grammar_entity)
+            if len(semantic_node_list) == 0:
+                return None
+            elif len(semantic_node_list) == 1:
+                return semantic_node_list[0]
+            else:
+                return semantic_node_list
         else:
-            return self.__default_semantics_entity(grammar_entity)
+            return semantic_node_list
 
-    def semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
-        return self.__semantics_analysis(grammar_tree)
+    def execute(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}):
+        return self.__semantic_analysis(grammar_tree)
 
-    def semantics_entity(self, name: str) -> callable:
+    def register_action(self, name: str) -> callable:
         def decorator(f: callable):
-            self.__semantics_entity[name] = f
+            self.__semantic_action_mapping[name] = f
             return f
         return decorator
 {%- endif %}

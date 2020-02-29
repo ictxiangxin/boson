@@ -11,7 +11,7 @@
 
 
 {% endif -%}
-class {{ configure.boson_option['lexical_token_class_name'] }}:
+class {{ configure.boson_option['token_class_name'] }}:
     text: str
     line: int
     symbol: str

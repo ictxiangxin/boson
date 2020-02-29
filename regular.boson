@@ -1,11 +1,11 @@
-%LexicalTokenClassName RegularToken;
-%LexicalAnalyzerClassName RegularLexicalAnalyzer;
-%GrammarAnalyzerClassName RegularAnalyzer;
-%SemanticsAnalyzerClassName RegularSemanticsAnalyzer;
-%GenerateSemanticsAnalyzer yes;
-%GenerateLexicalAnalyzer yes;
+%TokenClassName RegularToken;
+%LexerClassName RegularLexer;
+%ParserClassName RegularParser;
+%InterpreterClassName RegularInterpreter;
+%GenerateInterpreter yes;
+%GenerateLexer yes;
 %CodeComment no;
-%SparseTable yes;
+%ParserSparseTable yes;
 %StartSymbol regular_expression;
 
 
@@ -23,7 +23,7 @@ normal_character = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]>;
 #####################################
 regular_expression: expression = regular_expression($0);
 
-expression : branch ('|' branch)* = expression($0, *$1($1));
+expression : branch ('|' branch)* = expression($0, *$1*($1));
 
 branch: group+ = branch(*$0);
 
