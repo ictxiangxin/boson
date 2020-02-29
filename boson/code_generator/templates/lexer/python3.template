@@ -5,18 +5,55 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         self.__error_line: int = {{ configure.boson_lexical_no_error_line }}
         self.__no_error_line: int = {{ configure.boson_lexical_no_error_line }}
         self.__skip: bool = {{ configure.boson_lexical_default_skip }}
-        self.__move_table: dict = {
+        {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+        self.__compact_move_table: dict = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             {{ state }}: [
-                {%- for each in state_move_table %}
-                {{ each }}
+                {%- for compact_tuple in state_move_table %}
+                [
+                    {{- compact_tuple[0] -}}, {% if compact_tuple[1] -%}
+                    {
+                        {%- for character in compact_tuple[1] -%}
+                        '{{ '\\x%s' % character.encode().hex() }}'
+                        {%- if not loop.last %}, {% endif -%}
+                        {%- endfor -%}
+                    },
+                    {%- else -%}
+                    set(),
+                    {%- endif %} [
+                        {%- for range in compact_tuple[2] -%}
+                        ('{{ '\\x%s' % range[0].encode().hex() }}', '{{ '\\x%s' % range[1].encode().hex() }}')
+                        {%- if not loop.last %}, {% endif -%}
+                        {%- endfor -%}
+                    ], {{ compact_tuple[3] -}}
+                ]
                 {%- if not loop.last %},{% endif -%}
                 {%- endfor %}
             ]
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__character_set: set = {{ lexer.character_set }}
+        {%- else %}
+        self.__move_table: dict = {
+            {%- for state, state_move_table in lexer.move_table.items() %}
+            {{ state }}: [{{ state_move_table.get(True, -1) }}, {
+                {%- for character, to_state in state_move_table.items() -%}
+                {%- if character != True -%}
+                '{{ '\\x%s' % character.encode().hex() }}': {{ to_state }}
+                {%- if not loop.last %}, {% endif -%}
+                {%- endif -%}
+                {%- endfor -%}
+            }]
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
+        }
+        {%- endif %}
+        self.__character_set: set = {
+            {%- for character in lexer.character_set -%}
+            '{{ '\\x%s' % character.encode().hex() }}'
+            {%- if not loop.last %}, {% endif -%}
+            {%- endfor -%}
+        }
         self.__start_state: int = {{ lexer.start_state }}
         self.__end_state_set: set = {{ lexer.end_state_set }}
         self.__lexical_symbol_mapping: dict = {
@@ -80,8 +117,9 @@ class {{ configure.boson_option['lexer_class_name'] }}:
             get_token = False
             if state in self.__non_greedy_state_set:
                 get_token = True
-            if not get_token and state in self.__move_table:
-                for attribute, character_set, range_list, next_state in self.__move_table[state]:
+            {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+            if not get_token and state in self.__compact_move_table:
+                for attribute, character_set, range_list, next_state in self.__compact_move_table[state]:
                     if attribute == 2:
                         condition = character not in character_set
                         for min_character, max_character in range_list:
@@ -98,6 +136,16 @@ class {{ configure.boson_option['lexer_class_name'] }}:
                         token_string += character
                         state = next_state
                         break
+            {%- else %}
+            if not get_token and state in self.__move_table:
+                wildcard, character_move_table = self.__move_table[state]
+                if character in character_move_table:
+                    token_string += character
+                    state = character_move_table[character]
+                elif wildcard != -1 and character not in self.__character_set:
+                    token_string += character
+                    state = wildcard
+            {%- endif %}
                 else:
                     if state in self.__end_state_set:
                         get_token = True

@@ -82,7 +82,7 @@ class LexerGenerator:
             if lexical_symbol in non_greedy_symbol_set:
                 self.__non_greedy_state_set.add(state)
 
-    def compact_lexical_dfa(self) -> None:
+    def generate_compact_move_table(self) -> None:
         self.__compact_move_table = {}
         for from_state, move_table in self.__lexical_dfa.move_table().items():
             reverse_mapping = {}

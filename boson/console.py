@@ -88,7 +88,7 @@ def console_main():
             start_time = time.time()
             lexical_analyzer = LexerGenerator(script_analyzer.lexical_definition())
             lexical_analyzer.generate_lexical_dfa()
-            lexical_analyzer.compact_lexical_dfa()
+            lexical_analyzer.generate_compact_move_table()
             end_time = time.time()
             display('Done [{:.4f}s]'.format(end_time - start_time))
             display('        > Lexical Definition Count: {}'.format(len(script_analyzer.lexical_definition())))
