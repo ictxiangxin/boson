@@ -1,7 +1,7 @@
 boson_name = 'Boson'
 boson_package_name = 'boson'
 boson_version_main = 1
-boson_version_sub = 3
+boson_version_sub = 4
 boson_title = '{} v{}.{}'.format(boson_name, boson_version_main, boson_version_sub)
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
