@@ -20,6 +20,10 @@ class BosonScriptAnalyzer:
         self.__hidden_name_number: int = 0
         self.__grammar_number: int = 0
         self.__lexical_definition: dict = {}
+        self.__hidden_derivation_cache: dict = {}
+        self.__positive_closure_cache: dict = {}
+        self.__colin_closure_cache: dict = {}
+        self.__optional_cache: dict = {}
 
     def __generate_hidden_name(self, prefix: str = configure.boson_hidden_name_prefix) -> str:
         hidden_name = '{}{}'.format(prefix, self.__hidden_name_number)
@@ -34,22 +38,34 @@ class BosonScriptAnalyzer:
             self.__sentence_grammar_tuple_mapping[sentence] = grammar_tuple
 
     def __add_positive_closure(self, name: str) -> str:
-        hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
-        self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
-        self.__sentence_add((hidden_name, name))
-        return hidden_name
+        if name in self.__positive_closure_cache:
+            return self.__positive_closure_cache[name]
+        else:
+            hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
+            self.__positive_closure_cache[name] = hidden_name
+            self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            self.__sentence_add((hidden_name, name))
+            return hidden_name
 
     def __add_colin_closure(self, name: str) -> str:
-        hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
-        self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
-        self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
-        return hidden_name
+        if name in self.__colin_closure_cache:
+            return self.__colin_closure_cache[name]
+        else:
+            hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
+            self.__colin_closure_cache[name] = hidden_name
+            self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+            return hidden_name
 
     def __add_optional(self, name: str) -> str:
-        hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
-        self.__sentence_add((hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack),))
-        self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
-        return hidden_name
+        if name in self.__optional_cache:
+            return self.__optional_cache[name]
+        else:
+            hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
+            self.__optional_cache[name] = hidden_name
+            self.__sentence_add((hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack),))
+            self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+            return hidden_name
 
     def __add_select(self, sentence_list: list) -> str:
         hidden_name = self.__generate_hidden_name()
@@ -60,9 +76,14 @@ class BosonScriptAnalyzer:
         return hidden_name
 
     def __add_hidden_derivation(self, derivation: list) -> str:
-        hidden_name = self.__generate_hidden_name()
-        self.__sentence_add((hidden_name,) + tuple(derivation))
-        return hidden_name
+        derivation_tuple = tuple(derivation)
+        if derivation_tuple in self.__hidden_derivation_cache:
+            return self.__hidden_derivation_cache[derivation_tuple]
+        else:
+            hidden_name = self.__generate_hidden_name()
+            self.__hidden_derivation_cache[derivation_tuple] = hidden_name
+            self.__sentence_add((hidden_name,) + tuple(derivation))
+            return hidden_name
 
     def command_list(self):
         return self.__command_list
