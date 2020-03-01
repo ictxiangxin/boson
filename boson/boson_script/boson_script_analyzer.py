@@ -51,12 +51,12 @@ class BosonScriptAnalyzer:
         self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
         return hidden_name
 
-    def __add_select(self, name_list: list) -> str:
+    def __add_select(self, sentence_list: list) -> str:
         hidden_name = self.__generate_hidden_name()
-        for name in name_list:
-            sentence = (hidden_name, name)
-            self.__sentence_add(sentence)
-            self.__naive_sentence_set.add(sentence)
+        for sentence in sentence_list:
+            select_sentence = (hidden_name,) + tuple(sentence)
+            self.__sentence_add(select_sentence)
+            self.__naive_sentence_set.add(select_sentence)
         return hidden_name
 
     def __add_hidden_derivation(self, derivation: list) -> str:
