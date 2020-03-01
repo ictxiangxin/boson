@@ -37,22 +37,21 @@ public:
             if (this->_non_greedy_state_set.count(state)) {
                 get_token = true;
             }
-            if (this->_move_table_attribute.count(state)) {
-                std::vector<int> &attribute_list = this->_move_table_attribute[state];
-                std::vector<std::set<char>> &character_set_list = this->_move_table_character_set[state];
-                std::vector<std::vector<std::vector<int>>> &state_range_list = this->_move_table_range_list[state];
-                std::vector<int> &next_state_list = this->_move_table_next_state[state];
+            {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+            if (this->_compact_move_table.count(state)) {
+                std::vector<std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int>> state_move_table = this->_compact_move_table[state];
                 unsigned long i;
-                for (i = 0; i < attribute_list.size(); i++) {
-                    int attribute = attribute_list[i];
-                    std::set<char> &character_set = character_set_list[i];
-                    std::vector<std::vector<int>> &range_list = state_range_list[i];
-                    int next_state = next_state_list[i];
+                for (i = 0; i < state_move_table.size(); i++) {
+                    std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int> compact_table = state_move_table[i];
+                    int attribute = std::get<0>(compact_table);
+                    std::set<char> &character_set = std::get<1>(compact_table);
+                    std::vector<std::tuple<char, char>> &range_list = std::get<2>(compact_table);
+                    int next_state = std::get<3>(compact_table);
                     bool condition;
                     if (attribute == 2) {
                         condition = !character_set.count(character);
                         for (auto & range : range_list) {
-                            condition &= character < range[0] || character > range[1];
+                            condition &= character < std::get<0>(range) || character > std::get<1>(range);
                         }
                     } else {
                         condition = character_set.count(character);
@@ -60,7 +59,7 @@ public:
                             condition = true;
                         }
                         for (auto & range : range_list) {
-                            if (condition || (range[0] <= character && character <= range[1])) {
+                            if (condition || (std::get<0>(range) <= character && character <= std::get<1>(range))) {
                                 condition = true;
                                 break;
                             }
@@ -72,7 +71,20 @@ public:
                         break;
                     }
                 }
-                if (i == attribute_list.size()) {
+                if (i == state_move_table.size()) {
+            {%- else %}
+            if (this->_move_table.count(state)) {
+                std::tuple<int, std::unordered_map<char, int>> augmented_move_table = this->_move_table[state];
+                int wildcard = std::get<0>(augmented_move_table);
+                std::unordered_map<char, int> character_move_table = std::get<1>(augmented_move_table);
+                if (character_move_table.count(character)) {
+                    token_string += character;
+                    state = character_move_table[character];
+                } else if (wildcard != -1 && this->_character_set.count(character)) {
+                    token_string += character;
+                    state = wildcard;
+                } else {
+            {%- endif %}
                     if (this->_end_state_set.count(state)) {
                         get_token = true;
                     } else {
@@ -114,56 +126,39 @@ private:
     int _error_line = {{ configure.boson_lexical_no_error_line }};
     int _no_error_line = {{ configure.boson_lexical_no_error_line }};
     bool _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
-    std::unordered_map<int, std::vector<int>> _move_table_attribute = {
+    {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+    std::unordered_map<int, std::vector<std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int>>> _compact_move_table = {
         {%- for state, state_move_table in lexer.compact_move_table.items() %}
         { {{- state }}, {
-            {%- for each in state_move_table -%}
-            {{ each[0] }}
+            {%- for each in state_move_table %}
+            { {{- each[0] }}, { {%- for character in each[1] -%}
+                '{{ '\\x%s' % character.encode().hex() }}'
             {%- if not loop.last %},{% endif -%}
-            {%- endfor -%}
+            {%- endfor -%}}, { {%- for character_range in each[2] -%}
+                {'{{ '\\x%s' % character_range[0].encode().hex() }}', '{{ '\\x%s' % character_range[1].encode().hex() }}'}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor -%}}, {{ each[3] }}}
+            {%- if not loop.last %},{% endif -%}
+            {%- endfor %}
         }}
         {%- if not loop.last %},{% endif -%}
         {%- endfor %}
     };
-    std::unordered_map<int, std::vector<std::set<char>>> _move_table_character_set = {
-        {%- for state, state_move_table in lexer.compact_move_table.items() %}
-        { {{- state }}, {
-            {%- for each in state_move_table -%}
-                { {%- for character in each[1] -%}
-                    '{{ '\\x%s' % character.encode().hex() }}'
-                {%- if not loop.last %},{% endif -%}
-                {%- endfor -%}}
-            {%- if not loop.last %},{% endif -%}
+    {%- else %}
+    std::unordered_map<int, std::tuple<int, std::unordered_map<char, int>>> _move_table = {
+        {%- for state, state_move_table in lexer.move_table.items() %}
+        { {{- state }}, { {{- state_move_table.get(True, -1) }}, {
+            {%- for character, to_state in state_move_table.items() -%}
+            {%- if character != True -%}
+            {'{{ '\\x%s' % character.encode().hex() }}', {{ to_state }}}
+            {%- if not loop.last %}, {% endif -%}
+            {%- endif -%}
             {%- endfor -%}
-        }}
+        }}}
         {%- if not loop.last %},{% endif -%}
         {%- endfor %}
     };
-    std::unordered_map<int, std::vector<std::vector<std::vector<int>>>> _move_table_range_list = {
-        {%- for state, state_move_table in lexer.compact_move_table.items() %}
-        { {{- state }}, {
-            {%- for each in state_move_table -%}
-                { {%- for character_range in each[2] -%}
-                    {'{{ '\\x%s' % character_range[0].encode().hex() }}', '{{ '\\x%s' % character_range[1].encode().hex() }}'}
-                {%- if not loop.last %},{% endif -%}
-                {%- endfor -%}}
-            {%- if not loop.last %},{% endif -%}
-            {%- endfor -%}
-        }}
-        {%- if not loop.last %},{% endif -%}
-        {%- endfor %}
-    };
-    std::unordered_map<int, std::vector<int>> _move_table_next_state = {
-        {%- for state, state_move_table in lexer.compact_move_table.items() %}
-        { {{- state }}, {
-            {%- for each in state_move_table -%}
-            {{ each[3] }}
-            {%- if not loop.last %},{% endif -%}
-            {%- endfor -%}
-        }}
-        {%- if not loop.last %},{% endif -%}
-        {%- endfor %}
-    };
+    {%- endif %}
     std::set<char> _character_set = {
         {%- for character in lexer.character_set -%}
             '{{ '\\x%s' % character.encode().hex() }}'
@@ -185,8 +180,8 @@ private:
     };
     std::set<int> _non_greedy_state_set = {
         {%- for state in lexer.non_greedy_state_set -%}
-            state
-        {%- if not loop.last %},{% endif -%}
+            {{ state }}
+        {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     };
     std::unordered_map<std::string, std::vector<std::string>> _symbol_function_mapping = {

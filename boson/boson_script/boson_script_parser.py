@@ -229,7 +229,8 @@ class BosonLexer:
                 if get_token or state in self.__end_state_set:
                     get_token = True
                 else:
-                    raise ValueError('Invalid state: state={}'.format(state))
+                    self.__error_line = self.__line
+                    return self.__error_line
             if get_token:
                 self._generate_token(state, token_string)
                 token_string = ''
