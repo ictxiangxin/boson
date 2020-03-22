@@ -8,6 +8,7 @@ class BottomUpParserGenerator(ParserGenerator):
         super().__init__(sentence_set)
         self._non_terminal_reduction_mapping: dict = {}
         self._nfa_state_number_inverted_mapping: dict = {}
+        self._nfa_move_table: dict = {}
         self._dfa_state_reduce_mapping: dict = {}
         self._dfa_state_number_mapping: dict = {}
         self._dfa_move_table: dict = {}
@@ -29,10 +30,10 @@ class BottomUpParserGenerator(ParserGenerator):
         start_non_terminal_sentence = (configure.boson_augmented_start,)
         start_look_ahead_set = self._non_terminal_look_ahead_set(start_non_terminal_sentence, 0, {configure.boson_end_symbol})
         start_nfa_state = (start_non_terminal_sentence, 0, start_look_ahead_set)
-        nfa_move_table = {}
         nfa_state_number = configure.boson_grammar_default_state
         nfa_state_number_mapping = {start_nfa_state: nfa_state_number}
         self._nfa_state_number_inverted_mapping = {nfa_state_number: start_nfa_state}
+        self._nfa_move_table = {}
         nfa_state_number += 1
         non_terminal_nfa_state_number_set = {0}
         visited_nfa_state_set = set()
@@ -52,7 +53,7 @@ class BottomUpParserGenerator(ParserGenerator):
                         epsilon_move_set.add(nfa_state_number)
                         nfa_state_number += 1
                     visited_nfa_state_set.add(nfa_state)
-                    nfa_move_table[nfa_state_number_mapping[nfa_state]] = epsilon_move_set
+                    self._nfa_move_table[nfa_state_number_mapping[nfa_state]] = epsilon_move_set
             else:
                 if flag < len(sentence):
                     symbol = sentence[flag]
@@ -76,9 +77,9 @@ class BottomUpParserGenerator(ParserGenerator):
                             nfa_state_number += 1
                     else:
                         non_terminal_nfa_state_number = None
-                    nfa_move_table[nfa_state_number_mapping[nfa_state]] = (non_terminal_nfa_state_number, symbol, move_state_number)
+                    self._nfa_move_table[nfa_state_number_mapping[nfa_state]] = (non_terminal_nfa_state_number, symbol, move_state_number)
         state_epsilon_closure_mapping = {}
-        for nfa_state, state_move_table in nfa_move_table.items():
+        for nfa_state, state_move_table in self._nfa_move_table.items():
             if isinstance(state_move_table, set):
                 state_epsilon_closure_mapping[nfa_state] = set(state_move_table)
             else:
@@ -113,8 +114,8 @@ class BottomUpParserGenerator(ParserGenerator):
             dfa_from_state_number = self._dfa_state_number_mapping[dfa_state]
             move_closure_mapping = {}
             for nfa_state_number in dfa_state:
-                if nfa_state_number in nfa_move_table:
-                    state_move_table = nfa_move_table[nfa_state_number]
+                if nfa_state_number in self._nfa_move_table:
+                    state_move_table = self._nfa_move_table[nfa_state_number]
                     if isinstance(state_move_table, tuple):
                         move_closure_mapping.setdefault(state_move_table[1], set())
                         move_closure_mapping[state_move_table[1]].add(state_move_table[2])
