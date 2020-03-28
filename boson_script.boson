@@ -19,7 +19,7 @@ regular  = <\<.*[^\\]\>>!;
 comment  = <#[^\r\n]*>@{skip};
 command  = <%[_a-zA-Z]+>;
 skip     = <[\ \t]+>@{skip};
-newline  = <\n\r|\n>@{skip, newline};
+newline  = <\r\n|\n>@{skip, newline};
 
 
 #####################################

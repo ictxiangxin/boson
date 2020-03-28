@@ -1,8 +1,8 @@
 boson_name = 'Boson'
 boson_package_name = 'boson'
-boson_version_main = 1
-boson_version_sub = 4
-boson_title = '{} v{}.{}'.format(boson_name, boson_version_main, boson_version_sub)
+boson_version_major = 1
+boson_version_minor = 5
+boson_title = '{} v{}.{}'.format(boson_name, boson_version_major, boson_version_minor)
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
 boson_url = 'https://github.com/ictxiangxin/boson'

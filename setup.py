@@ -11,7 +11,7 @@ install_requires = [
 if __name__ == '__main__':
     long_description = '{} - {}'.format(configure.boson_title, configure.boson_description)
     setup(name=configure.boson_package_name,
-          version='{}.{}'.format(configure.boson_version_main, configure.boson_version_sub),
+          version='{}.{}'.format(configure.boson_version_major, configure.boson_version_minor),
           url=configure.boson_url,
           license=configure.boson_license,
           author=configure.boson_author,
@@ -25,15 +25,16 @@ if __name__ == '__main__':
           packages=[
               configure.boson_package_name,
               configure.boson_package_name + '.boson_script',
+              configure.boson_package_name + '.boson_script.boson_script_parser',
               configure.boson_package_name + '.code_generator',
               configure.boson_package_name + '.lexer_generator',
+              configure.boson_package_name + '.lexer_generator.regular_parser',
               configure.boson_package_name + '.parser_generator',
               configure.boson_package_name + '.parser_generator.bottom_up_generator',
           ],
           package_data={configure.boson_package_name: [
-              '{}/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-              '{}/lexer/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-              '{}/parser/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
+              '{}/integration/python/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
+              '{}/integration/c++/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
           ]},
           install_requires=install_requires,
           entry_points={'console_scripts': ['boson = boson.console:console_main']},

@@ -1,6 +1,6 @@
 # Boson - 语法分析器生成器
 
-![Version](https://img.shields.io/badge/Version-1.4-blue.svg)
+![Version](https://img.shields.io/badge/Version-1.5-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.7.0-green.svg)
 ![C++](https://img.shields.io/badge/C++-11-green.svg)
 

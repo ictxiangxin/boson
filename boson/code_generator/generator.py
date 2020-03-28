@@ -1,13 +1,21 @@
 import jinja2
+import os.path
 from boson.lexer_generator.generator import LexerGenerator
 from boson.parser_generator.bottom_up_generator.canonical_generator import BottomUpCanonicalParserGenerator
 import boson.configure as configure
 
 
 class CodeGenerator:
-    def __init__(self, language: str):
-        self.__language: str = language
-        self.__template_data: dict = {
+    def __init__(self, output_path: str, language: str, mode: str = 'integration'):
+        self.__output_path = output_path
+        self.__language = language
+        self.__mode = mode
+        self.__environment = jinja2.Environment(
+            loader=jinja2.PackageLoader(
+                configure.boson_package_name,
+                os.path.join(configure.boson_template_directory, self.__mode, self.__language),
+                encoding=configure.boson_default_encoding))
+        self._template_data: dict = {
             'configure': configure,
             'option': {
                 'generate_lexer': False,
@@ -17,9 +25,15 @@ class CodeGenerator:
             'parser': None,
         }
 
+    def _generate_code(self, template_file: str, output_file: str) -> None:
+        template = self.__environment.get_template(template_file + configure.boson_template_postfix)
+        code_text = template.render(self._template_data)
+        with open(os.path.join(self.__output_path, output_file), 'w', encoding=configure.boson_default_encoding) as code_file:
+            code_file.write(code_text)
+
     def dispose_lexer(self, lexer_generator: LexerGenerator) -> None:
-        self.__template_data['option']['generate_lexer'] = True
-        self.__template_data['lexer'] = {
+        self._template_data['option']['generate_lexer'] = True
+        self._template_data['lexer'] = {
             'move_table': lexer_generator.move_table(),
             'compact_move_table': lexer_generator.compact_move_table(),
             'symbol_function_mapping': lexer_generator.symbol_function_mapping(),
@@ -31,9 +45,9 @@ class CodeGenerator:
         }
 
     def dispose_parser(self, parser_generator):
-        self.__template_data['option']['generate_parser'] = True
+        self._template_data['option']['generate_parser'] = True
         if isinstance(parser_generator, BottomUpCanonicalParserGenerator):
-            self.__template_data['parser'] = {
+            self._template_data['parser'] = {
                 'terminal_index_mapping': parser_generator.terminal_index_mapping(),
                 'action_table': parser_generator.action_table(),
                 'sparse_action_table': parser_generator.sparse_action_table(),
@@ -48,8 +62,3 @@ class CodeGenerator:
             }
         else:
             raise ValueError('[Code Generator] Invalid Parser Generator Type: "{}".'.format(type(parser_generator)))
-
-    def generate_code(self) -> str:
-        environment = jinja2.Environment(loader=jinja2.PackageLoader(configure.boson_package_name, configure.boson_template_directory))
-        template = environment.get_template(self.__language + configure.boson_template_postfix)
-        return template.render(self.__template_data)
