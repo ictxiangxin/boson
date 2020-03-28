@@ -16,7 +16,7 @@ package boson;
 import java.util.ArrayList;
 import java.util.List;
 
-class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
+public class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
     public {{ configure.boson_option['semantic_node_class_name'] }}() {
     }
 
@@ -24,43 +24,43 @@ class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
         this._data = data;
     }
 
-    T getData() {
+    public T getData() {
         return this._data;
     }
 
-    void setData(T data) {
+    public void setData(T data) {
         this._data = data;
     }
 
-    int getReduceNumber() {
+    public int getReduceNumber() {
         return this._reduce_number;
     }
 
-    void setReduceNumber(int reduce_number) {
+    public void setReduceNumber(int reduce_number) {
         this._reduce_number = reduce_number;
     }
 
-    String getText() {
+    public String getText() {
         return this._text;
     }
 
-    void setText(String text) {
+    public void setText(String text) {
         this._text = text;
     }
 
-    void append({{ configure.boson_option['semantic_node_class_name'] }}<T> item) {
+    public void append({{ configure.boson_option['semantic_node_class_name'] }}<T> item) {
         this._children.add(item);
     }
 
-    void insert(int index, {{ configure.boson_option['semantic_node_class_name'] }}<T> item) {
+    public void insert(int index, {{ configure.boson_option['semantic_node_class_name'] }}<T> item) {
         this._children.add(index, item);
     }
 
-    List<{{ configure.boson_option['semantic_node_class_name'] }}<T>> children() {
+    public List<{{ configure.boson_option['semantic_node_class_name'] }}<T>> children() {
         return this._children;
     }
 
-    {{ configure.boson_option['semantic_node_class_name'] }}<T> get(int index) {
+    public {{ configure.boson_option['semantic_node_class_name'] }}<T> get(int index) {
         return this._children.get(index);
     }
 

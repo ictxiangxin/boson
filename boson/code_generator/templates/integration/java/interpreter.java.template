@@ -32,7 +32,7 @@ public class {{ configure.boson_option['interpreter_class_name'] }}<T> {
 
     private final Map<Integer, String> _reduceNumberGrammarNameMapping = Map.ofEntries(
         {%- for reduce_number, grammarName in parser.reduce_number_grammar_name_mapping.items() %}
-        entry({{- reduce_number }}, "{{ grammarName }}")
+        Map.entry({{- reduce_number }}, "{{ grammarName }}")
         {%- if not loop.last %}, {% endif -%}
         {%- endfor %}
     );
