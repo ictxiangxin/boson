@@ -15,7 +15,8 @@ from boson.parser_generator import \
     LALRParserGenerator
 from boson.code_generator import \
     PythonCodeGenerator, \
-    CppCodeGenerator
+    CppCodeGenerator, \
+    JavaCodeGenerator
 
 parser_generator_library = {
     'slr': SLRParserGenerator,
@@ -25,7 +26,8 @@ parser_generator_library = {
 
 code_generator_library = {
     'python': PythonCodeGenerator,
-    'c++': CppCodeGenerator
+    'c++': CppCodeGenerator,
+    'java': JavaCodeGenerator,
 }
 
 quiet = False
@@ -62,10 +64,11 @@ def console_main():
              '  lr   - LR(1) (Canonical LR)\n'
              '  lalr - LALR(1) (Look-Ahead LR)\n')
     argument_parser.add_argument(
-        '-l', '--language', default='python', choices=['python', 'c++'],
+        '-l', '--language', default='python', choices=['python', 'c++', 'java'],
         help='Generate Code Program Language (Default Is Python3).\n'
              '  python - Python3 Code.\n'
-             '  c++ - C++ Code.\n')
+             '  c++    - C++ Code.\n'
+             '  java   - Java Code.\n')
     argument_parser.add_argument(
         '-f', '--force', action='store_true',
         help='Force Generate Parse Table When Exist Conflicts.')

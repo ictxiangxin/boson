@@ -19,13 +19,13 @@ namespace boson {
     public:
         {{ configure.boson_option['token_class_name'] }}() = default;
 
-        {{ configure.boson_option['token_class_name'] }}(std::string &text, const int line, std::string &symbol): text(text), line(line), symbol(symbol) {};
+        {{ configure.boson_option['token_class_name'] }}(std::string &text, const int line, std::string &symbol): text(text), line(line), symbol(symbol) {}
 
-        {{ configure.boson_option['token_class_name'] }}(const char *text, const int line, const char *symbol): text(text), line(line), symbol(symbol) {};
+        {{ configure.boson_option['token_class_name'] }}(const char *text, const int line, const char *symbol): text(text), line(line), symbol(symbol) {}
 
-        {{ configure.boson_option['token_class_name'] }}(const char *text, const int line, std::string &symbol): text(text), line(line), symbol(symbol) {};
+        {{ configure.boson_option['token_class_name'] }}(const char *text, const int line, std::string &symbol): text(text), line(line), symbol(symbol) {}
 
-        {{ configure.boson_option['token_class_name'] }}(std::string &text, const int line, const char *symbol): text(text), line(line), symbol(symbol) {};
+        {{ configure.boson_option['token_class_name'] }}(std::string &text, const int line, const char *symbol): text(text), line(line), symbol(symbol) {}
 
         std::string text{};
         int line = -1;

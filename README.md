@@ -33,10 +33,9 @@ Boson可通过pip命令安装或从源码进行安装：
 输入`boson -h`以查看Boson的简要的使用说明：
 
 ```
-usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python3,c++}] [-f] [-q]
-             boson_script_file
+usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python,c++,java}] [-f] [-q] boson_script_file
 
-Boson v1.3 - Grammar analyzer generator
+Boson v1.5 - Grammar analyzer generator
 
 positional arguments:
   boson_script_file     Input Boson Script File.
@@ -44,16 +43,17 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
-                        Output Lexer&Parser Code File.
+                        Output Boson Code Path(Default Is `boson`).
   -a {slr,lr,lalr}, --analyzer {slr,lr,lalr}
                         Grammar Analyzer Type (Default Is LALR).
                           slr  - SLR(1) (Simple LR)
                           lr   - LR(1) (Canonical LR)
                           lalr - LALR(1) (Look-Ahead LR)
-  -l {python3,c++}, --language {python3,c++}
+  -l {python,c++,java}, --language {python,c++,java}
                         Generate Code Program Language (Default Is Python3).
-                          python3 - Python3 Code.
-                          c++ - C++ Code.
+                          python - Python3 Code.
+                          c++    - C++ Code.
+                          java   - Java Code.
   -f, --force           Force Generate Parse Table When Exist Conflicts.
   -q, --quiet           Display Nothing.
 ```
@@ -68,7 +68,7 @@ Boson运行命令形式简单，可归纳为`boson <Boson脚本文件> <其他�
 
 3. `-a`或`--analyzer`，指定Boson使用的语法分析器，目前支持`slr`、`lr`、`lalr`，默认为`lalr`。
 
-4. `-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`，默认为`c++`。
+4. `-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`、`java`，默认为`c++`。
 
 5. `-f`或`--force`，在有语法冲突时，强制生成代码，后续手动解决冲突问题。
 
@@ -409,9 +409,9 @@ invoke_function : function_name '(' argument (',' argument)* ')' = ($0, $2, *$3*
 ### Python3
 
 在编写完Boson脚本文件之后，例如`test.boson`，使用Boson生成其对应的分析器代码（使用`lalr`分析器）：
-> `boson test.boson -a lalr -l python3 -o test.py`
+> `boson test.boson -a lalr -l python3 -o test`
 
-执行成功之后，当前目录下便会生成`test.py`文件。
+执行成功之后，当前目录下便会生成`test`文件夹，包含了分析器的各类代码文件。
 
 使用方式也较为简便，假设从文件`test.txt`获取将要解析的文本：
 ```python

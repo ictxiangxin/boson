@@ -103,7 +103,7 @@ namespace boson {
                     if (character_move_table.count(character)) {
                         token_string += character;
                         state = character_move_table[character];
-                    } else if (wildcard != -1 && this->_character_set.count(character)) {
+                    } else if (wildcard != -1 && !this->_character_set.count(character)) {
                         token_string += character;
                         state = wildcard;
                     } else {
@@ -156,10 +156,10 @@ namespace boson {
                 {%- for each in state_move_table %}
                 { {{- each[0] }}, { {%- for character in each[1] -%}
                     '{{ '\\x%s' % character.encode().hex() }}'
-                {%- if not loop.last %},{% endif -%}
+                {%- if not loop.last %}, {% endif -%}
                 {%- endfor -%}}, { {%- for character_range in each[2] -%}
                     {'{{ '\\x%s' % character_range[0].encode().hex() }}', '{{ '\\x%s' % character_range[1].encode().hex() }}'}
-                {%- if not loop.last %},{% endif -%}
+                {%- if not loop.last %}, {% endif -%}
                 {%- endfor -%}}, {{ each[3] }}}
                 {%- if not loop.last %},{% endif -%}
                 {%- endfor %}
@@ -185,14 +185,14 @@ namespace boson {
         std::set<char> _character_set = {
             {%- for character in lexer.character_set -%}
                 '{{ '\\x%s' % character.encode().hex() }}'
-            {%- if not loop.last %},{% endif -%}
+            {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
         int _start_state = {{ lexer.start_state }};
         std::set<int> _end_state_set = {
             {%- for state in lexer.end_state_set -%}
                 {{ state }}
-            {%- if not loop.last %},{% endif -%}
+            {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
         std::unordered_map<int, std::string> _lexical_symbol_mapping = {

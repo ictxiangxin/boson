@@ -35,6 +35,7 @@ if __name__ == '__main__':
           package_data={configure.boson_package_name: [
               '{}/integration/python/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
               '{}/integration/c++/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
+              '{}/integration/java/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
           ]},
           install_requires=install_requires,
           entry_points={'console_scripts': ['boson = boson.console:console_main']},

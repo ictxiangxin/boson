@@ -20,12 +20,12 @@ namespace boson {
     template <class T>
     class {{ configure.boson_option['semantic_node_class_name'] }} {
     public:
-        {{ configure.boson_option['semantic_node_class_name'] }}() = default;
+        {{ configure.boson_option['semantic_node_class_name'] }}<T>() = default;
 
-        explicit {{ configure.boson_option['semantic_node_class_name'] }}(T data): _data(data) {};
+        explicit {{ configure.boson_option['semantic_node_class_name'] }}<T>(T data): _data(data) {}
 
-        static {{ configure.boson_option['semantic_node_class_name'] }} &null_node() {
-            static {{ configure.boson_option['semantic_node_class_name'] }} node;
+        static {{ configure.boson_option['semantic_node_class_name'] }}<T> &null_node() {
+            static {{ configure.boson_option['semantic_node_class_name'] }}<T> node;
             return node;
         }
 
@@ -33,8 +33,8 @@ namespace boson {
             return this->_data;
         }
 
-        void set_data(T data) {
-            this->_data = std::move(data);
+        void set_data(T &data) {
+            this->_data = data;
         }
 
         int get_reduce_number() {
@@ -53,26 +53,26 @@ namespace boson {
             this->_text = text;
         }
 
-        void append(const {{ configure.boson_option['semantic_node_class_name'] }} &item) {
+        void append(const {{ configure.boson_option['semantic_node_class_name'] }}<T> &item) {
             this->_children.push_back(item);
         }
 
-        void insert(int index, const {{ configure.boson_option['semantic_node_class_name'] }} &item) {
+        void insert(int index, const {{ configure.boson_option['semantic_node_class_name'] }}<T> &item) {
             this->_children.insert(this->_children.begin() + index, item);
         }
 
-        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}> &children() {
+        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}<T>> &children() {
             return this->_children;
         }
 
-        {{ configure.boson_option['semantic_node_class_name'] }} &operator[](int index) {
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> &operator[](int index) {
             return this->_children[index];
         }
 
     protected:
         int _reduce_number = -1;
         std::string _text{};
-        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}> _children{};
+        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}<T>> _children{};
         T _data;
     };
 }

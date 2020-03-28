@@ -49,17 +49,15 @@ namespace boson {
             {%- if not loop.last %}, {% endif -%}
             {%- endfor %}
         };
-
         std::set<int> _naive_reduce_number_set = {
             {%- for reduce_number in parser.naive_reduce_number_set -%}
             {{ reduce_number }}
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
-
         std::unordered_map<std::string, semantic_function> _semantic_action_mapping{};
 
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> _semantics_analysis(BosonGrammarNode &grammar_tree) {
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> _semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
             std::string grammar_name{};
             if (this->_reduce_number_grammar_name_mapping.count(grammar_tree.get_reduce_number())) {
                 grammar_name = this->_reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()];

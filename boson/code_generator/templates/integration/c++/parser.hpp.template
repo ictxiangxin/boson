@@ -139,7 +139,7 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-        {% if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
         std::unordered_map<int, std::unordered_map<int, std::string>> _sparse_action_table = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             { {{- i }}, {
@@ -151,7 +151,6 @@ namespace boson {
             {%- if not loop.last %}, {% endif -%}
             {%- endfor %}
         };
-
         std::unordered_map<int, std::unordered_map<int, int>> _sparse_goto_table = {
             {%- for i, sub_table in parser.sparse_goto_table.items() %}
             { {{- i }}, {
@@ -163,7 +162,7 @@ namespace boson {
             {%- if not loop.last %}, {% endif -%}
             {%- endfor %}
         };
-        {% else %}
+        {%- else %}
         std::vector<std::vector<std::string>> _action_table = {
             {%- for line in parser.action_table %}
             {
@@ -175,7 +174,6 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-
         std::vector<std::vector<int>> _goto_table = {
             {%- for line in parser.goto_table %}
             {
@@ -187,7 +185,6 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-
         {%- endif %}
         std::unordered_map<int, std::vector<std::string>> _sentence_index_grammar_tuple_mapping = {
             {%- for sentence_index, grammar_tuple in parser.sentence_index_grammar_tuple_mapping.items() %}
@@ -200,21 +197,18 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-
         std::vector<int> _reduce_symbol_count = {
             {%- for count in parser.reduce_symbol_count -%}
             {{ count }}
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
-
         std::vector<int> _reduce_non_terminal_index = {
             {%- for index in parser.reduce_non_terminal_index -%}
             {{ index }}
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
-
         std::set<int> _none_grammar_tuple_reduce_set = {
             {%- for index in parser.none_grammar_tuple_sentence_index_set -%}
             {{ index }}
