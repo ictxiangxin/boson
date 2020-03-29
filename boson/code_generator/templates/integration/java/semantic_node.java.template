@@ -33,11 +33,11 @@ public class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
     }
 
     public int getReduceNumber() {
-        return this._reduce_number;
+        return this._reduceNumber;
     }
 
-    public void setReduceNumber(int reduce_number) {
-        this._reduce_number = reduce_number;
+    public void setReduceNumber(int reduceNumber) {
+        this._reduceNumber = reduceNumber;
     }
 
     public String getText() {
@@ -64,7 +64,7 @@ public class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
         return this._children.get(index);
     }
 
-    protected int _reduce_number = -1;
+    protected int _reduceNumber = -1;
     protected String _text;
     protected List<{{ configure.boson_option['semantic_node_class_name'] }}<T>> _children = new ArrayList<>();
     protected T _data;
