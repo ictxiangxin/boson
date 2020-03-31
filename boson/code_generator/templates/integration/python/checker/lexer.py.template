@@ -87,23 +87,20 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         }
         self.__lexical_function: dict = {}
 
-    def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
+    def _invoke_lexical_function(self, symbol: str) -> None:
         self.__skip = {{ configure.boson_lexical_default_skip }}
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
                 if function in self.__lexical_function:
-                    token_string = self.__lexical_function[function](token_string)
+                    self.__lexical_function[function](symbol)
                 elif function == 'skip':
                     self.skip()
-                elif function == 'newline':
-                    self.newline()
-        return token_string
 
-    def _generate_token(self, state: int, token_string: str) -> None:
+    def _generate_token(self, state: int) -> None:
         symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
-        token_string = self._invoke_lexical_function(symbol, token_string)
+        self._invoke_lexical_function(symbol)
         if not self.__skip:
-            self.__token_list.append({{ configure.boson_option['token_class_name'] }}(token_string, self.__line, symbol))
+            self.__token_list.append({{ configure.boson_option['token_class_name'] }}(symbol))
 
     def skip(self) -> None:
         self.__skip = True
@@ -125,7 +122,6 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         self.__error_index = self.__no_error_index
         self.__line = {{ configure.boson_lexical_start_line }}
         state = self.__start_state
-        token_string = ''
         index = 0
         while index < len(text):
             character = text[index]
@@ -149,17 +145,14 @@ class {{ configure.boson_option['lexer_class_name'] }}:
                                 condition = True
                                 break
                     if condition:
-                        token_string += character
                         state = next_state
                         break
             {%- else %}
             if not get_token and state in self.__move_table:
                 wildcard, character_move_table = self.__move_table[state]
                 if character in character_move_table:
-                    token_string += character
                     state = character_move_table[character]
                 elif wildcard != -1 and character not in self.__character_set:
-                    token_string += character
                     state = wildcard
             {%- endif %}
                 else:
@@ -175,15 +168,14 @@ class {{ configure.boson_option['lexer_class_name'] }}:
                     self.__error_index = index
                     return self.__error_index
             if get_token:
-                self._generate_token(state, token_string)
-                token_string = ''
+                self._generate_token(state)
                 state = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
-            self._generate_token(state, token_string)
+            self._generate_token(state)
         else:
             raise ValueError('Invalid state: state={}'.format(state))
-        self.__token_list.append({{ configure.boson_option['token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
+        self.__token_list.append({{ configure.boson_option['token_class_name'] }}('{{ configure.boson_end_symbol }}'))
         return self.__error_index
 
     def register_function(self, function_name: str) -> callable:

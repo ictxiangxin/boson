@@ -4,17 +4,17 @@ from .grammar_node import BosonGrammarNode
 class BosonInterpreter:
     def __init__(self):
         self.__reduce_number_grammar_name_mapping: dict = {
-            49: 'command',
-            20: 'lexical_define',
-            36: 'reduce',
-            53: 'grammar_node',
-            52: 'name_closure',
-            44: 'literal',
-            47: 'complex_closure',
-            15: 'complex_optional',
-            37: 'select'
+            67: 'command',
+            33: 'lexical_define',
+            27: 'reduce',
+            47: 'grammar_node',
+            24: 'name_closure',
+            22: 'literal',
+            43: 'complex_closure',
+            17: 'complex_optional',
+            60: 'select'
         }
-        self.__naive_reduce_number_set: set = {32, 1, 2, 35, 41, 42, 10, 44, 12, 14, 48, 23, 26, 59}
+        self.__naive_reduce_number_set: set = {32, 66, 3, 35, 38, 7, 41, 12, 15, 22, 23, 56, 26, 30}
         self.__semantic_action_mapping: dict = {}
 
     def __semantic_analysis(self, grammar_tree: BosonGrammarNode):

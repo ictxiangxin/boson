@@ -5,8 +5,8 @@ class BosonLexer:
     def __init__(self):
         self.__token_list: list = []
         self.__line: int = 1
-        self.__error_line: int = -1
-        self.__no_error_line: int = -1
+        self.__error_index: int = -1
+        self.__no_error_index: int = -1
         self.__skip: bool = False
         self.__compact_move_table: dict = {
             0: [
@@ -16,7 +16,7 @@ class BosonLexer:
                 [0, {'\x3c'}, [], 28],
                 [0, {'\x23'}, [], 3],
                 [0, {'\x25'}, [], 4],
-                [0, {'\x20', '\x09'}, [], 5],
+                [0, {'\x09', '\x20'}, [], 5],
                 [0, {'\x0d'}, [], 6],
                 [0, {'\x0a'}, [], 25],
                 [0, {'\x3b'}, [], 7],
@@ -47,7 +47,7 @@ class BosonLexer:
                 [0, {'\x0a'}, [], 25]
             ],
             5: [
-                [0, {'\x20', '\x09'}, [], 5]
+                [0, {'\x09', '\x20'}, [], 5]
             ],
             4: [
                 [0, {'\x5f'}, [('\x41', '\x5a'), ('\x61', '\x7a')], 26]
@@ -56,33 +56,33 @@ class BosonLexer:
                 [0, {'\x5f'}, [('\x41', '\x5a'), ('\x61', '\x7a')], 26]
             ],
             3: [
-                [2, {'\x0d', '\x0a'}, [], 3]
+                [2, {'\x0a', '\x0d'}, [], 3]
             ],
             28: [
                 [2, {'\x5c'}, [], 27],
                 [0, {'\x5c'}, [], 28]
             ],
             27: [
-                [2, {'\x5c', '\x3e'}, [], 27],
-                [0, {'\x5c'}, [], 28],
-                [0, {'\x3e'}, [], 29]
+                [2, {'\x3e', '\x5c'}, [], 27],
+                [0, {'\x3e'}, [], 29],
+                [0, {'\x5c'}, [], 28]
             ],
             29: [
-                [2, {'\x5c', '\x3e'}, [], 27],
-                [0, {'\x5c'}, [], 28],
-                [0, {'\x3e'}, [], 29]
+                [2, {'\x3e', '\x5c'}, [], 27],
+                [0, {'\x3e'}, [], 29],
+                [0, {'\x5c'}, [], 28]
             ],
             31: [
                 [2, {'\x5c'}, [], 30],
                 [0, {'\x5c'}, [], 31]
             ],
             30: [
-                [2, {'\x5c', '\x27'}, [], 30],
+                [2, {'\x27', '\x5c'}, [], 30],
                 [0, {'\x5c'}, [], 31],
                 [0, {'\x27'}, [], 32]
             ],
             32: [
-                [2, {'\x5c', '\x27'}, [], 30],
+                [2, {'\x27', '\x5c'}, [], 30],
                 [0, {'\x5c'}, [], 31],
                 [0, {'\x27'}, [], 32]
             ],
@@ -92,11 +92,11 @@ class BosonLexer:
             ],
             33: [
                 [0, {'\x22'}, [], 34],
-                [2, {'\x22', '\x5c'}, [], 33],
+                [2, {'\x5c', '\x22'}, [], 33],
                 [0, {'\x5c'}, [], 2]
             ],
             34: [
-                [2, {'\x22', '\x5c'}, [], 33],
+                [2, {'\x5c', '\x22'}, [], 33],
                 [0, {'\x5c'}, [], 2],
                 [0, {'\x22'}, [], 34]
             ],
@@ -104,7 +104,7 @@ class BosonLexer:
                 [0, {'\x5f'}, [('\x30', '\x39'), ('\x41', '\x5a'), ('\x61', '\x7a')], 1]
             ]
         }
-        self.__character_set: set = {'\x21', '\x66', '\x7b', '\x6d', '\x6c', '\x50', '\x69', '\x57', '\x0d', '\x51', '\x5f', '\x5c', '\x3e', '\x36', '\x5b', '\x3c', '\x4f', '\x48', '\x4e', '\x58', '\x70', '\x6a', '\x4a', '\x77', '\x2b', '\x4c', '\x27', '\x61', '\x63', '\x68', '\x46', '\x41', '\x22', '\x54', '\x64', '\x6f', '\x7d', '\x32', '\x0a', '\x74', '\x43', '\x09', '\x31', '\x78', '\x44', '\x7e', '\x55', '\x72', '\x79', '\x38', '\x42', '\x75', '\x6b', '\x65', '\x76', '\x59', '\x56', '\x45', '\x37', '\x4b', '\x3d', '\x23', '\x25', '\x53', '\x67', '\x2a', '\x39', '\x28', '\x7c', '\x71', '\x3b', '\x40', '\x5a', '\x73', '\x29', '\x33', '\x2c', '\x5d', '\x4d', '\x7a', '\x52', '\x6e', '\x47', '\x30', '\x34', '\x24', '\x62', '\x35', '\x3a', '\x20', '\x49'}
+        self.__character_set: set = {'\x5a', '\x6b', '\x4b', '\x76', '\x23', '\x3c', '\x6e', '\x3b', '\x67', '\x70', '\x41', '\x3e', '\x0d', '\x20', '\x46', '\x43', '\x55', '\x4c', '\x48', '\x7d', '\x28', '\x31', '\x62', '\x25', '\x33', '\x37', '\x6c', '\x50', '\x2a', '\x44', '\x53', '\x0a', '\x57', '\x59', '\x36', '\x5c', '\x71', '\x4a', '\x5f', '\x78', '\x42', '\x73', '\x4f', '\x52', '\x32', '\x63', '\x6d', '\x2c', '\x38', '\x7c', '\x72', '\x27', '\x3d', '\x39', '\x3a', '\x51', '\x75', '\x66', '\x77', '\x7e', '\x5b', '\x34', '\x22', '\x30', '\x58', '\x49', '\x74', '\x56', '\x24', '\x61', '\x54', '\x09', '\x5d', '\x4e', '\x69', '\x7b', '\x35', '\x29', '\x64', '\x47', '\x4d', '\x21', '\x6f', '\x45', '\x65', '\x2b', '\x68', '\x6a', '\x40', '\x79', '\x7a'}
         self.__start_state: int = 0
         self.__end_state_set: set = {1, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 29, 32, 34}
         self.__lexical_symbol_mapping: dict = {
@@ -174,15 +174,15 @@ class BosonLexer:
     def token_list(self) -> list:
         return self.__token_list
 
-    def error_line(self) -> int:
-        return self.__error_line
+    def error_index(self) -> int:
+        return self.__error_index
 
-    def no_error_line(self) -> int:
-        return self.__no_error_line
+    def no_error_index(self) -> int:
+        return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
         self.__token_list = []
-        self.__error_line = self.__no_error_line
+        self.__error_index = self.__no_error_index
         self.__line = 1
         state = self.__start_state
         token_string = ''
@@ -215,14 +215,14 @@ class BosonLexer:
                     if state in self.__end_state_set:
                         get_token = True
                     else:
-                        self.__error_line = self.__line
-                        return self.__error_line
+                        self.__error_index = index
+                        return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
                     get_token = True
                 else:
-                    self.__error_line = self.__line
-                    return self.__error_line
+                    self.__error_index = index
+                    return self.__error_index
             if get_token:
                 self._generate_token(state, token_string)
                 token_string = ''
@@ -233,7 +233,7 @@ class BosonLexer:
         else:
             raise ValueError('Invalid state: state={}'.format(state))
         self.__token_list.append(LexicalToken('', self.__line, '$'))
-        return self.__error_line
+        return self.__error_index
 
     def register_function(self, function_name: str) -> callable:
         def decorator(f: callable):

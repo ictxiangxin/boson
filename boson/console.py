@@ -70,6 +70,15 @@ def console_main():
              '  c++    - C++ Code.\n'
              '  java   - Java Code.\n')
     argument_parser.add_argument(
+        '-m', '--mode', default='integration', choices=['integration', 'library', 'binary'],
+        help='Analyzer Mode (Default Is Integration).\n'
+             '  integration - Analyzer Table Integrated In Code.\n'
+             '  library     - Analyzer Static Library Code.\n'
+             '  binary      - Binary File Used for Drive Library.\n')
+    argument_parser.add_argument(
+        '-c', '--checker', action='store_true',
+        help='Generate Checker Instead Of Full Lexer And Parser.')
+    argument_parser.add_argument(
         '-f', '--force', action='store_true',
         help='Force Generate Parse Table When Exist Conflicts.')
     argument_parser.add_argument(
@@ -158,7 +167,7 @@ def console_main():
         start_time = time.time()
         if not os.path.isdir(arguments.output):
             os.mkdir(arguments.output)
-        code_generator = code_generator_library[arguments.language](arguments.output)
+        code_generator = code_generator_library[arguments.language](arguments.output, arguments.mode, arguments.checker)
         if lexical_analyzer is not None:
             code_generator.dispose_lexer(lexical_analyzer)
         if parser_generator is not None:

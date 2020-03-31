@@ -12,8 +12,6 @@
 
 {% endif -%}
 from .token import {{ configure.boson_option['token_class_name'] }}
-from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
-from .grammar import {{ configure.boson_option['grammar_class_name'] }}
 
 
 class {{ configure.boson_option['parser_class_name'] }}:
@@ -51,19 +49,11 @@ class {{ configure.boson_option['parser_class_name'] }}:
             {%- endfor %}
         ]
         {%- endif %}
-        self.__sentence_index_grammar_tuple_mapping: dict = {
-            {%- for sentence_index, grammar_tuple in parser.sentence_index_grammar_tuple_mapping.items() %}
-            {{ sentence_index }}: {{ grammar_tuple }}
-            {%- if not loop.last %},{% endif -%}
-            {%- endfor %}
-        }
         self.__reduce_symbol_count: list = {{ parser.reduce_symbol_count }}
         self.__reduce_non_terminal_index: list = {{ parser.reduce_non_terminal_index }}
 
-    def parse(self, token_list: list) -> {{ configure.boson_option['grammar_class_name'] }}:
-        grammar = {{ configure.boson_option['grammar_class_name'] }}()
+    def check(self, token_list: list) -> int:
         analysis_stack = [0]
-        symbol_stack = []
         token_index = 0
         while token_index < len(token_list):
             token: {{ configure.boson_option['token_class_name'] }} = token_list[token_index]
@@ -75,12 +65,10 @@ class {{ configure.boson_option['parser_class_name'] }}:
             {%- endif %}
             operation_flag = operation[0]
             if operation_flag == '{{ configure.boson_table_sign_error }}':
-                grammar.error_index = token_index
-                return grammar
+                return token_index
             elif operation_flag == '{{ configure.boson_table_sign_shift }}':
                 analysis_stack.append(int(operation[1:]))
                 token_index += 1
-                symbol_stack.append(token.text)
             elif operation_flag == '{{ configure.boson_table_sign_reduce }}':
                 statement_index = int(operation[1:])
                 reduce_count = self.__reduce_symbol_count[statement_index]
@@ -96,39 +84,8 @@ class {{ configure.boson_option['parser_class_name'] }}:
                 if goto_next_state == {{ configure.boson_invalid_goto }}:
                     raise ValueError('Invalid goto action: state={}, non-terminal={}'.format(current_state, current_non_terminal_index))
                 analysis_stack.append(goto_next_state)
-                {%- if parser.sentence_index_grammar_tuple_mapping %}
-                if statement_index in self.__sentence_index_grammar_tuple_mapping:
-                    symbol_package = []
-                    for _ in range(reduce_count):
-                        symbol_package.insert(0, symbol_stack.pop())
-                    grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
-                    for node in self.__sentence_index_grammar_tuple_mapping[statement_index]:
-                        if node[0] == '{{ configure.boson_grammar_tuple_unpack }}':
-                            grammar_node += symbol_package[int(node[1:])]
-                        else:
-                            grammar_node.append(symbol_package[int(node)])
-                    grammar_node.reduce_number = statement_index
-                    symbol_stack.append(grammar_node)
-                {%- endif %}
-                {%- if parser.none_grammar_tuple_sentence_index_set %}
-                {%- if parser.sentence_index_grammar_tuple_mapping %}
-                elif statement_index in {{ parser.none_grammar_tuple_sentence_index_set }}:
-                {%- else %}
-                if statement_index in {{ parser.none_grammar_tuple_sentence_index_set }}:
-                {%- endif %}
-                    grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
-                    for _ in range(reduce_count):
-                        grammar_node.insert(0, symbol_stack.pop())
-                    grammar_node.reduce_number = statement_index
-                    symbol_stack.append(grammar_node)
-                {%- endif %}
-                {%- if parser.none_grammar_tuple_sentence_index_set or parser.none_grammar_tuple_sentence_index_set %}
-                else:
-                    raise ValueError('Invalid reduce number: reduce={}'.format(statement_index))
-                {%- endif %}
             elif operation_flag == '{{ configure.boson_table_sign_accept }}':
-                grammar.grammar_tree = symbol_stack[0]
-                return grammar
+                return {{ configure.boson_check_pass_index }}
             else:
                 raise ValueError('Invalid action: action={}'.format(operation))
         raise RuntimeError('Analyzer unusual exit.')

@@ -22,6 +22,7 @@ boson_invalid_goto = -1
 
 boson_conflict_reduce_reduce = 0
 boson_conflict_shift_reduce = 1
+boson_check_pass_index = -1
 
 boson_grammar_tuple_prefix = '$'
 boson_grammar_tuple_unpack = '*'
@@ -33,7 +34,7 @@ boson_lexical_reserved_character = chr(0xffff)
 boson_lexical_hidden_prefix = '_'
 boson_lexical_start_line = 1
 boson_lexical_default_skip = False
-boson_lexical_no_error_line = -1
+boson_lexical_no_error_index = -1
 boson_lexical_default_state = 0
 boson_lexical_default_start_state = 0
 boson_lexical_default_end_state = 1

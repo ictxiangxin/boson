@@ -39,12 +39,12 @@ namespace boson {
             this->_line++;
         }
 
-        int error_line() const {
-            return _error_line;
+        int error_index() const {
+            return _error_index;
         }
 
-        int no_error_line() const {
-            return _no_error_line;
+        int no_error_index() const {
+            return _no_error_index;
         }
 
         int tokenize(std::string text) {
@@ -111,16 +111,16 @@ namespace boson {
                         if (this->_end_state_set.count(state)) {
                             get_token = true;
                         } else {
-                            this->_error_line = this->_line;
-                            return this->_error_line;
+                            this->_error_index = index;
+                            return this->_error_index;
                         }
                     }
                 } else {
                     if (this->_end_state_set.count(state)) {
                         get_token = true;
                     } else {
-                        this->_error_line = this->_line;
-                        return this->_error_line;
+                        this->_error_index = index;
+                        return this->_error_index;
                     }
                 }
                 if (get_token) {
@@ -136,7 +136,7 @@ namespace boson {
                 throw std::runtime_error("Invalid state.");
             }
             this->_token_list.emplace_back("", this->_line, "{{ configure.boson_end_symbol }}");
-            return this->_error_line;
+            return this->_error_index;
         }
 
         void register_function(std::string &function_name, lexical_function &function) {
@@ -146,8 +146,8 @@ namespace boson {
     private:
         std::vector<{{ configure.boson_option['token_class_name'] }}> _token_list{};
         int _line = {{ configure.boson_lexical_start_line }};
-        int _error_line = {{ configure.boson_lexical_no_error_line }};
-        int _no_error_line = {{ configure.boson_lexical_no_error_line }};
+        int _error_index = {{ configure.boson_lexical_no_error_index }};
+        int _no_error_index = {{ configure.boson_lexical_no_error_index }};
         bool _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
         {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
         std::unordered_map<int, std::vector<std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int>>> _compact_move_table = {

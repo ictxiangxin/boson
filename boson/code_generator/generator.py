@@ -6,14 +6,15 @@ import boson.configure as configure
 
 
 class CodeGenerator:
-    def __init__(self, output_path: str, language: str, mode: str = 'integration'):
-        self.__output_path = output_path
-        self.__language = language
-        self.__mode = mode
+    def __init__(self, output_path: str, language: str, mode: str, checker: bool):
+        self._output_path = output_path
+        self._language = language
+        self._mode = mode
+        self._checker = checker
         self.__environment = jinja2.Environment(
             loader=jinja2.PackageLoader(
                 configure.boson_package_name,
-                os.path.join(configure.boson_template_directory, self.__mode, self.__language),
+                os.path.join(configure.boson_template_directory, self._mode, self._language, 'checker' if self._checker else ''),
                 encoding=configure.boson_default_encoding))
         self._template_data: dict = {
             'configure': configure,
@@ -28,7 +29,7 @@ class CodeGenerator:
     def _generate_code(self, template_file: str, output_file: str) -> None:
         template = self.__environment.get_template(template_file + configure.boson_template_postfix)
         code_text = template.render(self._template_data)
-        with open(os.path.join(self.__output_path, output_file), 'w', encoding=configure.boson_default_encoding) as code_file:
+        with open(os.path.join(self._output_path, output_file), 'w', encoding=configure.boson_default_encoding) as code_file:
             code_file.write(code_text)
 
     def dispose_lexer(self, lexer_generator: LexerGenerator) -> None:

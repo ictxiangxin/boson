@@ -84,12 +84,12 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         this._line++;
     }
 
-    public int errorLine() {
-        return _errorLine;
+    public int errorIndex() {
+        return _errorIndex;
     }
 
-    public int noErrorLine() {
-        return _noErrorLine;
+    public int noErrorIndex() {
+        return _noErrorIndex;
     }
 
     public int tokenize(String text) throws Exception {
@@ -156,16 +156,16 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
                     if (this._endStateSet.contains(state)) {
                         getToken = true;
                     } else {
-                        this._errorLine = this._line;
-                        return this._errorLine;
+                        this._errorIndex = index;
+                        return this._errorIndex;
                     }
                 }
             } else {
                 if (this._endStateSet.contains(state)) {
                     getToken = true;
                 } else {
-                    this._errorLine = this._line;
-                    return this._errorLine;
+                    this._errorIndex = index;
+                    return this._errorIndex;
                 }
             }
             if (getToken) {
@@ -181,7 +181,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
             throw new Exception("Invalid state.");
         }
         this._tokenList.add(new {{ configure.boson_option['token_class_name'] }}("", this._line, "{{ configure.boson_end_symbol }}"));
-        return this._errorLine;
+        return this._errorIndex;
     }
 
     void registerFunction(String function_name, Function<String, String> function) {
@@ -190,8 +190,8 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
 
     private List<{{ configure.boson_option['token_class_name'] }}> _tokenList = new ArrayList<>();
     private int _line = {{ configure.boson_lexical_start_line }};
-    private int _errorLine = {{ configure.boson_lexical_no_error_line }};
-    private int _noErrorLine = {{ configure.boson_lexical_no_error_line }};
+    private int _errorIndex = {{ configure.boson_lexical_no_error_index }};
+    private int _noErrorIndex = {{ configure.boson_lexical_no_error_index }};
     private boolean _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
     {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
     private final Map<Integer, List<CompactTable>> _compactMoveTable = Map.ofEntries(

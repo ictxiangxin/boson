@@ -24,6 +24,7 @@ if __name__ == '__main__':
           keywords=[configure.boson_package_name, configure.boson_description],
           packages=[
               configure.boson_package_name,
+              configure.boson_package_name + '.binary_generator',
               configure.boson_package_name + '.boson_script',
               configure.boson_package_name + '.boson_script.boson_script_parser',
               configure.boson_package_name + '.code_generator',
@@ -34,6 +35,7 @@ if __name__ == '__main__':
           ],
           package_data={configure.boson_package_name: [
               '{}/integration/python/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
+              '{}/integration/python/checker/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
               '{}/integration/c++/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
               '{}/integration/java/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
           ]},
