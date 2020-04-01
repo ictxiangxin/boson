@@ -97,9 +97,9 @@ public class {{ configure.boson_option['parser_class_name'] }} {
                 {%- endif %}
                 {%- if parser.none_grammar_tuple_sentence_index_set %}
                 {%- if parser.sentence_index_grammar_tuple_mapping %}
-                } else if (this._noneGrammarTupleReduceSet.contains(statementIndex)) {
+                } else if (this._nonGrammarTupleReduceSet.contains(statementIndex)) {
                 {%- else %}
-                if (this._noneGrammarTupleReduceSet.contains(statementIndex)) {
+                if (this._nonGrammarTupleReduceSet.contains(statementIndex)) {
                 {%- endif %}
                     {{ configure.boson_option['grammar_node_class_name'] }} grammarNode = new {{ configure.boson_option['grammar_node_class_name'] }}();
                     for (int i = 0; i < reduceCount; i++) {
@@ -199,7 +199,7 @@ public class {{ configure.boson_option['parser_class_name'] }} {
         {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     );
-    private final Set<Integer> _noneGrammarTupleReduceSet = Set.of(
+    private final Set<Integer> _nonGrammarTupleReduceSet = Set.of(
         {%- for index in parser.none_grammar_tuple_sentence_index_set -%}
         {{ index }}
         {%- if not loop.last %}, {% endif -%}

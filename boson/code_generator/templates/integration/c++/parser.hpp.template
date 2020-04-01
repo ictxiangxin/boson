@@ -105,9 +105,9 @@ namespace boson {
                     {%- endif %}
                     {%- if parser.none_grammar_tuple_sentence_index_set %}
                     {%- if parser.sentence_index_grammar_tuple_mapping %}
-                    } else if (this->_none_grammar_tuple_reduce_set.count(statement_index)) {
+                    } else if (this->_non_grammar_tuple_reduce_set.count(statement_index)) {
                     {%- else %}
-                    if (this->_none_grammar_tuple_reduce_set.count(statement_index)) {
+                    if (this->_non_grammar_tuple_reduce_set.count(statement_index)) {
                     {%- endif %}
                         {{ configure.boson_option['grammar_node_class_name'] }} grammar_node;
                         for (int i = 0; i < reduce_count; i++) {
@@ -209,7 +209,7 @@ namespace boson {
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
-        std::set<int> _none_grammar_tuple_reduce_set = {
+        std::set<int> _non_grammar_tuple_reduce_set = {
             {%- for index in parser.none_grammar_tuple_sentence_index_set -%}
             {{ index }}
             {%- if not loop.last %}, {% endif -%}

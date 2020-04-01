@@ -107,7 +107,7 @@ namespace boson {
                         if (this->_end_state_set.count(state)) {
                             get_token = true;
                         } else {
-                            this->_error_index = index;
+                            this->_error_index = index - 1;
                             return this->_error_index;
                         }
                     }
@@ -115,7 +115,7 @@ namespace boson {
                     if (this->_end_state_set.count(state)) {
                         get_token = true;
                     } else {
-                        this->_error_index = index;
+                        this->_error_index = index - 1;
                         return this->_error_index;
                     }
                 }
@@ -128,7 +128,8 @@ namespace boson {
             if (this->_end_state_set.count(state)) {
                 this->_generate_token(state);
             } else {
-                throw std::runtime_error("Invalid state.");
+                this->_error_index = index - 1;
+                return this->_error_index;
             }
             this->_token_list.emplace_back("", this->_line, "{{ configure.boson_end_symbol }}");
             return this->_error_index;

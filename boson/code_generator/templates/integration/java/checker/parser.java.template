@@ -23,7 +23,7 @@ public class {{ configure.boson_option['parser_class_name'] }} {
     public {{ configure.boson_option['parser_class_name'] }}() {
     }
 
-    public int check_pass_index() const {
+    public int checkPassIndex() {
         return this._checkPassIndex;
     }
 

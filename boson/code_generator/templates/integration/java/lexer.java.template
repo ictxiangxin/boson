@@ -123,7 +123,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
                         }
                     } else {
                         condition = characterSet.contains(character);
-                        if (attribute == 1 && this._characterSet.contains(character)) {
+                        if (attribute == 1 && !this._characterSet.contains(character)) {
                             condition = true;
                         }
                         for (LexerRange range : rangeList) {
@@ -156,7 +156,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
                     if (this._endStateSet.contains(state)) {
                         getToken = true;
                     } else {
-                        this._errorIndex = index;
+                        this._errorIndex = index - 1;
                         return this._errorIndex;
                     }
                 }
@@ -164,7 +164,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
                 if (this._endStateSet.contains(state)) {
                     getToken = true;
                 } else {
-                    this._errorIndex = index;
+                    this._errorIndex = index - 1;
                     return this._errorIndex;
                 }
             }
@@ -178,7 +178,8 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         if (this._endStateSet.contains(state)) {
             this._generateToken(state, tokenString.toString());
         } else {
-            throw new Exception("Invalid state.");
+            this._errorIndex = index - 1;
+            return this._errorIndex;
         }
         this._tokenList.add(new {{ configure.boson_option['token_class_name'] }}("", this._line, "{{ configure.boson_end_symbol }}"));
         return this._errorIndex;
@@ -251,7 +252,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     );
-    private final Map<String, List<String>> _symbol_function_mapping = Map.ofEntries(
+    private final Map<String, List<String>> _symbolFunctionMapping = Map.ofEntries(
         {%- for symbol, function_list in lexer.symbol_function_mapping.items() %}
         Map.entry("{{ symbol }}", List.of(
             {%- for function in function_list -%}
@@ -266,8 +267,8 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
 
     private String _invokeLexicalFunction(String symbol, String tokenString) {
         this._skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
-        if (this._symbol_function_mapping.containsKey(symbol)) {
-            for (String function : this._symbol_function_mapping.get(symbol)) {
+        if (this._symbolFunctionMapping.containsKey(symbol)) {
+            for (String function : this._symbolFunctionMapping.get(symbol)) {
                 if (this._lexicalFunction.containsKey(function)) {
                     tokenString = this._lexicalFunction.get(function).apply(tokenString);
                 } else if (function.equals("skip")) {

@@ -159,13 +159,13 @@ class {{ configure.boson_option['lexer_class_name'] }}:
                     if state in self.__end_state_set:
                         get_token = True
                     else:
-                        self.__error_index = index
+                        self.__error_index = index - 1
                         return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
                     get_token = True
                 else:
-                    self.__error_index = index
+                    self.__error_index = index - 1
                     return self.__error_index
             if get_token:
                 self._generate_token(state)
@@ -174,7 +174,8 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         if state in self.__end_state_set:
             self._generate_token(state)
         else:
-            raise ValueError('Invalid state: state={}'.format(state))
+            self.__error_index = index - 1
+            return self.__error_index
         self.__token_list.append({{ configure.boson_option['token_class_name'] }}('{{ configure.boson_end_symbol }}'))
         return self.__error_index
 

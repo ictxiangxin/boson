@@ -179,6 +179,8 @@ def console_main():
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
         display('> Language: {}'.format(arguments.language.upper()), indent=8)
+        display('> Mode: {}'.format(arguments.mode.capitalize()), indent=8)
+        display('> Checker: {}'.format('Yes' if arguments.checker else 'No'), indent=8)
         display('> Generate Lexer: {}'.format('Yes' if lexical_analyzer else 'No'), indent=8)
         display('> Generate Parser: {}'.format('Yes' if parser_generator else 'No'), indent=8)
         display('> Output Path: "{}"'.format(arguments.output), indent=8)
