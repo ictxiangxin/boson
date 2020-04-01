@@ -179,8 +179,8 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         return this._errorIndex;
     }
 
-    void registerFunction(String function_name, Function<String, String> function) {
-        this._lexicalFunction.put(function_name, function);
+    void registerFunction(String functionName, Function<String, String> function) {
+        this._lexicalFunction.put(functionName, function);
     }
 
     private List<{{ configure.boson_option['token_class_name'] }}> _tokenList = new ArrayList<>();
@@ -234,7 +234,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     );
-    private final Map<Integer, String> _lexical_symbol_mapping = Map.ofEntries(
+    private final Map<Integer, String> _lexicalSymbolMapping = Map.ofEntries(
         {%- for state, symbol in lexer.lexical_symbol_mapping.items() %}
         Map.entry({{ state }}, "{{ symbol }}")
         {%- if not loop.last %},{% endif -%}
@@ -259,7 +259,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
     );
     private final Map<String, Function<String, String>> _lexicalFunction = new HashMap<>();
 
-    private void _invoke_lexical_function(String symbol) {
+    private void _invokeLexicalFunction(String symbol) {
         this._skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
         if (this._symbol_function_mapping.containsKey(symbol)) {
             for (String function : this._symbol_function_mapping.get(symbol)) {
@@ -273,8 +273,8 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
     }
 
     private void _generateToken(int state) {
-        String symbol = this._lexical_symbol_mapping.getOrDefault(state, "{{ configure.boson_default_symbol }}");
-        this._invoke_lexical_function(symbol);
+        String symbol = this._lexicalSymbolMapping.getOrDefault(state, "{{ configure.boson_default_symbol }}");
+        this._invokeLexicalFunction(symbol);
         if (!this._skip) {
             this._tokenList.add(new {{ configure.boson_option['token_class_name'] }}(symbol));
         }

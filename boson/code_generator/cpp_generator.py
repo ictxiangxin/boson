@@ -8,7 +8,12 @@ class CppCodeGenerator(CodeGenerator):
 
     def generate_code(self):
         if self._checker:
-            pass
+            self._generate_code('boson.hpp', 'boson.hpp')
+            self._generate_code('token.hpp', 'token.hpp')
+            if self._template_data['option']['generate_lexer']:
+                self._generate_code('lexer.hpp', 'lexer.hpp')
+            if self._template_data['option']['generate_parser']:
+                self._generate_code('parser.hpp', 'parser.hpp')
         else:
             self._generate_code('boson.hpp', 'boson.hpp')
             self._generate_code('token.hpp', 'token.hpp')

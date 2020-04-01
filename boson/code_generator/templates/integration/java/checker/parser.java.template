@@ -36,11 +36,11 @@ public class {{ configure.boson_option['parser_class_name'] }} {
             int currentState = analysisStack.peek();
             {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
             String operation = "{{ configure.boson_table_sign_error }}";
-            int terminal_index = this._terminalIndexMapping.get(token.symbol);
+            int terminalIndex = this._terminalIndexMapping.get(token.symbol);
             if (this._sparseActionTable.containsKey(currentState)) {
                 Map<Integer, String> actions = this._sparseActionTable.get(currentState);
-                if (actions.containsKey(terminal_index)) {
-                    operation = actions.get(terminal_index);
+                if (actions.containsKey(terminalIndex)) {
+                    operation = actions.get(terminalIndex);
                 }
             }
             {%- else %}
@@ -50,8 +50,7 @@ public class {{ configure.boson_option['parser_class_name'] }} {
             if (operationFlag == '{{ configure.boson_table_sign_error }}') {
                 return tokenIndex;
             } else if (operationFlag == '{{ configure.boson_table_sign_shift }}') {
-                int stateNumber = Integer.parseInt(operation.substring(1));
-                analysisStack.push(stateNumber);
+                analysisStack.push(Integer.parseInt(operation.substring(1)));
                 tokenIndex++;
             } else if (operationFlag == '{{ configure.boson_table_sign_reduce }}') {
                 int statementIndex = Integer.parseInt(operation.substring(1));
@@ -85,7 +84,7 @@ public class {{ configure.boson_option['parser_class_name'] }} {
         throw new Exception("Analyzer unusual exit.");
     }
 
-    private final Map<String, Integer>_terminalIndexMapping = Map.ofEntries(
+    private final Map<String, Integer> _terminalIndexMapping = Map.ofEntries(
         {%- for terminal, index in parser.terminal_index_mapping.items() %}
         Map.entry("{{ terminal }}", {{ index }})
         {%- if not loop.last %},{% endif -%}

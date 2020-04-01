@@ -133,7 +133,7 @@ namespace boson {
         }
 
     private:
-        std::unordered_map<std::string, int>_terminal_index_mapping = {
+        std::unordered_map<std::string, int> _terminal_index_mapping = {
             {%- for terminal, index in parser.terminal_index_mapping.items() %}
             {"{{ terminal }}", {{ index -}} }
             {%- if not loop.last %},{% endif -%}

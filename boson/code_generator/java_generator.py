@@ -8,7 +8,11 @@ class JavaCodeGenerator(CodeGenerator):
 
     def generate_code(self):
         if self._checker:
-            pass
+            self._generate_code('token.java', configure.boson_option['token_class_name'] + '.java')
+            if self._template_data['option']['generate_lexer']:
+                self._generate_code('lexer.java', configure.boson_option['lexer_class_name'] + '.java')
+            if self._template_data['option']['generate_parser']:
+                self._generate_code('parser.java', configure.boson_option['parser_class_name'] + '.java')
         else:
             self._generate_code('token.java', configure.boson_option['token_class_name'] + '.java')
             if self._template_data['option']['generate_lexer']:

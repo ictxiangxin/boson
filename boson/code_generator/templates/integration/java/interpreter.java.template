@@ -32,7 +32,7 @@ public class {{ configure.boson_option['interpreter_class_name'] }}<T> {
 
     private final Map<Integer, String> _reduceNumberGrammarNameMapping = Map.ofEntries(
         {%- for reduce_number, grammarName in parser.reduce_number_grammar_name_mapping.items() %}
-        Map.entry({{- reduce_number }}, "{{ grammarName }}")
+        Map.entry({{ reduce_number }}, "{{ grammarName }}")
         {%- if not loop.last %}, {% endif -%}
         {%- endfor %}
     );
@@ -46,7 +46,7 @@ public class {{ configure.boson_option['interpreter_class_name'] }}<T> {
 
     private {{ configure.boson_option['semantic_node_class_name'] }}<T> _semanticsAnalysis({{ configure.boson_option['grammar_node_class_name'] }} grammarTree) {
         String grammarName = this._reduceNumberGrammarNameMapping.getOrDefault(grammarTree.getReduceNumber(), "{{ configure.boson_grammar_name_prefix }}hidden");
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> semanticsNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();;
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> semanticsNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();
         for ({{ configure.boson_option['grammar_node_class_name'] }} node : grammarTree.children()) {
             if (!node.children().isEmpty()) {
                 semanticsNode.append(this._semanticsAnalysis(node));

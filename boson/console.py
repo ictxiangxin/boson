@@ -16,7 +16,8 @@ from boson.parser_generator import \
 from boson.code_generator import \
     PythonCodeGenerator, \
     CppCodeGenerator, \
-    JavaCodeGenerator
+    JavaCodeGenerator, \
+    JavaScriptCodeGenerator
 
 parser_generator_library = {
     'slr': SLRParserGenerator,
@@ -28,6 +29,7 @@ code_generator_library = {
     'python': PythonCodeGenerator,
     'c++': CppCodeGenerator,
     'java': JavaCodeGenerator,
+    'javascript': JavaScriptCodeGenerator
 }
 
 quiet = False
@@ -64,11 +66,12 @@ def console_main():
              '  lr   - LR(1) (Canonical LR)\n'
              '  lalr - LALR(1) (Look-Ahead LR)\n')
     argument_parser.add_argument(
-        '-l', '--language', default='python', choices=['python', 'c++', 'java'],
+        '-l', '--language', default='python', choices=['python', 'c++', 'java', 'javascript'],
         help='Generate Code Program Language (Default Is Python3).\n'
-             '  python - Python3 Code.\n'
-             '  c++    - C++ Code.\n'
-             '  java   - Java Code.\n')
+             '  python     - Python3 Code.\n'
+             '  c++        - C++ Code.\n'
+             '  java       - Java Code.\n'
+             '  javascript - Java Script Code.\n')
     argument_parser.add_argument(
         '-m', '--mode', default='integration', choices=['integration', 'library', 'binary'],
         help='Analyzer Mode (Default Is Integration).\n'
