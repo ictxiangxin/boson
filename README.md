@@ -33,7 +33,9 @@ Boson可通过pip命令安装或从源码进行安装：
 输入`boson -h`以查看Boson的简要的使用说明：
 
 ```
-usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python,c++,java}] [-f] [-q] boson_script_file
+usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python,c++,java,javascript}]
+             [-m {integration,library,binary}] [-c] [-f] [-q]
+             boson_script_file
 
 Boson v1.5 - Grammar analyzer generator
 
@@ -49,11 +51,18 @@ optional arguments:
                           slr  - SLR(1) (Simple LR)
                           lr   - LR(1) (Canonical LR)
                           lalr - LALR(1) (Look-Ahead LR)
-  -l {python,c++,java}, --language {python,c++,java}
+  -l {python,c++,java,javascript}, --language {python,c++,java,javascript}
                         Generate Code Program Language (Default Is Python3).
-                          python - Python3 Code.
-                          c++    - C++ Code.
-                          java   - Java Code.
+                          python     - Python3 Code.
+                          c++        - C++ Code.
+                          java       - Java Code.
+                          javascript - Java Script Code.
+  -m {integration,library,binary}, --mode {integration,library,binary}
+                        Analyzer Mode (Default Is Integration).
+                          integration - Analyzer Table Integrated In Code.
+                          library     - Analyzer Static Library Code.
+                          binary      - Binary File Used for Drive Library.
+  -c, --checker         Generate Checker Instead Of Full Lexer And Parser.
   -f, --force           Force Generate Parse Table When Exist Conflicts.
   -q, --quiet           Display Nothing.
 ```
@@ -64,23 +73,27 @@ Boson运行命令形式简单，可归纳为`boson <Boson脚本文件> <其他�
 
 1. `-h`或`--help`，Boson将显示简要的使用说明。
 
-2. `-o`或`--output`，该参数后跟输出代码文件的文件名（包括文件路径）。
+2. `-o`或`--output`，该参数后跟输出代码文件的目录（不存在则自动创建）。
 
 3. `-a`或`--analyzer`，指定Boson使用的语法分析器，目前支持`slr`、`lr`、`lalr`，默认为`lalr`。
 
-4. `-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`、`java`，默认为`c++`。
+4. `-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`、`java`、`javascript`，默认为`c++`。
 
-5. `-f`或`--force`，在有语法冲突时，强制生成代码，后续手动解决冲突问题。
+5. `-m`或`--mode`，生成分析器的模式，`integration`模式为分析表集成于代码（默认模式），`library`模式为生成分析器的库源码，`binary`生成用于分析器库的二进制文件。
 
-6. `-q`或`--quiet`，安静模式，Boson运行时不输出任何信息。
+6. `-c`或`--checker`，仅生成语法检查器，不生成完整的语法分析程序。
+
+7. `-f`或`--force`，在有语法冲突时，强制生成代码，后续手动解决冲突问题。
+
+8. `-q`或`--quiet`，安静模式，Boson运行时不输出任何信息。
 
 ### Boson的自举
 
 Boson自身的部分代码也由Boson生成（该过程称为“自举”）。
 
-> `boson/boson_script/boson_script_parser.py`文件是由`boson boson_script.boson -o boson_script_parser.py`生成。
+> `boson/boson_script/boson_script_parser`目录是由`boson boson_script.boson -o boson_script_parser`生成。
 
-> `boson/lexer_generator/regular_parser.py`文件是由`boson regular.boson -o regular_parser.py`生成。
+> `boson/lexer_generator/regular_parser`文件是由`boson regular.boson -o regular_parser`生成。
 
 上述命令中用到的`boson_script.boson`文件和`regular.boson`是两个Boson脚本文件，可在Boson源码的根目录找到。
 

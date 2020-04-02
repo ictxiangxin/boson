@@ -71,7 +71,7 @@ def console_main():
              '  python     - Python3 Code.\n'
              '  c++        - C++ Code.\n'
              '  java       - Java Code.\n'
-             '  javascript - Java Script Code.\n')
+             '  javascript - JavaScript Code.\n')
     argument_parser.add_argument(
         '-m', '--mode', default='integration', choices=['integration', 'library', 'binary'],
         help='Analyzer Mode (Default Is Integration).\n'

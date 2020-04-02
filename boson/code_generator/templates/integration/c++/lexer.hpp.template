@@ -52,7 +52,7 @@ namespace boson {
             this->_line = {{ configure.boson_lexical_start_line }};
             int state = this->_start_state;
             std::string token_string{};
-            unsigned long index = 0;
+            int index = 0;
             while (index < text.length()) {
                 char character = text[index];
                 index++;
