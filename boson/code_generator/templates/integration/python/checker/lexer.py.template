@@ -102,14 +102,17 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         if not self.__skip:
             self.__token_list.append({{ configure.boson_option['token_class_name'] }}(symbol))
 
+    def token_list(self) -> list:
+        return self.__token_list
+
+    def line(self) -> int:
+        return self.__line
+
     def skip(self) -> None:
         self.__skip = True
 
     def newline(self) -> None:
         self.__line += 1
-
-    def token_list(self) -> list:
-        return self.__token_list
 
     def error_index(self) -> int:
         return self.__error_index

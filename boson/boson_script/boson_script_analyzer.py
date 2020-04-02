@@ -253,7 +253,7 @@ class BosonScriptAnalyzer:
     def tokenize_and_parse(self, boson_script_text: str):
         lexer = BosonLexer()
         if lexer.tokenize(boson_script_text) != lexer.no_error_index():
-            raise ValueError('[Boson Script Analyzer] Invalid Token [Index: {}]'.format(lexer.error_index()))
+            raise ValueError('[Boson Script Analyzer] Invalid Token [Line: {}, Index: {}]'.format(lexer.line(), lexer.error_index()))
         self.__init__()
         self.init_semantic()
         interpreter.execute(self.parse(lexer.token_list()))

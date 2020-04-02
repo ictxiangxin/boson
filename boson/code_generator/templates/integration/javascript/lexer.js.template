@@ -96,6 +96,10 @@ export class {{ configure.boson_option['lexer_class_name'] }} {
         return this._tokenList;
     }
 
+    line() {
+        return this._line;
+    }
+
     skip() {
         this._skip = true;
     }

@@ -31,6 +31,10 @@ namespace boson {
             return this->_token_list;
         }
 
+        int line() const {
+            this->_line;
+        }
+
         void skip() {
             this->_skip = true;
         }
