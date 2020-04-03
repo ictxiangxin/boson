@@ -34,18 +34,20 @@ public class {{ configure.boson_option['parser_class_name'] }} {
         while (tokenIndex < tokenList.size()) {
             {{ configure.boson_option['token_class_name'] }} token = tokenList.get(tokenIndex);
             int currentState = analysisStack.peek();
-            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
             String operation = "{{ configure.boson_table_sign_error }}";
-            int terminalIndex = this._terminalIndexMapping.get(token.symbol);
-            if (this._sparseActionTable.containsKey(currentState)) {
-                Map<Integer, String> actions = this._sparseActionTable.get(currentState);
-                if (actions.containsKey(terminalIndex)) {
-                    operation = actions.get(terminalIndex);
+            if (this._terminalIndexMapping.containsKey(token.symbol)) {
+            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                int terminalIndex = this._terminalIndexMapping.get(token.symbol);
+                if (this._sparseActionTable.containsKey(currentState)) {
+                    Map<Integer, String> actions = this._sparseActionTable.get(currentState);
+                    if (actions.containsKey(terminalIndex)) {
+                        operation = actions.get(terminalIndex);
+                    }
                 }
-            }
             {%- else %}
-            String operation = this._actionTable.get(currentState).get(this._terminalIndexMapping.get(token.symbol));
+                operation = this._actionTable.get(currentState).get(this._terminalIndexMapping.get(token.symbol));
             {%- endif %}
+            }
             char operationFlag = operation.charAt(0);
             if (operationFlag == '{{ configure.boson_table_sign_error }}') {
                 return tokenIndex;

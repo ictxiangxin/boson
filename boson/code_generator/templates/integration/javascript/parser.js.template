@@ -108,18 +108,20 @@ export class {{ configure.boson_option['parser_class_name'] }} {
         while (tokenIndex < tokenList.length) {
             const token = tokenList[tokenIndex];
             const currentState = analysisStack[analysisStack.length - 1];
-            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
             let operation = '{{ configure.boson_table_sign_error }}';
-            const terminalIndex = this._terminalIndexMapping[token.symbol];
-            if (this._sparseActionTable.hasOwnProperty(currentState)) {
-                const actions = this._sparseActionTable[currentState];
-                if (actions.hasOwnProperty(terminalIndex)) {
-                    operation = actions[terminalIndex];
+            if (this._terminalIndexMapping.hasOwnProperty(token.symbol)) {
+            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                const terminalIndex = this._terminalIndexMapping[token.symbol];
+                if (this._sparseActionTable.hasOwnProperty(currentState)) {
+                    const actions = this._sparseActionTable[currentState];
+                    if (actions.hasOwnProperty(terminalIndex)) {
+                        operation = actions[terminalIndex];
+                    }
                 }
-            }
             {%- else %}
-            operation = this._actionTable[currentState][this._terminalIndexMapping[token.symbol]];
+                operation = this._actionTable[currentState][this._terminalIndexMapping[token.symbol]];
             {%- endif %}
+            }
             const operationFlag = operation[0];
             if (operationFlag === '{{ configure.boson_table_sign_error }}') {
                 grammar.setErrorIndex(tokenIndex);

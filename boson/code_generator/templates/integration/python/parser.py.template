@@ -68,11 +68,14 @@ class {{ configure.boson_option['parser_class_name'] }}:
         while token_index < len(token_list):
             token: {{ configure.boson_option['token_class_name'] }} = token_list[token_index]
             current_state = analysis_stack[-1]
+            if token.symbol in self.__terminal_index_mapping:
             {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
-            operation = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
+                operation = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
             {%- else %}
-            operation = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
+                operation = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
             {%- endif %}
+            else:
+                operation = '{{ configure.boson_table_sign_error }}'
             operation_flag = operation[0]
             if operation_flag == '{{ configure.boson_table_sign_error }}':
                 grammar.error_index = token_index

@@ -36,18 +36,20 @@ namespace boson {
             while (token_index < token_list.size()) {
                 {{ configure.boson_option['token_class_name'] }} &token = token_list[token_index];
                 int current_state = analysis_stack.top();
-                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
                 std::string operation = "{{ configure.boson_table_sign_error }}";
-                int terminal_index = this->_terminal_index_mapping[token.symbol];
-                if (this->_sparse_action_table.count(current_state)) {
-                    std::unordered_map<int, std::string> &actions = this->_sparse_action_table[current_state];
-                    if (actions.count(terminal_index)) {
-                        operation = actions[terminal_index];
+                if (this->_terminal_index_mapping.count(token.symbol)) {
+                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                    int terminal_index = this->_terminal_index_mapping[token.symbol];
+                    if (this->_sparse_action_table.count(current_state)) {
+                        std::unordered_map<int, std::string> &actions = this->_sparse_action_table[current_state];
+                        if (actions.count(terminal_index)) {
+                            operation = actions[terminal_index];
+                        }
                     }
-                }
                 {%- else %}
-                std::string operation = this->_action_table[current_state][this->_terminal_index_mapping[token.symbol]];
+                    operation = this->_action_table[current_state][this->_terminal_index_mapping[token.symbol]];
                 {%- endif %}
+                }
                 char operation_flag = operation[0];
                 if (operation_flag == '{{ configure.boson_table_sign_error }}') {
                     return token_index;
