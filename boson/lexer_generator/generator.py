@@ -63,7 +63,7 @@ class LexerGenerator:
                     function_list = regular_definition[2]
                 if function_list is not None:
                     self.__symbol_function_mapping[lexical_symbol] = function_list
-            if tokenizer.tokenize(regular_definition[0]) != tokenizer.no_error_line():
+            if tokenizer.tokenize(regular_definition[0]) != tokenizer.no_error_index():
                 raise ValueError('[Lexer Generator] Invalid Regular Expression: "{}".'.format(regular_definition[0]))
             symbol_token_list_mapping[lexical_symbol] = tokenizer.token_list()
         for lexical_symbol in reference_set:

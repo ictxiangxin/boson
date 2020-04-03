@@ -44,7 +44,18 @@ class BosonRegularAnalyzer:
             elif len(semantic_node_list) == 2:
                 nfa, postfix = semantic_node_list
                 if isinstance(postfix, list):
-                    return bs_create_nfa_count_range(nfa, int(postfix[0]), int(postfix[1]))
+                    min_count = int(postfix[0])
+                    if len(postfix) == 1:
+                        if min_count == 0:
+                            return bs_create_nfa_kleene_closure(nfa)
+                        elif min_count == 1:
+                            return bs_create_nfa_plus_closure(nfa)
+                        else:
+                            return bs_create_nfa_link([bs_create_nfa_count_range(nfa, min_count, min_count), bs_create_nfa_kleene_closure(nfa)])
+                    max_count = int(postfix[1])
+                    if min_count > max_count:
+                        raise ValueError('[Boson Regular Analyzer] Min Count Must Less Than Max Count.')
+                    return bs_create_nfa_count_range(nfa, min_count, max_count)
                 elif isinstance(postfix, str):
                     if postfix == '*':
                         return bs_create_nfa_kleene_closure(nfa)

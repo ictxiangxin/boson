@@ -23,6 +23,6 @@ class CppCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.hpp', 'grammar_node.hpp')
                 self._generate_code('grammar.hpp', 'grammar.hpp')
                 self._generate_code('parser.hpp', 'parser.hpp')
-            if configure.boson_option['generate_interpreter'] == 'yes':
+            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
                 self._generate_code('semantic_node.hpp', 'semantic_node.hpp')
                 self._generate_code('interpreter.hpp', 'interpreter.hpp')

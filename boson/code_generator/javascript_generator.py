@@ -21,5 +21,5 @@ class JavaScriptCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.js', 'grammar_node.js')
                 self._generate_code('grammar.js', 'grammar.js')
                 self._generate_code('parser.js', 'parser.js')
-            if configure.boson_option['generate_interpreter'] == 'yes':
+            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
                 self._generate_code('interpreter.js', 'interpreter.js')

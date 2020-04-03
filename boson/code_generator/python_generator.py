@@ -23,5 +23,5 @@ class PythonCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.py', 'grammar_node.py')
                 self._generate_code('grammar.py', 'grammar.py')
                 self._generate_code('parser.py', 'parser.py')
-            if configure.boson_option['generate_interpreter'] == 'yes':
+            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
                 self._generate_code('interpreter.py', 'interpreter.py')

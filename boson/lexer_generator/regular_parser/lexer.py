@@ -5,8 +5,8 @@ class RegularLexer:
     def __init__(self):
         self.__token_list: list = []
         self.__line: int = 1
-        self.__error_line: int = -1
-        self.__no_error_line: int = -1
+        self.__error_index: int = -1
+        self.__no_error_index: int = -1
         self.__skip: bool = False
         self.__compact_move_table: dict = {
             0: [
@@ -39,7 +39,7 @@ class RegularLexer:
                 [2, set(), [], 20]
             ]
         }
-        self.__character_set: set = {'\x6e', '\x5c', '\x39', '\x55', '\x7a', '\x67', '\x4f', '\x64', '\x37', '\x47', '\x62', '\x2b', '\x7b', '\x76', '\x6f', '\x36', '\x6a', '\x5d', '\x56', '\x6c', '\x5e', '\x73', '\x78', '\x31', '\x4a', '\x4c', '\x65', '\x70', '\x45', '\x50', '\x52', '\x58', '\x57', '\x6d', '\x32', '\x44', '\x2d', '\x2c', '\x43', '\x54', '\x41', '\x30', '\x5b', '\x59', '\x2a', '\x38', '\x7c', '\x2e', '\x74', '\x79', '\x66', '\x48', '\x5a', '\x5f', '\x4b', '\x34', '\x75', '\x46', '\x29', '\x4e', '\x51', '\x68', '\x35', '\x63', '\x3f', '\x7d', '\x77', '\x72', '\x49', '\x33', '\x6b', '\x28', '\x42', '\x71', '\x53', '\x61', '\x69', '\x4d'}
+        self.__character_set: set = {'\x51', '\x33', '\x48', '\x73', '\x7d', '\x68', '\x30', '\x6f', '\x4f', '\x44', '\x3f', '\x39', '\x58', '\x6e', '\x6b', '\x5c', '\x74', '\x5e', '\x29', '\x36', '\x69', '\x49', '\x71', '\x6d', '\x70', '\x4b', '\x28', '\x4e', '\x45', '\x6c', '\x4d', '\x54', '\x56', '\x5d', '\x41', '\x38', '\x62', '\x66', '\x72', '\x5a', '\x2e', '\x64', '\x61', '\x52', '\x42', '\x7a', '\x43', '\x63', '\x6a', '\x79', '\x32', '\x59', '\x2b', '\x35', '\x77', '\x78', '\x7c', '\x34', '\x57', '\x67', '\x4a', '\x37', '\x7b', '\x55', '\x2a', '\x46', '\x53', '\x31', '\x75', '\x65', '\x47', '\x50', '\x2c', '\x5b', '\x5f', '\x76', '\x4c', '\x2d'}
         self.__start_state: int = 0
         self.__end_state_set: set = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20}
         self.__lexical_symbol_mapping: dict = {
@@ -89,24 +89,27 @@ class RegularLexer:
         if not self.__skip:
             self.__token_list.append(RegularToken(token_string, self.__line, symbol))
 
+    def token_list(self) -> list:
+        return self.__token_list
+
+    def line(self) -> int:
+        return self.__line
+
     def skip(self) -> None:
         self.__skip = True
 
     def newline(self) -> None:
         self.__line += 1
 
-    def token_list(self) -> list:
-        return self.__token_list
+    def error_index(self) -> int:
+        return self.__error_index
 
-    def error_line(self) -> int:
-        return self.__error_line
-
-    def no_error_line(self) -> int:
-        return self.__no_error_line
+    def no_error_index(self) -> int:
+        return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
         self.__token_list = []
-        self.__error_line = self.__no_error_line
+        self.__error_index = self.__no_error_index
         self.__line = 1
         state = self.__start_state
         token_string = ''
@@ -139,14 +142,14 @@ class RegularLexer:
                     if state in self.__end_state_set:
                         get_token = True
                     else:
-                        self.__error_line = self.__line
-                        return self.__error_line
+                        self.__error_index = index - 1
+                        return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
                     get_token = True
                 else:
-                    self.__error_line = self.__line
-                    return self.__error_line
+                    self.__error_index = index - 1
+                    return self.__error_index
             if get_token:
                 self._generate_token(state, token_string)
                 token_string = ''
@@ -155,9 +158,10 @@ class RegularLexer:
         if state in self.__end_state_set:
             self._generate_token(state, token_string)
         else:
-            raise ValueError('Invalid state: state={}'.format(state))
+            self.__error_index = index - 1
+            return self.__error_index
         self.__token_list.append(RegularToken('', self.__line, '$'))
-        return self.__error_line
+        return self.__error_index
 
     def register_function(self, function_name: str) -> callable:
         def decorator(f: callable):
