@@ -83,7 +83,8 @@ class {{ configure.boson_option['parser_class_name'] }}:
             elif operation_flag == '{{ configure.boson_table_sign_shift }}':
                 analysis_stack.append(int(operation[1:]))
                 token_index += 1
-                symbol_stack.append(token.text)
+                grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}(token.text)
+                symbol_stack.append(grammar_node)
             elif operation_flag == '{{ configure.boson_table_sign_reduce }}':
                 statement_index = int(operation[1:])
                 reduce_count = self.__reduce_symbol_count[statement_index]
@@ -105,12 +106,13 @@ class {{ configure.boson_option['parser_class_name'] }}:
                     for _ in range(reduce_count):
                         symbol_package.insert(0, symbol_stack.pop())
                     grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
-                    for node in self.__sentence_index_grammar_tuple_mapping[statement_index]:
-                        if node[0] == '{{ configure.boson_grammar_tuple_unpack }}':
-                            grammar_node += symbol_package[int(node[1:])]
+                    for node_string in self.__sentence_index_grammar_tuple_mapping[statement_index]:
+                        if node_string[0] == '{{ configure.boson_grammar_tuple_unpack }}':
+                            for node in symbol_package[int(node_string[1:])]:
+                                grammar_node.append(node)
                         else:
-                            grammar_node.append(symbol_package[int(node)])
-                    grammar_node.reduce_number = statement_index
+                            grammar_node.append(symbol_package[int(node_string)])
+                    grammar_node.set_reduce_number(statement_index)
                     symbol_stack.append(grammar_node)
                 {%- endif %}
                 {%- if parser.none_grammar_tuple_sentence_index_set %}
@@ -122,7 +124,7 @@ class {{ configure.boson_option['parser_class_name'] }}:
                     grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
                     for _ in range(reduce_count):
                         grammar_node.insert(0, symbol_stack.pop())
-                    grammar_node.reduce_number = statement_index
+                    grammar_node.set_reduce_number(statement_index)
                     symbol_stack.append(grammar_node)
                 {%- endif %}
                 {%- if parser.none_grammar_tuple_sentence_index_set or parser.none_grammar_tuple_sentence_index_set %}

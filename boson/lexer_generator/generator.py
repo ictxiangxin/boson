@@ -53,17 +53,11 @@ class LexerGenerator:
         analyzer = BosonRegularAnalyzer(reference_nfa_mapping)
         nfa = LexicalNFA()
         for lexical_symbol, regular_definition in self.__lexical_definition.items():
-            if len(regular_definition) > 1:
-                function_list = None
-                if isinstance(regular_definition[1], list):
-                    function_list = regular_definition[1]
-                else:
-                    non_greedy_symbol_set.add(lexical_symbol)
-                if len(regular_definition) == 3:
-                    function_list = regular_definition[2]
-                if function_list is not None:
-                    self.__symbol_function_mapping[lexical_symbol] = function_list
-            if tokenizer.tokenize(regular_definition[0]) != tokenizer.no_error_index():
+            if regular_definition['function_list']:
+                self.__symbol_function_mapping[lexical_symbol] = regular_definition['function_list']
+            if regular_definition['non_greedy']:
+                non_greedy_symbol_set.add(lexical_symbol)
+            if tokenizer.tokenize(regular_definition['regular']) != tokenizer.no_error_index():
                 raise ValueError('[Lexer Generator] Invalid Regular Expression: "{}".'.format(regular_definition[0]))
             symbol_token_list_mapping[lexical_symbol] = tokenizer.token_list()
         for lexical_symbol in reference_set:

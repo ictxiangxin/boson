@@ -1,7 +1,8 @@
 from boson.lexer_generator.regular_parser import \
     BosonGrammarNode, \
     RegularParser, \
-    RegularInterpreter
+    RegularInterpreter, \
+    BosonSemanticsNode
 from boson.lexer_generator.lexical_nfa import \
     LexicalNFA, \
     bs_create_nfa_character, \
@@ -14,6 +15,14 @@ from boson.lexer_generator.lexical_nfa import \
 
 
 interpreter = RegularInterpreter()
+
+
+def get_semantic_node_text_list(semantic_node: BosonSemanticsNode) -> list:
+    return [node.get_text() for node in semantic_node.children()]
+
+
+def get_semantic_node_data_list(semantic_node: BosonSemanticsNode) -> list:
+    return [node.get_data() for node in semantic_node.children()]
 
 
 class BosonRegularAnalyzer:
@@ -34,35 +43,37 @@ class BosonRegularAnalyzer:
 
     def init_semantic(self):
         @interpreter.register_action('regular_expression')
-        def _semantic_regular_expression(semantic_node_list):
-            self.__lexical_nfa = semantic_node_list[0]
+        def _semantic_regular_expression(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            self.__lexical_nfa = semantic_node[0].get_data()
+            return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('group')
-        def _semantic_group(semantic_node_list):
-            if len(semantic_node_list) == 1:
-                return semantic_node_list[0]
-            elif len(semantic_node_list) == 2:
-                nfa, postfix = semantic_node_list
-                if isinstance(postfix, list):
-                    min_count = int(postfix[0])
-                    if len(postfix) == 1:
+        def _semantic_group(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            if len(semantic_node.children()) == 1:
+                return semantic_node[0]
+            elif len(semantic_node.children()) == 2:
+                nfa = semantic_node[0].get_data()
+                postfix = semantic_node[1]
+                if len(postfix.children()) > 0:
+                    min_count = int(postfix[0].get_text())
+                    if len(postfix.children()) == 1:
                         if min_count == 0:
-                            return bs_create_nfa_kleene_closure(nfa)
+                            return BosonSemanticsNode(bs_create_nfa_kleene_closure(nfa))
                         elif min_count == 1:
-                            return bs_create_nfa_plus_closure(nfa)
+                            return BosonSemanticsNode(bs_create_nfa_plus_closure(nfa))
                         else:
-                            return bs_create_nfa_link([bs_create_nfa_count_range(nfa, min_count, min_count), bs_create_nfa_kleene_closure(nfa)])
-                    max_count = int(postfix[1])
+                            return BosonSemanticsNode(bs_create_nfa_link([bs_create_nfa_count_range(nfa, min_count, min_count), bs_create_nfa_kleene_closure(nfa)]))
+                    max_count = int(postfix[1].get_text())
                     if min_count > max_count:
                         raise ValueError('[Boson Regular Analyzer] Min Count Must Less Than Max Count.')
-                    return bs_create_nfa_count_range(nfa, min_count, max_count)
-                elif isinstance(postfix, str):
-                    if postfix == '*':
-                        return bs_create_nfa_kleene_closure(nfa)
-                    elif postfix == '+':
-                        return bs_create_nfa_plus_closure(nfa)
-                    elif postfix == '?':
-                        return bs_create_nfa_count_range(nfa, 0, 1)
+                    return BosonSemanticsNode(bs_create_nfa_count_range(nfa, min_count, max_count))
+                elif len(postfix.children()) == 0:
+                    if postfix.get_text() == '*':
+                        return BosonSemanticsNode(bs_create_nfa_kleene_closure(nfa))
+                    elif postfix.get_text() == '+':
+                        return BosonSemanticsNode(bs_create_nfa_plus_closure(nfa))
+                    elif postfix.get_text() == '?':
+                        return BosonSemanticsNode(bs_create_nfa_count_range(nfa, 0, 1))
                     else:
                         raise RuntimeError('[Boson Regular Analyzer] Never Touch Here.')
                 else:
@@ -71,12 +82,12 @@ class BosonRegularAnalyzer:
                 raise RuntimeError('[Boson Regular Analyzer] Never Touch Here.')
 
         @interpreter.register_action('construct_number')
-        def _semantic_construct_number(semantic_node_list):
-            return ''.join(semantic_node_list)
+        def _semantic_construct_number(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            return BosonSemanticsNode(''.join(get_semantic_node_text_list(semantic_node)))
 
         @interpreter.register_action('simple_construct')
-        def _semantic_character(semantic_node_list):
-            character = semantic_node_list[0]
+        def _semantic_character(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            character = semantic_node[0].get_text()
             if len(character) > 1 and character[0] == '\\':
                 escape_character = character[1]
                 if escape_character in self.__escape_character_mapping:
@@ -85,34 +96,36 @@ class BosonRegularAnalyzer:
                         nfa_list = []
                         for character in mapping_character:
                             nfa_list.append(bs_create_nfa_character(character))
-                        return bs_create_nfa_or(nfa_list)
+                        return BosonSemanticsNode(bs_create_nfa_or(nfa_list))
                     else:
-                        return bs_create_nfa_character(mapping_character)
+                        return BosonSemanticsNode(bs_create_nfa_character(mapping_character))
                 else:
-                    return bs_create_nfa_character(escape_character)
+                    return BosonSemanticsNode(bs_create_nfa_character(escape_character))
             else:
-                return bs_create_nfa_character(character)
+                return BosonSemanticsNode(bs_create_nfa_character(character))
 
         @interpreter.register_action('select')
-        def _semantic_select(semantic_node_list):
-            reverse = False
-            select_list = semantic_node_list[0]
-            if len(semantic_node_list) == 2:
+        def _semantic_select(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            if (len(semantic_node.children())) == 1:
+                reverse = False
+                select_list = semantic_node[0]
+            else:
                 reverse = True
-                select_list = semantic_node_list[1]
+                select_list = semantic_node[1]
             select_character_set = set()
-            for each_select in select_list:
-                if isinstance(each_select, str):
-                    if each_select[0] == '\\':
-                        escape_character = each_select[1]
+            for each_select in select_list.children():
+                if len(each_select.children()) == 0:
+                    character = each_select.get_text()
+                    if character[0] == '\\':
+                        escape_character = character[1]
                         if escape_character in self.__escape_character_mapping:
                             select_character_set |= set(self.__escape_character_mapping[escape_character])
                         else:
                             select_character_set.add(escape_character)
                     else:
-                        select_character_set.add(each_select[0])
-                elif isinstance(each_select, list):
-                    start_ascii, end_ascii = (ord(each_select[0]), ord(each_select[1]))
+                        select_character_set.add(character[0])
+                elif len(each_select.children()) == 2:
+                    start_ascii, end_ascii = (ord(each_select[0].get_text()), ord(each_select[1].get_text()))
                     if start_ascii <= end_ascii:
                         character_range_set = set()
                         while start_ascii <= end_ascii:
@@ -124,41 +137,41 @@ class BosonRegularAnalyzer:
                 else:
                     raise RuntimeError('[Boson Regular Analyzer] Never Touch Here.')
             if reverse:
-                return bs_create_nfa_reverse_delay_construct(select_character_set)
+                return BosonSemanticsNode(bs_create_nfa_reverse_delay_construct(select_character_set))
             else:
                 nfa_list = []
                 for character in select_character_set:
                     nfa_list.append(bs_create_nfa_character(character))
-                return bs_create_nfa_or(nfa_list)
+                return BosonSemanticsNode(bs_create_nfa_or(nfa_list))
 
         @interpreter.register_action('branch')
-        def _semantic_branch(semantic_node_list):
-            return bs_create_nfa_link(semantic_node_list)
+        def _semantic_branch(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            return BosonSemanticsNode(bs_create_nfa_link(get_semantic_node_data_list(semantic_node)))
 
         @interpreter.register_action('expression')
-        def _semantic_expression(semantic_node_list):
-            if len(semantic_node_list) > 1:
-                return bs_create_nfa_or(semantic_node_list)
+        def _semantic_expression(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            if len(semantic_node.children()) > 1:
+                return BosonSemanticsNode(bs_create_nfa_or(get_semantic_node_data_list(semantic_node)))
             else:
-                return semantic_node_list[0]
+                return semantic_node[0]
 
         @interpreter.register_action('wildcard_character')
-        def _semantic_wildcard_character(semantic_node_list):
-            return bs_create_nfa_reverse_delay_construct(set())
+        def _semantic_wildcard_character(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            return BosonSemanticsNode(bs_create_nfa_reverse_delay_construct(set()))
 
         @interpreter.register_action('complex_construct')
-        def _semantic_complex_construct(semantic_node_list):
-            return semantic_node_list[0]
+        def _semantic_complex_construct(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            return semantic_node[0]
 
         @interpreter.register_action('sub_expression')
-        def _semantic_sub_expression(semantic_node_list):
-            return semantic_node_list[0]
+        def _semantic_sub_expression(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            return semantic_node[0]
 
         @interpreter.register_action('reference')
-        def _semantic_reference(semantic_node_list):
-            lexical_symbol = semantic_node_list[0][1:-1]
+        def _semantic_reference(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            lexical_symbol = semantic_node[0].get_text()[1:-1]
             if lexical_symbol in self.__reference_nfa_mapping:
-                return self.__reference_nfa_mapping[lexical_symbol]
+                return BosonSemanticsNode(self.__reference_nfa_mapping[lexical_symbol])
             else:
                 raise ValueError('[Boson Regular Analyzer] Circular Reference.')
 

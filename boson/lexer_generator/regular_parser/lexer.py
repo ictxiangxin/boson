@@ -39,7 +39,7 @@ class RegularLexer:
                 [2, set(), [], 20]
             ]
         }
-        self.__character_set: set = {'\x51', '\x33', '\x48', '\x73', '\x7d', '\x68', '\x30', '\x6f', '\x4f', '\x44', '\x3f', '\x39', '\x58', '\x6e', '\x6b', '\x5c', '\x74', '\x5e', '\x29', '\x36', '\x69', '\x49', '\x71', '\x6d', '\x70', '\x4b', '\x28', '\x4e', '\x45', '\x6c', '\x4d', '\x54', '\x56', '\x5d', '\x41', '\x38', '\x62', '\x66', '\x72', '\x5a', '\x2e', '\x64', '\x61', '\x52', '\x42', '\x7a', '\x43', '\x63', '\x6a', '\x79', '\x32', '\x59', '\x2b', '\x35', '\x77', '\x78', '\x7c', '\x34', '\x57', '\x67', '\x4a', '\x37', '\x7b', '\x55', '\x2a', '\x46', '\x53', '\x31', '\x75', '\x65', '\x47', '\x50', '\x2c', '\x5b', '\x5f', '\x76', '\x4c', '\x2d'}
+        self.__character_set: set = {'\x76', '\x4c', '\x63', '\x29', '\x5c', '\x37', '\x3f', '\x5e', '\x7b', '\x43', '\x39', '\x4a', '\x62', '\x65', '\x34', '\x53', '\x6d', '\x38', '\x6f', '\x2b', '\x4d', '\x59', '\x35', '\x28', '\x50', '\x75', '\x66', '\x4e', '\x7c', '\x5a', '\x4f', '\x74', '\x67', '\x77', '\x7d', '\x61', '\x51', '\x31', '\x6e', '\x45', '\x2d', '\x52', '\x57', '\x48', '\x36', '\x49', '\x4b', '\x46', '\x2c', '\x70', '\x47', '\x30', '\x7a', '\x44', '\x69', '\x33', '\x64', '\x73', '\x2e', '\x72', '\x6c', '\x68', '\x54', '\x71', '\x79', '\x58', '\x6a', '\x55', '\x5b', '\x6b', '\x32', '\x56', '\x41', '\x42', '\x5d', '\x2a', '\x5f', '\x78'}
         self.__start_state: int = 0
         self.__end_state_set: set = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20}
         self.__lexical_symbol_mapping: dict = {
@@ -64,10 +64,7 @@ class RegularLexer:
         }
         self.__non_greedy_state_set: set = set()
         self.__symbol_function_mapping: dict = {
-            'single_number': [],
-            'escape_character': [],
-            'reference': ['reference'],
-            'normal_character': []
+            'reference': ['reference']
         }
         self.__lexical_function: dict = {}
 

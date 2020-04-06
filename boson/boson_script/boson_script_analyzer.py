@@ -1,8 +1,21 @@
 import boson.configure as configure
-from boson.boson_script.boson_script_parser import BosonGrammarNode, BosonLexer, BosonParser, BosonInterpreter
+from boson.boson_script.boson_script_parser import \
+    BosonGrammarNode, \
+    BosonLexer, \
+    BosonParser, \
+    BosonInterpreter, \
+    BosonSemanticsNode
 
 
 interpreter = BosonInterpreter()
+
+
+def get_semantic_node_text_list(semantic_node: BosonSemanticsNode) -> list:
+    return [node.get_text() for node in semantic_node.children()]
+
+
+def get_semantic_node_data_list(semantic_node: BosonSemanticsNode) -> list:
+    return [node.get_data() for node in semantic_node.children()]
 
 
 class BosonScriptAnalyzer:
@@ -114,105 +127,125 @@ class BosonScriptAnalyzer:
 
     def init_semantic(self):
         @interpreter.register_action('command')
-        def _semantic_command(semantic_node_list):
-            self.__command_list.append(semantic_node_list)
+        def _semantic_command(semantic_node) -> BosonSemanticsNode:
+            command_name = semantic_node[0].get_text()
+            command_arguments = get_semantic_node_text_list(semantic_node[1])
+            self.__command_list.append([command_name, command_arguments])
+            return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('lexical_define')
-        def _semantic_lexical_define(semantic_node_list):
-            semantic_node_list[1] = semantic_node_list[1][1:-1]
-            self.__lexical_definition[semantic_node_list[0]] = semantic_node_list[1:]
-
-        @interpreter.register_action('regular_expression')
-        def _semantic_regular_expression(semantic_node_list):
-            return [semantic_node_list[0][1:-1], semantic_node_list[1] if len(semantic_node_list) > 1 else []]
+        def _semantic_lexical_define(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            lexical_name = semantic_node[0].get_text()
+            definition = {
+                'regular': semantic_node[1].get_text()[1:-1],
+            }
+            if len(semantic_node.children()) == 4:
+                function_index = 3
+                definition['non_greedy'] = semantic_node[2].get_text() == configure.boson_lexical_non_greedy_sign
+            else:
+                function_index = 2
+                definition['non_greedy'] = False
+            definition['function_list'] = get_semantic_node_text_list(semantic_node[function_index])
+            self.__lexical_definition[lexical_name] = definition
+            return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('reduce')
-        def _semantic_reduce(semantic_node_list):
-            reduce_name = semantic_node_list[0]
-            derivation_list = semantic_node_list[1]
-            for derivation in derivation_list:
+        def _semantic_reduce(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            reduce_name = semantic_node[0].get_text()
+            derivation_list = semantic_node[1]
+            for derivation in derivation_list.children():
                 derivation_body = derivation[0]
-                if isinstance(derivation_body, str):
-                    sentence = (reduce_name, derivation_body)
-                elif isinstance(derivation_body, list):
-                    sentence = tuple([reduce_name] + derivation_body)
+                if len(derivation_body.children()) == 0 and not derivation_body.is_null():
+                    sentence = (reduce_name, derivation_body.get_text())
+                elif len(derivation_body.children()) > 0:
+                    sentence = (reduce_name,) + tuple(get_semantic_node_text_list(derivation_body))
                 else:
                     sentence = (reduce_name, configure.boson_null_symbol)
                 self.__sentence_set.add(sentence)
-                if len(sentence) == 1:
-                    self.__naive_sentence_set.add(sentence)
                 if len(sentence) == 2:
                     for i in range(2):
                         if sentence[i].startswith(configure.boson_operator_name_prefix) or sentence[i].startswith(configure.boson_hidden_name_prefix):
                             break
                     else:
                         self.__naive_sentence_set.add(sentence)
-                if len(derivation) == 1:
+                if len(derivation.children()) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
-                elif len(derivation) == 2:
-                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(derivation[1])
-                elif len(derivation) == 3:
-                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(derivation[2])
-                    self.__sentence_grammar_name_mapping[sentence] = derivation[1]
+                elif len(derivation.children()) == 2:
+                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(get_semantic_node_data_list(derivation[1]))
+                elif len(derivation.children()) == 3:
+                    self.__sentence_grammar_name_mapping[sentence] = derivation[1].get_text()
+                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(get_semantic_node_data_list(derivation[2]))
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
                 self.__grammar_number += 1
+            return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('name_closure')
-        def _semantic_name_closure(semantic_node_list):
-            name = semantic_node_list[0]
-            if len(semantic_node_list) == 2:
-                if semantic_node_list[1] == '+':
+        def _semantic_name_closure(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            name = semantic_node[0].get_text()
+            if len(semantic_node.children()) == 2:
+                if semantic_node[1].get_text() == '+':
                     name = self.__add_positive_closure(name)
-                elif semantic_node_list[1] == '*':
+                elif semantic_node[1].get_text() == '*':
                     name = self.__add_colin_closure(name)
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
-            return name
+            name_closure_node = BosonSemanticsNode()
+            name_closure_node.set_text(name)
+            return name_closure_node
 
         @interpreter.register_action('complex_closure')
-        def _semantic_complex_closure(semantic_node_list):
-            name = self.__add_hidden_derivation(semantic_node_list[0])
-            if len(semantic_node_list) == 2:
-                closure = semantic_node_list[1][0]
+        def _semantic_complex_closure(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            name = self.__add_hidden_derivation(get_semantic_node_text_list(semantic_node[0]))
+            if len(semantic_node.children()) == 2:
+                closure = semantic_node[1].get_text()
                 if closure == '+':
                     name = self.__add_positive_closure(name)
                 elif closure == '*':
                     name = self.__add_colin_closure(name)
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
-            return name
+            complex_closure_node = BosonSemanticsNode()
+            complex_closure_node.set_text(name)
+            return complex_closure_node
 
         @interpreter.register_action('complex_optional')
-        def _semantic_complex_optional(semantic_node_list):
-            return self.__add_optional(self.__add_hidden_derivation(semantic_node_list[0]))
+        def _semantic_complex_optional(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            complex_optional_node = BosonSemanticsNode()
+            complex_optional_node.set_text(self.__add_optional(self.__add_hidden_derivation(get_semantic_node_text_list(semantic_node[0]))))
+            return complex_optional_node
 
         @interpreter.register_action('select')
-        def _semantic_select(semantic_node_list):
-            return [self.__add_select(semantic_node_list)]
+        def _semantic_select(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            select_node = BosonSemanticsNode()
+            select_node.set_text(self.__add_select([get_semantic_node_text_list(node) for node in semantic_node.children()]))
+            sentence_node = BosonSemanticsNode()
+            sentence_node.append(select_node)
+            return sentence_node
 
         @interpreter.register_action('grammar_node')
-        def _semantic_grammar_node(semantic_node_list):
-            if len(semantic_node_list) == 1:
-                return semantic_node_list[0][1:]
-            elif len(semantic_node_list) == 2:
-                if semantic_node_list[0] == configure.boson_grammar_tuple_unpack:
-                    return semantic_node_list[0] + semantic_node_list[1][1:]
+        def _semantic_grammar_node(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            if len(semantic_node.children()) == 1:
+                grammar_node = semantic_node[0].get_text()[1:]
+            elif len(semantic_node.children()) == 2:
+                if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
+                    grammar_node = semantic_node[0].get_text() + semantic_node[1].get_text()[1:]
                 else:
-                    return semantic_node_list[0][1:], tuple(semantic_node_list[1])
-            elif len(semantic_node_list) == 3:
-                if semantic_node_list[0] == configure.boson_grammar_tuple_unpack:
-                    return semantic_node_list[0] + semantic_node_list[1][1:], tuple(semantic_node_list[2])
+                    grammar_node = (semantic_node[0].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[1])))
+            elif len(semantic_node.children()) == 3:
+                if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
+                    grammar_node = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[2])))
                 else:
-                    return semantic_node_list[0], (semantic_node_list[1],) + tuple(semantic_node_list[2])
-            elif len(semantic_node_list) == 4:
-                return semantic_node_list[0] + semantic_node_list[1][1:], (semantic_node_list[2],) + tuple(semantic_node_list[3])
+                    grammar_node = (semantic_node[0].get_text()[1:], (semantic_node[1].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[2])))
+            elif len(semantic_node.children()) == 4:
+                grammar_node = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], (semantic_node[2].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[3])))
             else:
                 raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
+            return BosonSemanticsNode(grammar_node)
 
         @interpreter.register_action('literal')
-        def _semantic_literal(semantic_node_list):
-            literal_string = semantic_node_list[0][1: -1]
+        def _semantic_literal(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            literal_string = semantic_node[0].get_text()[1: -1]
             if literal_string in self.__literal_map:
                 literal_symbol = self.__literal_map[literal_string]
             else:
@@ -220,8 +253,14 @@ class BosonScriptAnalyzer:
                 self.__literal_number += 1
                 self.__literal_map[literal_string] = literal_symbol
                 self.__literal_reverse_map[literal_symbol] = literal_string
-                self.__lexical_definition[literal_symbol] = ['\\' + '\\'.join(literal_string)]
-            return literal_symbol
+                self.__lexical_definition[literal_symbol] = {
+                    'regular': '\\' + '\\'.join(literal_string),
+                    'non_greedy': False,
+                    'function_list': None
+                }
+            literal_node = BosonSemanticsNode()
+            literal_node.set_text(literal_symbol)
+            return literal_node
 
     def parse(self, token_list: list) -> BosonGrammarNode:
         grammar = self.__parser.parse(token_list)

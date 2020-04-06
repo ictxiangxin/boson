@@ -64,27 +64,29 @@ namespace boson {
             } else {
                 grammar_name = "{{ configure.boson_grammar_name_prefix }}hidden";
             }
-            {{ configure.boson_option['semantic_node_class_name'] }}<T> semantics_node;
-            for (auto &node: grammar_tree.children()) {
-                if (!node.children().empty()) {
-                    semantics_node.append(this->_semantics_analysis(node));
-                } else {
-                    {{ configure.boson_option['semantic_node_class_name'] }}<T> temp_node;
-                    temp_node.set_reduce_number(node.get_reduce_number());
-                    temp_node.set_text(node.get_text());
-                    semantics_node.append(temp_node);
+            {{ configure.boson_option['semantic_node_class_name'] }}<T> semantic_node;
+            if (grammar_tree.empty()) {
+                semantic_node.set_reduce_number(grammar_tree.get_reduce_number());
+                semantic_node.set_text(grammar_tree.get_text());
+            } else {
+                for (auto &grammar_node: grammar_tree.children()) {
+                    semantic_node.append(this->_semantics_analysis(grammar_node));
                 }
             }
             if (this->_semantic_action_mapping.count(grammar_name)) {
-                return this->_semantic_action_mapping[grammar_name](semantics_node);
+                return this->_semantic_action_mapping[grammar_name](semantic_node);
             } else if (this->_naive_reduce_number_set.count(grammar_tree.get_reduce_number())) {
-                if (semantics_node.children().size() == 1) {
-                    return semantics_node[0];
+                if (semantic_node.children().empty()) {
+                    {{ configure.boson_option['semantic_node_class_name'] }}<T> null_node;
+                    null_node.make_null()
+                    return null_node;
+                } else if (semantic_node.children().size() == 1) {
+                    return semantic_node[0];
                 } else {
-                    return semantics_node;
+                    return semantic_node;
                 }
             } else {
-                return semantics_node;
+                return semantic_node;
             }
         }
     };

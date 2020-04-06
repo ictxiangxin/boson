@@ -24,6 +24,14 @@ public class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
         this._data = data;
     }
 
+    public void makeNull() {
+        this._isNull = true;
+    }
+
+    public boolean isNull() {
+        return this._isNull;
+    }
+
     public T getData() {
         return this._data;
     }
@@ -64,9 +72,16 @@ public class {{ configure.boson_option['semantic_node_class_name'] }}<T> {
         return this._children.get(index);
     }
 
+    static public {{ configure.boson_option['semantic_node_class_name'] }}<T> nullNode() {
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> node = {{ configure.boson_option['semantic_node_class_name'] }}<T>();
+        node.makeNull();
+        return node;
+    }
+
     protected int _reduceNumber = -1;
     protected String _text;
     protected List<{{ configure.boson_option['semantic_node_class_name'] }}<T>> _children = new ArrayList<>();
     protected T _data;
+    protected boolean _isNull;
 }
 

@@ -22,5 +22,6 @@ from .grammar import {{ configure.boson_option['grammar_class_name'] }}
 from .parser import {{ configure.boson_option['parser_class_name'] }}
 {% endif -%}
 {% if configure.boson_option['generate_interpreter'] == 'yes' -%}
+from .semantic_node import {{ configure.boson_option['semantic_node_class_name'] }}
 from .interpreter import {{ configure.boson_option['interpreter_class_name'] }}
 {% endif -%}

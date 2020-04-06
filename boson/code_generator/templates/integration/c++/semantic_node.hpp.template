@@ -24,9 +24,12 @@ namespace boson {
 
         explicit {{ configure.boson_option['semantic_node_class_name'] }}<T>(T data): _data(data) {}
 
-        static {{ configure.boson_option['semantic_node_class_name'] }}<T> &null_node() {
-            static {{ configure.boson_option['semantic_node_class_name'] }}<T> node;
-            return node;
+        void make_null() {
+            this._is_null;
+        }
+
+        bool is_null() {
+            return this._is_null;
         }
 
         T &get_data() {
@@ -69,11 +72,18 @@ namespace boson {
             return this->_children[index];
         }
 
+        static {{ configure.boson_option['semantic_node_class_name'] }}<T> null_node() {
+            static {{ configure.boson_option['semantic_node_class_name'] }}<T> node;
+            node.make_null();
+            return node;
+        }
+
     protected:
         int _reduce_number = -1;
         std::string _text{};
         std::vector<{{ configure.boson_option['semantic_node_class_name'] }}<T>> _children{};
         T _data;
+        bool _is_null = false;
     };
 }
 

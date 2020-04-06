@@ -11,6 +11,8 @@
 */
 
 {% endif -%}
+import { {{- configure.boson_option['semantic_node_class_name'] }}} from './semantic_node';
+
 export class {{ configure.boson_option['interpreter_class_name'] }} {
     constructor() {
         this._reduceNumberGrammarNameMapping = {
@@ -43,25 +45,29 @@ export class {{ configure.boson_option['interpreter_class_name'] }} {
         } else {
             grammarName = "{{ configure.boson_grammar_name_prefix }}hidden";
         }
-        let semanticsNode = [];
-        for (const index in grammarTree.children()) {
-            const node = grammarTree.children()[index];
-            if (!node.children().isEmpty()) {
-                semanticsNode.push(this._semanticsAnalysis(node));
-            } else {
-                semanticsNode.push(node);
+        let semanticNode = {{ configure.boson_option['semantic_node_class_name'] }}();
+        if (grammarTree.children().isEmpty()) {
+            semanticNode.setReduceNumber(grammarTree.getReduceNumber());
+            semanticNode.setText(grammarTree.getText());
+        } else {
+            for (const index in grammarTree.children()) {
+                semanticNode.push(this._semanticsAnalysis(grammarTree.children()[index]));
             }
         }
         if (this._semanticActionMapping.hasOwnProperty(grammarName)) {
-            return this._semanticActionMapping[grammarName](semanticsNode);
+            return this._semanticActionMapping[grammarName](semanticNode);
         } else if (this._naiveReduceNumberSet.has(grammarTree.getReduceNumber())) {
-            if (semanticsNode.length === 1) {
-                return semanticsNode[0];
+            if (semanticNode.children()isEmpty()) {
+                let nullNode = {{ configure.boson_option['semantic_node_class_name'] }}();
+                nullNode.makeNull();
+                return nullNode;
+            } else if (semanticNode.children().length === 1) {
+                return semanticNode.get(0);
             } else {
-                return semanticsNode;
+                return semanticNode;
             }
         } else {
-            return semanticsNode;
+            return semanticNode;
         }
     }
 }

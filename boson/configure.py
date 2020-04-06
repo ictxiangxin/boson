@@ -40,6 +40,7 @@ boson_lexical_default_start_state = 0
 boson_lexical_default_end_state = 1
 boson_lexical_epsilon_transition = None
 boson_lexical_wildcard = True
+boson_lexical_non_greedy_sign = '!'
 
 boson_reserved_symbol = '!'
 boson_end_symbol = '$'

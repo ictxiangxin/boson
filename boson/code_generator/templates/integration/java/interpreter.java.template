@@ -46,27 +46,29 @@ public class {{ configure.boson_option['interpreter_class_name'] }}<T> {
 
     private {{ configure.boson_option['semantic_node_class_name'] }}<T> _semanticsAnalysis({{ configure.boson_option['grammar_node_class_name'] }} grammarTree) {
         String grammarName = this._reduceNumberGrammarNameMapping.getOrDefault(grammarTree.getReduceNumber(), "{{ configure.boson_grammar_name_prefix }}hidden");
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> semanticsNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();
-        for ({{ configure.boson_option['grammar_node_class_name'] }} node : grammarTree.children()) {
-            if (!node.children().isEmpty()) {
-                semanticsNode.append(this._semanticsAnalysis(node));
-            } else {
-                {{ configure.boson_option['semantic_node_class_name'] }}<T> tempNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();
-                tempNode.setReduceNumber(node.getReduceNumber());
-                tempNode.setText(node.getText());
-                semanticsNode.append(tempNode);
+        {{ configure.boson_option['semantic_node_class_name'] }}<T> semanticNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();
+        if (grammarTree.isEmpty()) {
+            semanticNode.setReduceNumber(grammarTree.getReduceNumber());
+            semanticNode.setText(grammarTree.getText());
+        } else {
+            for ({{ configure.boson_option['grammar_node_class_name'] }} grammarNode : grammarTree.children()) {
+                semanticNode.append(this._semanticsAnalysis(grammarNode));
             }
         }
         if (this._semanticActionMapping.containsKey(grammarName)) {
-            return this._semanticActionMapping.get(grammarName).apply(semanticsNode);
+            return this._semanticActionMapping.get(grammarName).apply(semanticNode);
         } else if (this._naiveReduceNumberSet.contains(grammarTree.getReduceNumber())) {
-            if (semanticsNode.children().size() == 1) {
-                return semanticsNode.get(0);
+            if (semanticNode.children().isEmpty()) {
+                {{ configure.boson_option['semantic_node_class_name'] }}<T> nullNode = new {{ configure.boson_option['semantic_node_class_name'] }}<>();
+                nullNode.makeNull();
+                return nullNode;
+            } else if (semanticNode.children().size() === 1) {
+                return semanticNode.get(0);
             } else {
-                return semanticsNode;
+                return semanticNode;
             }
         } else {
-            return semanticsNode;
+            return semanticNode;
         }
     }
 }
