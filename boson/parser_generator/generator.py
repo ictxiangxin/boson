@@ -20,6 +20,7 @@ class ParserGenerator(metaclass=ABCMeta):
         self._none_grammar_tuple_sentence_index_set: set = set()
         self._reduce_number_grammar_name_mapping: dict = {}
         self._naive_reduce_number_set: set = set()
+        self._grammar_tuple_naive_sentence_set: set = set()
         self._augmented_sentence = (configure.boson_augmented_start, configure.boson_option['start_symbol'])
 
     def __augment_grammar(self):
@@ -150,6 +151,7 @@ class ParserGenerator(metaclass=ABCMeta):
 
     def assemble_grammar_tuple(self, sentence_grammar_tuple_mapping: dict) -> None:
         self._sentence_index_grammar_tuple_mapping = {}
+        self._grammar_tuple_naive_sentence_set = set()
         sentence_grammar_tuple_list = list(sentence_grammar_tuple_mapping.items())
         while sentence_grammar_tuple_list:
             sentence, grammar_tuple = sentence_grammar_tuple_list.pop()
@@ -162,8 +164,13 @@ class ParserGenerator(metaclass=ABCMeta):
                     locator = grammar_node
                     sub_grammar_tuple = None
                 if locator.startswith(configure.boson_grammar_tuple_unpack):
-                    index = int(locator[1:])
-                    unpack = True
+                    if locator == configure.boson_grammar_tuple_unpack:
+                        self._grammar_tuple_naive_sentence_set.add(sentence)
+                        index = int(grammar_tuple[-1])
+                        unpack = False
+                    else:
+                        index = int(locator[1:])
+                        unpack = True
                 else:
                     index = int(locator)
                     unpack = False
@@ -210,5 +217,5 @@ class ParserGenerator(metaclass=ABCMeta):
 
     def assemble_naive_sentence(self, naive_sentence_set: set) -> None:
         self._naive_reduce_number_set = set()
-        for sentence in naive_sentence_set:
+        for sentence in naive_sentence_set | self._grammar_tuple_naive_sentence_set:
             self._naive_reduce_number_set.add(self._sentence_index_mapping[sentence])

@@ -223,6 +223,13 @@ class BosonScriptAnalyzer:
             sentence_node.append(select_node)
             return sentence_node
 
+        @interpreter.register_action('getter_tuple')
+        def _semantic_getter_tuple(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            getter_node = BosonSemanticsNode()
+            getter_node.append(BosonSemanticsNode(configure.boson_grammar_tuple_unpack))
+            getter_node.append(BosonSemanticsNode(semantic_node[0].get_text()[1:]))
+            return getter_node
+
         @interpreter.register_action('grammar_node')
         def _semantic_grammar_node(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             if len(semantic_node.children()) == 1:

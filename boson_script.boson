@@ -36,11 +36,11 @@ command_statement : command (name | string)+ ';' = command($0, *$1);
 
 lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3, $4(*$2));
 
-lexical_function : name (',' name)* = ($0, *$1*($1));
+lexical_function : name (',' name)* = ($0, *$1[$1]);
 
 grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
 
-derivation_list : derivation ('|' derivation)* = ($0, *$1*($1));
+derivation_list : derivation ('|' derivation)* = ($0, *$1[$1]);
 
 derivation : derivation_body ['=' [name] grammar_tuple] = ($0, *$1(*$1, $2));
 
@@ -51,7 +51,9 @@ derivation_body : sentence = (*$0)
 
 sentence : element+ = (*$0);
 
-grammar_tuple : '(' node_element (',' node_element)* ')' = ($1, *$2*($1));
+grammar_tuple : '(' node_element (',' node_element)* ')' = ($1, *$2[$1])
+              | '[' node ']' = getter_tuple($1)
+              ;
 
 node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
 
@@ -68,7 +70,7 @@ complex_element : '(' sub_derivation ')' [closure] = complex_closure($1, *$3)
                 ;
 
 sub_derivation : sentence
-               | sentence ('|' sentence)+ = select($0, *$1*($1))
+               | sentence ('|' sentence)+ = select($0, *$1[$1])
                ;
 
 closure: '+' | '*';

@@ -25,11 +25,11 @@ namespace boson {
         explicit {{ configure.boson_option['semantic_node_class_name'] }}<T>(T data): _data(data) {}
 
         void make_null() {
-            this._is_null;
+            this->_is_null;
         }
 
         bool is_null() {
-            return this._is_null;
+            return this->_is_null;
         }
 
         T &get_data() {

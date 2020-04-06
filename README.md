@@ -3,6 +3,8 @@
 ![Version](https://img.shields.io/badge/Version-1.5-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.7.0-green.svg)
 ![C++](https://img.shields.io/badge/C++-11-green.svg)
+![Java](https://img.shields.io/badge/Java-9-green.svg)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-green.svg)
 
 Boson是一个语法分析器生成器（也能生成词法分析器）。采用自有的Boson脚本（Boson Script）来定义语法和词法，
 Boson根据输入的脚本内容和命令参数生成相应的语法分析器及词法分析器的代码。

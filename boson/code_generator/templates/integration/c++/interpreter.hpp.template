@@ -65,7 +65,7 @@ namespace boson {
                 grammar_name = "{{ configure.boson_grammar_name_prefix }}hidden";
             }
             {{ configure.boson_option['semantic_node_class_name'] }}<T> semantic_node;
-            if (grammar_tree.empty()) {
+            if (grammar_tree.children().empty()) {
                 semantic_node.set_reduce_number(grammar_tree.get_reduce_number());
                 semantic_node.set_text(grammar_tree.get_text());
             } else {
@@ -77,9 +77,7 @@ namespace boson {
                 return this->_semantic_action_mapping[grammar_name](semantic_node);
             } else if (this->_naive_reduce_number_set.count(grammar_tree.get_reduce_number())) {
                 if (semantic_node.children().empty()) {
-                    {{ configure.boson_option['semantic_node_class_name'] }}<T> null_node;
-                    null_node.make_null()
-                    return null_node;
+                    return {{ configure.boson_option['semantic_node_class_name'] }}<T>::null_node();
                 } else if (semantic_node.children().size() == 1) {
                     return semantic_node[0];
                 } else {
