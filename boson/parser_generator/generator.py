@@ -166,8 +166,7 @@ class ParserGenerator(metaclass=ABCMeta):
                 if locator.startswith(configure.boson_grammar_tuple_unpack):
                     if locator == configure.boson_grammar_tuple_unpack:
                         self._grammar_tuple_naive_sentence_set.add(sentence)
-                        index = int(grammar_tuple[-1])
-                        unpack = False
+                        continue
                     else:
                         index = int(locator[1:])
                         unpack = True
