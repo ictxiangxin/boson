@@ -58,9 +58,7 @@ export class {{ configure.boson_option['interpreter_class_name'] }} {
             return this._semanticActionMapping[grammarName](semanticNode);
         } else if (this._naiveReduceNumberSet.has(grammarTree.getReduceNumber())) {
             if (semanticNode.children()isEmpty()) {
-                let nullNode = {{ configure.boson_option['semantic_node_class_name'] }}();
-                nullNode.makeNull();
-                return nullNode;
+                return {{ configure.boson_option['semantic_node_class_name'] }}.nullNode();
             } else if (semanticNode.children().length === 1) {
                 return semanticNode.get(0);
             } else {

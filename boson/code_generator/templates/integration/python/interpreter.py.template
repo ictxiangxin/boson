@@ -42,9 +42,7 @@ class {{ configure.boson_option['interpreter_class_name'] }}:
             return self.__semantic_action_mapping[grammar_name](semantic_node)
         elif grammar_tree.get_reduce_number() in self.__naive_reduce_number_set:
             if len(semantic_node.children()) == 0:
-                null_node = {{ configure.boson_option['semantic_node_class_name'] }}()
-                null_node.make_null()
-                return null_node
+                return {{ configure.boson_option['semantic_node_class_name'] }}.null_node()
             elif len(semantic_node.children()) == 1:
                 return semantic_node[0]
             else:
