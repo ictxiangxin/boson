@@ -8,6 +8,7 @@ class LexicalDFA:
         self.__end_state_set: set = set()
         self.__state_set: set = set()
         self.__lexical_symbol_mapping: dict = {}
+        self.__lexical_symbol_number_mapping: dict = {}
         self.__character_set: set = set()
 
     def __alphabet(self, state_group: set) -> set:
@@ -32,8 +33,13 @@ class LexicalDFA:
         self.__move_table.setdefault(from_state, {})
         self.__move_table[from_state][character] = to_state
 
-    def add_lexical_symbol(self, state: int, lexical_symbol: str) -> None:
-        self.__lexical_symbol_mapping[state] = lexical_symbol
+    def add_lexical_symbol(self, state: int, lexical_symbol_tuple: tuple) -> None:
+        symbol, number = lexical_symbol_tuple
+        if state in self.__lexical_symbol_number_mapping:
+            if self.__lexical_symbol_number_mapping[state] < number:
+                return
+        self.__lexical_symbol_number_mapping[state] = number
+        self.__lexical_symbol_mapping[state] = symbol
 
     def set_character_set(self, character_set: set) -> None:
         self.__character_set = set(character_set)

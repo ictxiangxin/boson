@@ -33,6 +33,7 @@ class BosonScriptAnalyzer:
         self.__hidden_name_number: int = 0
         self.__grammar_number: int = 0
         self.__lexical_definition: dict = {}
+        self.__lexical_number: int = 0
         self.__hidden_derivation_cache: dict = {}
         self.__positive_closure_cache: dict = {}
         self.__colin_closure_cache: dict = {}
@@ -138,7 +139,9 @@ class BosonScriptAnalyzer:
             lexical_name = semantic_node[0].get_text()
             definition = {
                 'regular': semantic_node[1].get_text()[1:-1],
+                'number': self.__lexical_number
             }
+            self.__lexical_number += 1
             if len(semantic_node.children()) == 4:
                 function_index = 3
                 definition['non_greedy'] = semantic_node[2].get_text() == configure.boson_lexical_non_greedy_sign

@@ -39,7 +39,7 @@ usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python,c++,java,javascript
              [-m {integration,library,binary}] [-c] [-f] [-q]
              boson_script_file
 
-Boson v1.5 - Grammar analyzer generator
+Boson v1.5 - Grammar Analyzer Generator
 
 positional arguments:
   boson_script_file     Input Boson Script File.

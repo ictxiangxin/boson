@@ -1,6 +1,5 @@
 import jinja2
 import os.path
-from abc import abstractmethod
 from boson.lexer_generator.generator import LexerGenerator
 from boson.parser_generator.bottom_up_generator.canonical_generator import BottomUpCanonicalParserGenerator
 import boson.configure as configure

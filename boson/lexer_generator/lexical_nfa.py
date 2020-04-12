@@ -176,14 +176,14 @@ class LexicalNFA:
             self.__character_set |= input_nfa.character_set()
         return start_state_mapping, end_state_mapping
 
-    def add_lexical_symbol(self, lexical_nfa, lexical_symbol: str) -> None:
+    def add_lexical_symbol(self, lexical_nfa, lexical_symbol_tuple: tuple) -> None:
         default_start_state = configure.boson_lexical_default_start_state
         if not self.__state_set:
             self.__state_set.add(default_start_state)
         start_state_mapping, end_state_mapping = self.update([lexical_nfa])
         self.add_move(default_start_state, configure.boson_lexical_epsilon_transition, start_state_mapping[0])
         for state in end_state_mapping[0]:
-            self.__lexical_symbol_mapping[state] = lexical_symbol
+            self.__lexical_symbol_mapping[state] = lexical_symbol_tuple
             self.add_end_state(state)
 
     def create_nfa_reverse_delay_construct(self, reverse_character_set: set) -> None:

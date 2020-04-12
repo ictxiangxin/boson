@@ -183,6 +183,7 @@ def console_main():
         display('> Checker: {}'.format('Yes' if arguments.checker else 'No'), indent=8)
         display('> Generate Lexer: {}'.format('Yes' if lexical_analyzer else 'No'), indent=8)
         display('> Generate Parser: {}'.format('Yes' if parser_generator else 'No'), indent=8)
+        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and configure.boson_option['generate_interpreter'] == 'yes' else 'No'), indent=8)
         display('> Output Path: "{}"'.format(arguments.output), indent=8)
         global_end_time = time.time()
         display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))

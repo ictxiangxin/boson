@@ -23,7 +23,7 @@
 #include "grammar.hpp"
 #include "parser.hpp"
 {% endif -%}
-{% if configure.boson_option['generate_interpreter'] == 'yes' -%}
+{% if option.generate_parser and configure.boson_option['generate_interpreter'] == 'yes' -%}
 #include "semantic_node.hpp"
 #include "interpreter.hpp"
 {% endif %}

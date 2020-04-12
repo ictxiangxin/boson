@@ -6,7 +6,7 @@ boson_title = '{} v{}.{}'.format(boson_name, boson_version_major, boson_version_
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
 boson_url = 'https://github.com/ictxiangxin/boson'
-boson_description = 'Grammar analyzer generator'
+boson_description = 'Grammar Analyzer Generator'
 boson_license = 'GPL v3'
 
 boson_default_encoding = 'utf-8'
