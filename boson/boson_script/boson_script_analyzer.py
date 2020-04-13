@@ -31,7 +31,6 @@ class BosonScriptAnalyzer:
         self.__naive_sentence_set: set = set()
         self.__literal_number: int = 1
         self.__hidden_name_number: int = 0
-        self.__grammar_number: int = 0
         self.__lexical_definition: dict = {}
         self.__lexical_number: int = 0
         self.__hidden_derivation_cache: dict = {}
@@ -180,7 +179,6 @@ class BosonScriptAnalyzer:
                     self.__sentence_grammar_tuple_mapping[sentence] = tuple(get_semantic_node_data_list(derivation[2]))
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
-                self.__grammar_number += 1
             return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('name_closure')

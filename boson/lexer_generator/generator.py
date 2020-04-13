@@ -68,7 +68,7 @@ class LexerGenerator:
         for lexical_symbol, token_list in symbol_token_list_mapping.items():
             if not lexical_symbol.startswith(configure.boson_lexical_hidden_prefix):
                 lexical_symbol_nfa = reference_nfa_mapping[lexical_symbol] if lexical_symbol in reference_nfa_mapping else analyzer.parse_to_lexical(token_list)
-                nfa.add_lexical_symbol(lexical_symbol_nfa, (lexical_symbol, self.__lexical_definition[lexical_symbol]['number']))
+                nfa.add_lexical_symbol(lexical_symbol_nfa, (lexical_symbol, self.__lexical_definition[lexical_symbol].get('number', None)))
         nfa.construct()
         self.__lexical_dfa = nfa.transform_to_dfa()
         self.__lexical_dfa.minimize()

@@ -35,8 +35,9 @@ class LexicalDFA:
 
     def add_lexical_symbol(self, state: int, lexical_symbol_tuple: tuple) -> None:
         symbol, number = lexical_symbol_tuple
-        if state in self.__lexical_symbol_number_mapping:
-            if self.__lexical_symbol_number_mapping[state] < number:
+        if number is not None and state in self.__lexical_symbol_number_mapping:
+            old_number = self.__lexical_symbol_number_mapping[state]
+            if old_number is None or old_number < number:
                 return
         self.__lexical_symbol_number_mapping[state] = number
         self.__lexical_symbol_mapping[state] = symbol
