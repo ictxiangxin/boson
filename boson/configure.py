@@ -30,7 +30,7 @@ boson_grammar_no_error_index = -1
 boson_grammar_default_reduce_number = -1
 boson_grammar_default_state = 0
 
-boson_lexical_reserved_character = chr(0xffff)
+boson_lexical_reserved_character = chr(0x10ffff)
 boson_lexical_hidden_prefix = '_'
 boson_lexical_start_line = 1
 boson_lexical_default_skip = False

@@ -193,7 +193,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         this._lexicalFunction.put(functionName, function);
     }
 
-    private List<{{ configure.boson_option['token_class_name'] }}> _tokenList = new ArrayList<>();
+    private final List<{{ configure.boson_option['token_class_name'] }}> _tokenList = new ArrayList<>();
     private int _line = {{ configure.boson_lexical_start_line }};
     private int _errorIndex = {{ configure.boson_lexical_no_error_index }};
     private int _noErrorIndex = {{ configure.boson_lexical_no_error_index }};
@@ -204,10 +204,10 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         Map.entry({{ state }}, List.of(
             {%- for each in stateMoveTable %}
             CompactTable.of({{ each[0] }}, Set.of({%- for character in each[1] -%}
-                (char) {{ '0x%s' % character.encode().hex() }}
+                '{{ '%s' % character.encode('unicode-escape').decode() }}'
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}), List.of({%- for character_range in each[2] -%}
-                LexerRange.of((char) {{ '0x%s' % character_range[0].encode().hex() }}, (char) {{ '0x%s' % character_range[1].encode().hex() }})
+                LexerRange.of('{{ '%s' % character_range[0].encode('unicode-escape').decode() }}', '{{ '%s' % character_range[1].encode('unicode-escape').decode() }}')
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}), {{ each[3] }})
             {%- if not loop.last %},{% endif -%}
@@ -222,7 +222,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         Map.entry({{ state }}, AugmentedTable.of({{ stateMoveTable.get(True, -1) }}, Map.ofEntries(
             {%- for character, to_state in stateMoveTable.items() -%}
             {%- if character != True -%}
-            Map.entry((char) {{ '0x%s' % character.encode().hex() }}, {{ to_state }})
+            Map.entry('{{ '%s' % character.encode('unicode-escape').decode() }}', {{ to_state }})
             {%- if not loop.last %}, {% endif -%}
             {%- endif -%}
             {%- endfor -%}
@@ -233,7 +233,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
     {%- endif %}
     private final Set<Character> _characterSet = Set.of(
         {%- for character in lexer.character_set -%}
-            (char) {{ '0x%s' % character.encode().hex() }}
+            '{{ '%s' % character.encode('unicode-escape').decode() }}'
         {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     );

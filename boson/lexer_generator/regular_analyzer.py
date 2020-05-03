@@ -125,15 +125,15 @@ class BosonRegularAnalyzer:
                     else:
                         select_character_set.add(character[0])
                 elif len(each_select.children()) == 2:
-                    start_ascii, end_ascii = (ord(each_select[0].get_text()), ord(each_select[1].get_text()))
-                    if start_ascii <= end_ascii:
+                    start_unicode, end_unicode = ord(each_select[0].get_text()), ord(each_select[1].get_text())
+                    if start_unicode <= end_unicode:
                         character_range_set = set()
-                        while start_ascii <= end_ascii:
-                            character_range_set.add(chr(start_ascii))
-                            start_ascii += 1
+                        while start_unicode <= end_unicode:
+                            character_range_set.add(chr(start_unicode))
+                            start_unicode += 1
                         select_character_set |= character_range_set
                     else:
-                        raise ValueError('[Boson Regular Analyzer] Character range invalid: <{}-{}>.'.format(each_select[0], each_select[1]))
+                        raise ValueError('[Boson Regular Analyzer] Character range invalid: <{}-{}>.'.format(each_select[0].get_text(), each_select[1].get_text()))
                 else:
                     raise RuntimeError('[Boson Regular Analyzer] Never Touch Here.')
             if reverse:
