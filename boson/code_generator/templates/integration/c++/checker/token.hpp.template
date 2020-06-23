@@ -15,6 +15,9 @@
 #define _BOSON_TOKEN_HPP_
 
 namespace boson {
+    using char_t = {{ 'char16_t ' if configure.boson_option['lexer_unicode'] == 'yes' else 'char' }}
+    using string_t = {{ 'std::u16string' if configure.boson_option['lexer_unicode'] == 'yes' else 'std::string' }}
+
     class {{ configure.boson_option['token_class_name'] }} {
     public:
         {{ configure.boson_option['token_class_name'] }}() = default;
