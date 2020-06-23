@@ -23,7 +23,7 @@
 namespace boson {
     class {{ configure.boson_option['lexer_class_name'] }} {
     public:
-        using lexical_function = std::function<std::string &(std::string &)>;
+        using lexical_function = std::function<string_t &(string_t &)>;
 
         {{ configure.boson_option['lexer_class_name'] }}() = default;
 
@@ -51,14 +51,14 @@ namespace boson {
             return _no_error_index;
         }
 
-        int tokenize(std::string text) {
+        int tokenize(string_t text) {
             this->_token_list.clear();
             this->_line = {{ configure.boson_lexical_start_line }};
             int state = this->_start_state;
-            std::string token_string{};
+            string_t token_string{};
             int index = 0;
             while (index < text.length()) {
-                char character = text[index];
+                char_t character = text[index];
                 index++;
                 bool get_token = false;
                 if (this->_non_greedy_state_set.count(state)) {
@@ -66,13 +66,13 @@ namespace boson {
                 }
                 {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
                 if (this->_compact_move_table.count(state)) {
-                    std::vector<std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int>> state_move_table = this->_compact_move_table[state];
+                    std::vector<std::tuple<int, std::set<char_t>, std::vector<std::tuple<char_t, char_t>>, int>> state_move_table = this->_compact_move_table[state];
                     unsigned long i;
                     for (i = 0; i < state_move_table.size(); i++) {
-                        std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int> compact_table = state_move_table[i];
+                        std::tuple<int, std::set<char_t>, std::vector<std::tuple<char_t, char_t>>, int> compact_table = state_move_table[i];
                         int attribute = std::get<0>(compact_table);
-                        std::set<char> &character_set = std::get<1>(compact_table);
-                        std::vector<std::tuple<char, char>> &range_list = std::get<2>(compact_table);
+                        std::set<char_t> &character_set = std::get<1>(compact_table);
+                        std::vector<std::tuple<char_t, char_t>> &range_list = std::get<2>(compact_table);
                         int next_state = std::get<3>(compact_table);
                         bool condition;
                         if (attribute == 2) {
@@ -101,9 +101,9 @@ namespace boson {
                     if (i == state_move_table.size()) {
                 {%- else %}
                 if (this->_move_table.count(state)) {
-                    std::tuple<int, std::unordered_map<char, int>> augmented_move_table = this->_move_table[state];
+                    std::tuple<int, std::unordered_map<char_t, int>> augmented_move_table = this->_move_table[state];
                     int wildcard = std::get<0>(augmented_move_table);
-                    std::unordered_map<char, int> character_move_table = std::get<1>(augmented_move_table);
+                    std::unordered_map<char_t, int> character_move_table = std::get<1>(augmented_move_table);
                     if (character_move_table.count(character)) {
                         token_string += character;
                         state = character_move_table[character];
@@ -155,15 +155,15 @@ namespace boson {
         int _no_error_index = {{ configure.boson_lexical_no_error_index }};
         bool _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
         {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
-        std::unordered_map<int, std::vector<std::tuple<int, std::set<char>, std::vector<std::tuple<char, char>>, int>>> _compact_move_table = {
+        std::unordered_map<int, std::vector<std::tuple<int, std::set<char_t>, std::vector<std::tuple<char_t, char_t>>, int>>> _compact_move_table = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             { {{- state }}, {
                 {%- for each in state_move_table %}
                 { {{- each[0] }}, { {%- for character in each[1] -%}
-                    '{{ '\\x%s' % character.encode().hex() }}'
+                    '{{ '%s' % character.encode('unicode-escape').decode() }}'
                 {%- if not loop.last %}, {% endif -%}
                 {%- endfor -%}}, { {%- for character_range in each[2] -%}
-                    {'{{ '\\x%s' % character_range[0].encode().hex() }}', '{{ '\\x%s' % character_range[1].encode().hex() }}'}
+                    {'{{ '%s' % character_range[0].encode('unicode-escape').decode() }}', '{{ '%s' % character_range[1].encode('unicode-escape').decode() }}'}
                 {%- if not loop.last %}, {% endif -%}
                 {%- endfor -%}}, {{ each[3] }}}
                 {%- if not loop.last %},{% endif -%}
@@ -173,12 +173,12 @@ namespace boson {
             {%- endfor %}
         };
         {%- else %}
-        std::unordered_map<int, std::tuple<int, std::unordered_map<char, int>>> _move_table = {
+        std::unordered_map<int, std::tuple<int, std::unordered_map<char_t, int>>> _move_table = {
             {%- for state, state_move_table in lexer.move_table.items() %}
             { {{- state }}, { {{- state_move_table.get(True, -1) }}, {
                 {%- for character, to_state in state_move_table.items() -%}
                 {%- if character != True -%}
-                {'{{ '\\x%s' % character.encode().hex() }}', {{ to_state }}}
+                {'{{ '%s' % character.encode('unicode-escape').decode() }}', {{ to_state }}}
                 {%- if not loop.last %}, {% endif -%}
                 {%- endif -%}
                 {%- endfor -%}
@@ -187,9 +187,9 @@ namespace boson {
             {%- endfor %}
         };
         {%- endif %}
-        std::set<char> _character_set = {
+        std::set<char_t> _character_set = {
             {%- for character in lexer.character_set -%}
-                '{{ '\\x%s' % character.encode().hex() }}'
+                '{{ '%s' % character.encode('unicode-escape').decode() }}'
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         };
@@ -225,7 +225,7 @@ namespace boson {
         };
         std::unordered_map<std::string, lexical_function> _lexical_function{};
 
-        std::string &_invoke_lexical_function(std::string &symbol, std::string &token_string) {
+        string_t &_invoke_lexical_function(std::string &symbol, string_t &token_string) {
             this->_skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
             if (this->_symbol_function_mapping.count(symbol)) {
                 for (const auto& function : this->_symbol_function_mapping[symbol]) {
@@ -241,7 +241,7 @@ namespace boson {
             return token_string;
         }
 
-        void _generate_token(int state, std::string &token_string) {
+        void _generate_token(int state, string_t &token_string) {
             std::string symbol;
             if (this->_lexical_symbol_mapping.count(state)) {
                 symbol = this->_lexical_symbol_mapping[state];

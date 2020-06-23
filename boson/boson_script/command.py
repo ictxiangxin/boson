@@ -15,6 +15,7 @@ class CommandExecutor:
             'generate_interpreter': {'yes', 'no'},
             'generate_lexer': {'yes', 'no'},
             'code_comment': {'yes', 'no'},
+            'lexer_unicode': {'yes', 'no'},
             'parser_sparse_table': {'yes', 'no'},
             'lexer_compact_table': {'yes', 'no'},
             'conflict_resolver': {'yes', 'no'},

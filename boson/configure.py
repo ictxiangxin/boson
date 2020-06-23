@@ -65,6 +65,7 @@ boson_option = {
     'generate_interpreter': 'yes',
     'generate_lexer': 'yes',
     'code_comment': 'yes',
+    'lexer_unicode': 'no',
     'parser_sparse_table': 'yes',
     'lexer_compact_table': 'yes',
     'conflict_resolver': 'no',
