@@ -23,14 +23,14 @@ normal_character = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]>;
 #####################################
 regular_expression: expression = regular_expression($0);
 
-expression : branch ('|' branch)* = expression($0, *$1*($1));
+expression : branch ('|' branch)* = expression($0, *$1[$1]);
 
 branch: group+ = branch(*$0);
 
 group: element [postfix] = group($0, *$1($0));
 
 element : simple_element = simple_construct($0)
-        | complex_element = complex_construct($0)
+        | complex_element = [$0]
         | '.' = wildcard_character($0)
         ;
 
@@ -43,7 +43,7 @@ character : normal_character
           ;
 
 complex_element : '[' ['^'] select_element+ ']' = select(*$1($0), $2)
-                | '(' expression ')' = sub_expression($1)
+                | '(' expression ')' = [$1]
                 | reference = reference($0)
                 ;
 

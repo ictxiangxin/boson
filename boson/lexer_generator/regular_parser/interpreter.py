@@ -5,19 +5,17 @@ from .grammar_node import BosonGrammarNode
 class RegularInterpreter:
     def __init__(self):
         self.__reduce_number_grammar_name_mapping: dict = {
-            34: 'regular_expression',
-            9: 'expression',
-            5: 'branch',
-            30: 'group',
-            15: 'simple_construct',
-            26: 'complex_construct',
-            7: 'wildcard_character',
-            24: 'select',
-            25: 'sub_expression',
-            39: 'reference',
-            4: 'construct_number'
+            32: 'regular_expression',
+            27: 'expression',
+            9: 'branch',
+            37: 'group',
+            14: 'simple_construct',
+            22: 'wildcard_character',
+            12: 'select',
+            18: 'reference',
+            26: 'construct_number'
         }
-        self.__naive_reduce_number_set: set = {34, 3, 36, 7, 39, 11, 15, 16, 17, 19, 20, 26, 27}
+        self.__naive_reduce_number_set: set = {32, 33, 38, 6, 10, 11, 14, 15, 17, 18, 20, 22, 23, 25}
         self.__semantic_action_mapping: dict = {}
 
     def __semantics_analysis(self, grammar_tree: BosonGrammarNode) -> BosonSemanticsNode:
@@ -36,9 +34,7 @@ class RegularInterpreter:
             return self.__semantic_action_mapping[grammar_name](semantic_node)
         elif grammar_tree.get_reduce_number() in self.__naive_reduce_number_set:
             if len(semantic_node.children()) == 0:
-                null_node = BosonSemanticsNode()
-                null_node.make_null()
-                return null_node
+                return BosonSemanticsNode.null_node()
             elif len(semantic_node.children()) == 1:
                 return semantic_node[0]
             else:

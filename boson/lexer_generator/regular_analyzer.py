@@ -159,14 +159,6 @@ class BosonRegularAnalyzer:
         def _semantic_wildcard_character(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             return BosonSemanticsNode(bs_create_nfa_reverse_delay_construct(set()))
 
-        @interpreter.register_action('complex_construct')
-        def _semantic_complex_construct(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
-            return semantic_node[0]
-
-        @interpreter.register_action('sub_expression')
-        def _semantic_sub_expression(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
-            return semantic_node[0]
-
         @interpreter.register_action('reference')
         def _semantic_reference(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             lexical_symbol = semantic_node[0].get_text()[1:-1]
