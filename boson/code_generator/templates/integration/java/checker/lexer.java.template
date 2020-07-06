@@ -195,16 +195,16 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
     private boolean _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
     {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
     private final Map<Integer, List<CompactTable>> _compactMoveTable = Map.ofEntries(
-        {%- for state, stateMoveTable in lexer.compact_move_table.items() %}
+        {%- for state, state_move_table in lexer.compact_move_table.items() %}
         Map.entry({{ state }}, List.of(
-            {%- for each in stateMoveTable %}
-            CompactTable.of({{ each[0] }}, Set.of({%- for character in each[1] -%}
-                '{{ '%s' % character.encode('unicode-escape').decode() }}'
+            {%- for compact_tuple in state_move_table %}
+            CompactTable.of({{ compact_tuple[0] }}, Set.of({%- for character in compact_tuple[1] -%}
+                '{{ ('\\%s' if character == '\'' else '%s') % character.encode('unicode-escape').decode() }}'
             {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}), List.of({%- for character_range in each[2] -%}
-                LexerRange.of('{{ '%s' % character_range[0].encode('unicode-escape').decode() }}', '{{ '%s' % character_range[1].encode('unicode-escape').decode() }}')
+            {%- endfor -%}), List.of({%- for range in compact_tuple[2] -%}
+                LexerRange.of('{{ ('\\%s' if range[0] == '\'' else '%s') % range[0].encode('unicode-escape').decode() }}', '{{ ('\\%s' if range[1] == '\'' else '%s') % range[1].encode('unicode-escape').decode() }}')
             {%- if not loop.last %}, {% endif -%}
-            {%- endfor -%}), {{ each[3] }})
+            {%- endfor -%}), {{ compact_tuple[3] }})
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ))
@@ -217,7 +217,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
         Map.entry({{ state }}, AugmentedTable.of({{ stateMoveTable.get(True, -1) }}, Map.ofEntries(
             {%- for character, to_state in stateMoveTable.items() -%}
             {%- if character != True -%}
-            Map.entry('{{ '%s' % character.encode('unicode-escape').decode() }}', {{ to_state }})
+            Map.entry('{{ ('\\%s' if character == '\'' else '%s') % character.encode('unicode-escape').decode() }}', {{ to_state }})
             {%- if not loop.last %}, {% endif -%}
             {%- endif -%}
             {%- endfor -%}
@@ -228,7 +228,7 @@ public class {{ configure.boson_option['lexer_class_name'] }} {
     {%- endif %}
     private final Set<Character> _characterSet = Set.of(
         {%- for character in lexer.character_set -%}
-            '{{ '%s' % character.encode('unicode-escape').decode() }}'
+            '{{ ('\\%s' if character == '\'' else '%s') % character.encode('unicode-escape').decode() }}'
         {%- if not loop.last %}, {% endif -%}
         {%- endfor -%}
     );
