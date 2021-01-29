@@ -12,13 +12,13 @@ class LexerGenerator:
         self.__lexical_dfa = None
         self.__compact_move_table: dict = {}
 
-    def compact_move_table(self):
+    def compact_move_table(self) -> dict:
         return self.__compact_move_table
 
-    def symbol_function_mapping(self):
+    def symbol_function_mapping(self) -> dict:
         return self.__symbol_function_mapping
 
-    def non_greedy_state_set(self):
+    def non_greedy_state_set(self) -> set:
         return self.__non_greedy_state_set
 
     def move_table(self) -> dict:

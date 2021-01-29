@@ -35,12 +35,12 @@ code_generator_library = {
 quiet = False
 
 
-def display(text: str = '', indent: int = 0, newline: bool = True, file=sys.stdout):
+def display(text: str = '', indent: int = 0, newline: bool = True, file=sys.stdout) -> None:
     if not quiet:
         print(' ' * indent + text, end=('\n' if newline else ''), flush=True, file=file)
 
 
-def welcome():
+def welcome() -> None:
     display('{} - {}'.format(configure.boson_title, configure.boson_description))
     display('Author: {}'.format(configure.boson_author), indent=4)
     display('Email:  {}'.format(configure.boson_email), indent=4)
@@ -48,7 +48,7 @@ def welcome():
     display()
 
 
-def console_main():
+def console_main() -> None:
     argument_parser = argparse.ArgumentParser(
         prog=configure.boson_name.lower(),
         description='{} - {}'.format(configure.boson_title, configure.boson_description),

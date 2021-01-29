@@ -6,7 +6,7 @@ class JavaCodeGenerator(CodeGenerator):
     def __init__(self, output_path: str, mode: str, checker: bool):
         super().__init__(output_path, 'java', mode, checker)
 
-    def generate_code(self):
+    def generate_code(self) -> None:
         if self._checker:
             self._generate_code('token.java', configure.boson_option['token_class_name'] + '.java')
             if self._template_data['option']['generate_lexer']:

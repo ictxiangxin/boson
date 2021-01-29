@@ -12,26 +12,26 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
         self._sparse_goto_table: dict = {}
         self._conflict_list: list = []
 
-    def action_table(self):
+    def action_table(self) -> list:
         return self._action_table
 
-    def sparse_action_table(self):
+    def sparse_action_table(self) -> dict:
         return self._sparse_action_table
 
-    def goto_table(self):
+    def goto_table(self) -> list:
         return self._goto_table
 
-    def sparse_goto_table(self):
+    def sparse_goto_table(self) -> dict:
         return self._sparse_goto_table
 
-    def conflict_list(self):
+    def conflict_list(self) -> list:
         return self._conflict_list
 
-    def initialize(self):
+    def initialize(self) -> None:
         super().initialize()
         self._generate_non_terminal_first_set()
 
-    def generate_parse_table(self):
+    def generate_parse_table(self) -> None:
         conflict_resolver_enable = configure.boson_option['conflict_resolver'] == 'yes'
         self._action_table = [[configure.boson_table_sign_error] * (len(self._terminal_index_mapping) + 1) for _ in range(len(self._dfa_state_number_mapping))]
         self._goto_table = [[configure.boson_invalid_goto] * len(self._non_terminal_index_mapping) for _ in range(len(self._dfa_state_number_mapping))]
@@ -76,7 +76,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                         else:
                             self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
 
-    def parse_table_sparsification(self):
+    def parse_table_sparsification(self) -> None:
         self._sparse_action_table = {}
         for state, state_action_table in enumerate(self._action_table):
             sparse_state_action_table = {}

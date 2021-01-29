@@ -23,10 +23,10 @@ class ParserGenerator(metaclass=ABCMeta):
         self._grammar_tuple_naive_sentence_set: set = set()
         self._augmented_sentence = (configure.boson_augmented_start, configure.boson_option['start_symbol'])
 
-    def __augment_grammar(self):
+    def __augment_grammar(self) -> None:
         self._sentence_set.add(self._augmented_sentence)
 
-    def __normalize_sentence(self):
+    def __normalize_sentence(self) -> None:
         self._sentence_list = [self._augmented_sentence] + list(self._sentence_set - {self._augmented_sentence})
         self._sentence_index_mapping = {}
         self._reduce_symbol_count = []
@@ -42,7 +42,7 @@ class ParserGenerator(metaclass=ABCMeta):
             self._non_terminal_sentence_index_mapping.setdefault(non_terminal, set())
             self._non_terminal_sentence_index_mapping[non_terminal].add(index)
 
-    def __generate_symbol_set(self):
+    def __generate_symbol_set(self) -> None:
         self._non_terminal_set = {sentence[0] for sentence in self._sentence_set}
         self._non_terminal_index_mapping = {}
         index_number = 0
@@ -74,7 +74,7 @@ class ParserGenerator(metaclass=ABCMeta):
             sentence_first_set.add(configure.boson_null_symbol)
         return sentence_first_set
 
-    def _generate_non_terminal_first_set(self):
+    def _generate_non_terminal_first_set(self) -> None:
         self._first_set_mapping = {}
         old_set_size = {}
         continue_loop = True
@@ -88,7 +88,7 @@ class ParserGenerator(metaclass=ABCMeta):
                     old_set_size[non_terminal] = len(self._first_set_mapping[non_terminal])
                     continue_loop = True
 
-    def _generate_non_terminal_follow_set(self):
+    def _generate_non_terminal_follow_set(self) -> None:
         self._follow_set_mapping = {configure.boson_augmented_start: {configure.boson_end_symbol}}
         old_set_size = {}
         continue_loop = True
@@ -111,10 +111,10 @@ class ParserGenerator(metaclass=ABCMeta):
                     old_set_size[non_terminal] = len(self._follow_set_mapping[non_terminal])
                     continue_loop = True
 
-    def non_terminal_set(self):
+    def non_terminal_set(self) -> set:
         return self._non_terminal_set
 
-    def terminal_set(self):
+    def terminal_set(self) -> set:
         return self._terminal_set
 
     def sentence_list(self) -> list:
@@ -144,7 +144,7 @@ class ParserGenerator(metaclass=ABCMeta):
     def naive_reduce_number_set(self) -> set:
         return self._naive_reduce_number_set
 
-    def initialize(self):
+    def initialize(self) -> None:
         self.__augment_grammar()
         self.__generate_symbol_set()
         self.__normalize_sentence()

@@ -5,7 +5,7 @@ class SLRParserGenerator(BottomUpCanonicalParserGenerator):
     def __init__(self, sentence_set: set):
         super().__init__(sentence_set)
 
-    def initialize(self):
+    def initialize(self) -> None:
         super().initialize()
         self._generate_non_terminal_follow_set()
 

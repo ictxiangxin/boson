@@ -16,7 +16,7 @@ class LexicalNFA:
         self.__delay_construct_reverse_set_list: list = []
         self.__delay_construct_base_state_list: list = []
 
-    def __generate_state_epsilon_closure_mapping(self):
+    def __generate_state_epsilon_closure_mapping(self) -> None:
         self.__state_epsilon_closure_mapping = {}
         for state, state_move_table in self.__move_table.items():
             epsilon_transition_set = state_move_table.get(configure.boson_lexical_epsilon_transition, None)

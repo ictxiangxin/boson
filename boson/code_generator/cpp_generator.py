@@ -6,7 +6,7 @@ class CppCodeGenerator(CodeGenerator):
     def __init__(self, output_path: str, mode: str, checker: bool):
         super().__init__(output_path, 'c++', mode, checker)
 
-    def generate_code(self):
+    def generate_code(self) -> None:
         if self._checker:
             self._generate_code('boson.hpp', 'boson.hpp')
             self._generate_code('token.hpp', 'token.hpp')

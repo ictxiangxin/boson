@@ -6,7 +6,7 @@ class PythonCodeGenerator(CodeGenerator):
     def __init__(self, output_path: str, mode: str, checker: bool):
         super().__init__(output_path, 'python', mode, checker)
 
-    def generate_code(self):
+    def generate_code(self) -> None:
         if self._checker:
             self._generate_code('__init__.py', '__init__.py')
             self._generate_code('token.py', 'token.py')

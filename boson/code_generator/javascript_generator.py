@@ -6,7 +6,7 @@ class JavaScriptCodeGenerator(CodeGenerator):
     def __init__(self, output_path: str, mode: str, checker: bool):
         super().__init__(output_path, 'javascript', mode, checker)
 
-    def generate_code(self):
+    def generate_code(self) -> None:
         if self._checker:
             self._generate_code('token.js', 'token.js')
             if self._template_data['option']['generate_lexer']:

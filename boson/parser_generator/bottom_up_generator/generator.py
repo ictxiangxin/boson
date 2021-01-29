@@ -13,20 +13,20 @@ class BottomUpParserGenerator(ParserGenerator):
         self._dfa_state_number_mapping: dict = {}
         self._dfa_move_table: dict = {}
 
-    def state_reduce_mapping(self):
+    def state_reduce_mapping(self) -> dict:
         return self._dfa_state_reduce_mapping
 
-    def dfa_move_table(self):
+    def dfa_move_table(self) -> dict:
         return self._dfa_move_table
 
-    def initialize(self):
+    def initialize(self) -> None:
         super().initialize()
         self._non_terminal_reduction_mapping = {}
         for sentence in self._sentence_list:
             self._non_terminal_reduction_mapping.setdefault(sentence[0], [])
             self._non_terminal_reduction_mapping[sentence[0]].append(sentence)
 
-    def generate_parser_dfa(self):
+    def generate_parser_dfa(self) -> None:
         start_non_terminal_sentence = (configure.boson_augmented_start,)
         start_look_ahead_set = self._non_terminal_look_ahead_set(start_non_terminal_sentence, 0, {configure.boson_end_symbol})
         start_nfa_state = (start_non_terminal_sentence, 0, start_look_ahead_set)
