@@ -6,6 +6,7 @@ from boson.lexer_generator.regular_parser import \
 from boson.lexer_generator.lexical_nfa import \
     LexicalNFA, \
     bs_create_nfa_character, \
+    bs_create_nfa_character_set, \
     bs_create_nfa_or, \
     bs_create_nfa_count_range, \
     bs_create_nfa_kleene_closure, \
@@ -29,12 +30,12 @@ class BosonRegularAnalyzer:
     def __init__(self, reference_nfa_mapping: dict = None):
         self.__parser: RegularParser = RegularParser()
         self.__escape_character_mapping: dict = {
-            'n': '\n',
-            'r': '\r',
-            't': '\t',
-            'd': '0123456789',
-            'w': 'abcdefghijklmnopqrstuvwxyz',
-            'W': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            'n': {'\n'},
+            'r': {'\r'},
+            't': {'\t'},
+            'd': {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'},
+            'w': {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'},
+            'W': {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}
         }
         self.__lexical_nfa: (LexicalNFA, None) = None
         self.__reference_nfa_mapping: dict = {}
@@ -90,17 +91,7 @@ class BosonRegularAnalyzer:
             character = semantic_node[0].get_text()
             if len(character) > 1 and character[0] == '\\':
                 escape_character = character[1]
-                if escape_character in self.__escape_character_mapping:
-                    mapping_character = self.__escape_character_mapping[escape_character]
-                    if len(mapping_character) > 1:
-                        nfa_list = []
-                        for character in mapping_character:
-                            nfa_list.append(bs_create_nfa_character(character))
-                        return BosonSemanticsNode(bs_create_nfa_or(nfa_list))
-                    else:
-                        return BosonSemanticsNode(bs_create_nfa_character(mapping_character))
-                else:
-                    return BosonSemanticsNode(bs_create_nfa_character(escape_character))
+                return BosonSemanticsNode(bs_create_nfa_character_set(self.__escape_character_mapping.get(escape_character, {escape_character})))
             else:
                 return BosonSemanticsNode(bs_create_nfa_character(character))
 
@@ -139,10 +130,7 @@ class BosonRegularAnalyzer:
             if reverse:
                 return BosonSemanticsNode(bs_create_nfa_reverse_delay_construct(select_character_set))
             else:
-                nfa_list = []
-                for character in select_character_set:
-                    nfa_list.append(bs_create_nfa_character(character))
-                return BosonSemanticsNode(bs_create_nfa_or(nfa_list))
+                return BosonSemanticsNode(bs_create_nfa_character_set(select_character_set))
 
         @interpreter.register_action('branch')
         def _semantic_branch(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:

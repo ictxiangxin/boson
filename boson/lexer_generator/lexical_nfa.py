@@ -31,11 +31,10 @@ class LexicalNFA:
                 if state in variable_state_set:
                     update_state_set = available_state_set & epsilon_closure
                     if update_state_set:
-                        old_closure_size = len(epsilon_closure)
                         update_closure = set(epsilon_closure)
                         for update_state in update_state_set:
                             update_closure |= self.__state_epsilon_closure_mapping[update_state]
-                        if old_closure_size < len(update_closure):
+                        if len(epsilon_closure) < len(update_closure):
                             self.__state_epsilon_closure_mapping[state] = update_closure
                             continue_loop = True
                     else:
@@ -199,6 +198,12 @@ class LexicalNFA:
         self.set_start_state(configure.boson_lexical_default_start_state)
         self.add_end_state(configure.boson_lexical_default_end_state)
 
+    def create_nfa_character_set(self, character_set: set) -> None:
+        for character in character_set:
+            self.add_move(configure.boson_lexical_default_start_state, character, configure.boson_lexical_default_end_state)
+        self.set_start_state(configure.boson_lexical_default_start_state)
+        self.add_end_state(configure.boson_lexical_default_end_state)
+
     def create_nfa_link(self, input_nfa_list: list) -> None:
         start_state_mapping, end_state_mapping = self.update(input_nfa_list)
         for index in range(len(input_nfa_list)):
@@ -270,6 +275,12 @@ class LexicalNFA:
 def bs_create_nfa_character(character: str) -> LexicalNFA:
     nfa = LexicalNFA()
     nfa.create_nfa_character(character)
+    return nfa
+
+
+def bs_create_nfa_character_set(character_set: set) -> LexicalNFA:
+    nfa = LexicalNFA()
+    nfa.create_nfa_character_set(character_set)
     return nfa
 
 
