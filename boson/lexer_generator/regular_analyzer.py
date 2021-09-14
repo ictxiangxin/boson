@@ -1,3 +1,4 @@
+import boson.configure as configure
 from boson.lexer_generator.regular_parser import \
     BosonGrammarNode, \
     RegularParser, \
@@ -56,7 +57,7 @@ class BosonRegularAnalyzer:
                 nfa = semantic_node[0].get_data()
                 postfix = semantic_node[1]
                 if len(postfix.children()) > 0:
-                    min_count = int(postfix[0].get_text())
+                    min_count = int(postfix[0].get_data())
                     if len(postfix.children()) == 1:
                         if min_count == 0:
                             return BosonSemanticsNode(bs_create_nfa_kleene_closure(nfa))
@@ -64,7 +65,7 @@ class BosonRegularAnalyzer:
                             return BosonSemanticsNode(bs_create_nfa_plus_closure(nfa))
                         else:
                             return BosonSemanticsNode(bs_create_nfa_link([bs_create_nfa_count_range(nfa, min_count, min_count), bs_create_nfa_kleene_closure(nfa)]))
-                    max_count = int(postfix[1].get_text())
+                    max_count = int(postfix[1].get_data())
                     if min_count > max_count:
                         raise ValueError('[Boson Regular Analyzer] Min Count Must Less Than Max Count.')
                     return BosonSemanticsNode(bs_create_nfa_count_range(nfa, min_count, max_count))
@@ -85,6 +86,12 @@ class BosonRegularAnalyzer:
         @interpreter.register_action('construct_number')
         def _semantic_construct_number(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             return BosonSemanticsNode(''.join(get_semantic_node_text_list(semantic_node)))
+
+        @interpreter.register_action('unicode')
+        def _semantic_unicode(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            unicode_node = BosonSemanticsNode()
+            unicode_node.set_text(semantic_node[0].get_text().encode(configure.boson_default_encoding).decode('unicode_escape'))
+            return unicode_node
 
         @interpreter.register_action('simple_construct')
         def _semantic_character(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:

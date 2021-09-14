@@ -12,10 +12,11 @@
 ####################################
 #        Lexical Definition        #
 ####################################
-single_number    = <[0-9]>;
-escape_character = <\\.>;
-reference        = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>@{reference};
-normal_character = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]>;
+single_number     = <[0-9]>;
+unicode_character = <\\u[0-9a-fA-F]{4}>;
+reference         = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>@{reference};
+escape_character  = <\\.>;
+normal_character  = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]>;
 
 
 #####################################
@@ -39,6 +40,7 @@ simple_element : character
                ;
 
 character : normal_character
+          | unicode_character = unicode($0)
           | single_number
           ;
 

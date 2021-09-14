@@ -57,8 +57,9 @@ class LexerGenerator:
                 self.__symbol_function_mapping[lexical_symbol] = regular_definition['function_list']
             if regular_definition['non_greedy']:
                 non_greedy_symbol_set.add(lexical_symbol)
-            if tokenizer.tokenize(regular_definition['regular']) != tokenizer.no_error_index():
-                raise ValueError('[Lexer Generator] Invalid Regular Expression: "{}".'.format(regular_definition[0]))
+            tokenizer_error_index = tokenizer.tokenize(regular_definition['regular'])
+            if tokenizer_error_index != tokenizer.no_error_index():
+                raise ValueError('[Lexer Generator] Invalid Regular Expression: "{}", Error Index: {}'.format(regular_definition['regular'], tokenizer_error_index))
             symbol_token_list_mapping[lexical_symbol] = tokenizer.token_list()
         for lexical_symbol in reference_set:
             if lexical_symbol in symbol_token_list_mapping:
