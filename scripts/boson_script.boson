@@ -48,9 +48,11 @@ derivation_body : sentence | '~' | ;
 
 sentence : element+ = (*$0);
 
-grammar_tuple : '(' node_element (',' node_element)* ')' = ($1, *$2[$1])
+grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
               | '[' node ']' = getter_tuple($1)
               ;
+
+node_element_list : node_element (',' node_element)* = ($0, *$1[$1]);
 
 node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
 

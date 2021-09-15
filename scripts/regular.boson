@@ -32,7 +32,7 @@ group: element [postfix] = group($0, *$1($0));
 
 element : simple_element = simple_construct($0)
         | complex_element = [$0]
-        | '.' = wildcard_character($0)
+        | '.' = wildcard_character()
         ;
 
 simple_element : character
