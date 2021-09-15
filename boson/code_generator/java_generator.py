@@ -1,5 +1,5 @@
-from boson.code_generator.generator import CodeGenerator
 import boson.configure as configure
+from boson.code_generator.generator import CodeGenerator
 
 
 class JavaCodeGenerator(CodeGenerator):

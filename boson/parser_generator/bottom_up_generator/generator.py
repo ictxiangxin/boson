@@ -1,6 +1,7 @@
 from abc import abstractmethod
-from boson.parser_generator import ParserGenerator
+
 import boson.configure as configure
+from boson.parser_generator import ParserGenerator
 
 
 class BottomUpParserGenerator(ParserGenerator):

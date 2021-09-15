@@ -1,5 +1,4 @@
 from boson.lexer_generator.generator import LexerGenerator
-from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
 from boson.lexer_generator.lexical_dfa import LexicalDFA
 from boson.lexer_generator.lexical_nfa import \
     LexicalNFA, \
@@ -10,6 +9,7 @@ from boson.lexer_generator.lexical_nfa import \
     bs_create_nfa_plus_closure, \
     bs_create_nfa_link, \
     bs_create_nfa_reverse_delay_construct
+from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
 from boson.lexer_generator.regular_parser import \
     BosonGrammarNode, \
     RegularParser, \

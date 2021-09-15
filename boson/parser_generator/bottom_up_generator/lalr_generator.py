@@ -1,5 +1,5 @@
-from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 import boson.configure as configure
+from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 
 
 class LALRParserGenerator(BottomUpCanonicalParserGenerator):

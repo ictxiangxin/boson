@@ -1,5 +1,5 @@
-from boson.lexer_generator.lexical_dfa import LexicalDFA
 import boson.configure as configure
+from boson.lexer_generator.lexical_dfa import LexicalDFA
 
 
 class LexicalNFA:

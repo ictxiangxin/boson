@@ -1,23 +1,24 @@
-import sys
-import os
 import argparse
+import os
+import sys
 import time
 from argparse import RawTextHelpFormatter
+
 import boson.configure as configure
-from boson.boson_script import CommandExecutor
-from boson.lexer_generator import LexerGenerator
 from boson.boson_script import BosonScriptAnalyzer
+from boson.boson_script import CommandExecutor
+from boson.code_generator import \
+    PythonCodeGenerator, \
+    CppCodeGenerator, \
+    JavaCodeGenerator, \
+    JavaScriptCodeGenerator
+from boson.lexer_generator import LexerGenerator
 from boson.parser_generator import \
     BottomUpParserGenerator, \
     BottomUpCanonicalParserGenerator, \
     SLRParserGenerator, \
     LRParserGenerator, \
     LALRParserGenerator
-from boson.code_generator import \
-    PythonCodeGenerator, \
-    CppCodeGenerator, \
-    JavaCodeGenerator, \
-    JavaScriptCodeGenerator
 
 parser_generator_library = {
     'slr': SLRParserGenerator,

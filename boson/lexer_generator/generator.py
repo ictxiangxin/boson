@@ -1,7 +1,7 @@
-from boson.lexer_generator.lexical_nfa import LexicalNFA
-from boson.lexer_generator.regular_parser import RegularLexer
-from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
 import boson.configure as configure
+from boson.lexer_generator.lexical_nfa import LexicalNFA
+from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
+from boson.lexer_generator.regular_parser import RegularLexer
 
 
 class LexerGenerator:

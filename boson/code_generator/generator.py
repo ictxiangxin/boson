@@ -1,8 +1,10 @@
-import jinja2
 import os.path
+
+import jinja2
+
+import boson.configure as configure
 from boson.lexer_generator.generator import LexerGenerator
 from boson.parser_generator.bottom_up_generator.canonical_generator import BottomUpCanonicalParserGenerator
-import boson.configure as configure
 
 
 class CodeGenerator:
