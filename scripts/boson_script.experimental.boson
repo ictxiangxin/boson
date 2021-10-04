@@ -1,0 +1,80 @@
+%TokenClassName LexicalToken;
+%LexerClassName BosonLexer;
+%ParserClassName BosonParser;
+%InterpreterClassName BosonInterpreter;
+%GenerateInterpreter yes;
+%GenerateLexer yes;
+%CodeComment no;
+%ParserSparseTable yes;
+%StartSymbol boson;
+
+
+####################################
+#        Lexical Definition        #
+####################################
+name     = <[_a-zA-Z][_a-zA-Z0-9]*>;
+node     = <$[0-9]+>;
+number   = <\-?[0-9]+|0x[0-9a-fA-F]+>;
+string   = <".*[^\\]"|'.*[^\\]'>!;
+regular  = <\<.*[^\\]\>>!;
+comment  = <#[^\r\n]*>@{skip};
+command  = <%[_a-zA-Z]+>;
+skip     = <[\ \t]+>@{skip};
+newline  = <\r\n|\n>@{skip, newline};
+
+
+#####################################
+#        Grammar Definition         #
+#####################################
+boson : statement+;
+
+statement : command_statement
+          | lexicon_statement
+          | grammar_statement
+          ;
+
+command_statement : command (name | string)+ ';' = command($0, *$1);
+
+lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3, $4(*$2));
+
+lexical_function : name (',' name)* = ($0, *$1[$1]);
+
+grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
+
+derivation_list : derivation ('|' derivation)* = ($0, *$1[$1]);
+
+derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1(*$1, $2, *$3));
+
+derivation_body : sentence | '~' | ;
+
+sentence : element+ = (*$0);
+
+grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
+              | '[' node ']' = getter_tuple($1)
+              ;
+
+node_element_list : node_element (',' node_element)* = ($0, *$1[$1]);
+
+node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
+
+element : complex_element | symbol [closure] = name_closure($0, *$1);
+
+symbol : name | string = literal($0);
+
+complex_element : '(' sub_derivation ')' [closure] = complex_closure($1, *$3)
+                | '[' sub_derivation ']' = complex_optional($1)
+                ;
+
+sub_derivation : sentence | sentence ('|' sentence)+ = select($0, *$1[$1]);
+
+attribute : '{' key_value_list '}' = attribute($1);
+
+key_value_list : key_value (',' key_value)* = ($0, *$1[$1]);
+
+key_value : name '=' attribute_value = ($0, $2);
+
+attribute_value : name | string | number | value_list | attribute;
+
+value_list : '[' attribute_value (',' attribute_value)+ ']' = ($1, *$2[$1]);
+
+closure: '+' | '*';
