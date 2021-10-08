@@ -43,7 +43,7 @@ grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
 
 derivation_list : derivation ('|' derivation)* = ($0, *$1[$1]);
 
-derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1(*$1, $2, *$3));
+derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1($1, $2, $3));
 
 derivation_body : sentence | '~' | ;
 
@@ -73,8 +73,11 @@ key_value_list : key_value (',' key_value)* = ($0, *$1[$1]);
 
 key_value : name '=' attribute_value = ($0, $2);
 
-attribute_value : name | string | number | value_list | attribute;
+attribute_value : name | value_list | attribute
+                | string = string($0)
+                | number = number($0)
+                ;
 
-value_list : '[' attribute_value (',' attribute_value)+ ']' = ($1, *$2[$1]);
+value_list : '[' attribute_value (',' attribute_value)+ ']' = attribute_value_list($1, *$2[$1]);
 
 closure: '+' | '*';

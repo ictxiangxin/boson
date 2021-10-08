@@ -196,18 +196,17 @@ class BosonScriptAnalyzer:
                     else:
                         self.__naive_sentence_set.add(sentence)
                 grammar_tuple = None
-                if len(derivation.children()) == 1:
-                    self.__none_grammar_tuple_set.add(sentence)
-                elif len(derivation.children()) == 2:
-                    grammar_tuple = tuple(get_semantic_node_data_list(derivation[1]))
-                elif len(derivation.children()) == 3:
-                    self.__sentence_grammar_name_mapping[sentence] = derivation[1].get_text()
-                    grammar_tuple = tuple(get_semantic_node_data_list(derivation[2]))
-                else:
-                    raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
                 attribute = SentenceAttribute()
                 attribute.index = self.__generate_index()
                 attribute.order = order
+                if len(derivation.children()) == 1:
+                    self.__none_grammar_tuple_set.add(sentence)
+                else:
+                    if derivation[1].children():
+                        self.__sentence_grammar_name_mapping[sentence] = derivation[1][0].get_text()
+                    grammar_tuple = tuple(get_semantic_node_data_list(derivation[2]))
+                    if derivation[3].children():
+                        attribute.custom = derivation[3][0].get_data()
                 self.__sentence_add(sentence, attribute, grammar_tuple)
             return BosonSemanticsNode.null_node()
 
@@ -299,6 +298,48 @@ class BosonScriptAnalyzer:
             literal_node = BosonSemanticsNode()
             literal_node.set_text(literal_symbol)
             return literal_node
+
+        @interpreter.register_action('attribute')
+        def _semantic_attribute(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            attribute = {}
+            for key_value in semantic_node[0].children():
+                key = key_value[0].get_text()
+                value = key_value[1]
+                if value.get_text() == '':
+                    attribute[key] = value.get_data()
+                else:
+                    attribute[key] = value.get_text()
+            attribute_node = BosonSemanticsNode()
+            attribute_node.set_data(attribute)
+            return attribute_node
+
+        @interpreter.register_action('attribute_value_list')
+        def _semantic_attribute_value_list(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            attribute_value_list = []
+            for value_node in semantic_node.children():
+                if value_node.get_text() == '':
+                    attribute_value_list.append(value_node.get_data())
+                else:
+                    attribute_value_list.append(value_node.get_text())
+            attribute_value_list_node = BosonSemanticsNode()
+            attribute_value_list_node.set_data(attribute_value_list)
+            return attribute_value_list_node
+
+        @interpreter.register_action('string')
+        def _semantic_string(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            string_node = BosonSemanticsNode()
+            string_node.set_data(semantic_node[0].get_text()[1:-1])
+            return string_node
+
+        @interpreter.register_action('number')
+        def _semantic_number(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            number_text = semantic_node[0].get_text()
+            number_node = BosonSemanticsNode()
+            if number_text.startswith('0x'):
+                number_node.set_data(int(number_text, 16))
+            else:
+                number_node.set_data(int(number_text))
+            return number_node
 
     def parse(self, token_list: list) -> BosonGrammarNode:
         grammar = self.__parser.parse(token_list)
