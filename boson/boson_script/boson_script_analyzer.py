@@ -5,6 +5,7 @@ from boson.boson_script.boson_script_parser import \
     BosonParser, \
     BosonInterpreter, \
     BosonSemanticsNode
+from boson.boson_script.sentence_attribute import SentenceAttribute
 
 
 interpreter = BosonInterpreter()
@@ -23,6 +24,7 @@ class BosonScriptAnalyzer:
         self.__parser: BosonParser = BosonParser()
         self.__sentence_set: set = set()
         self.__sentence_grammar_tuple_mapping: dict = {}
+        self.__sentence_attribute_mapping: dict = {}
         self.__none_grammar_tuple_set: set = set()
         self.__command_list: list = []
         self.__literal_map: dict = {}
@@ -37,14 +39,21 @@ class BosonScriptAnalyzer:
         self.__positive_closure_cache: dict = {}
         self.__colin_closure_cache: dict = {}
         self.__optional_cache: dict = {}
+        self.__current_index: int = 0
 
     def __generate_hidden_name(self, prefix: str = configure.boson_hidden_name_prefix) -> str:
         hidden_name = '{}{}'.format(prefix, self.__hidden_name_number)
         self.__hidden_name_number += 1
         return hidden_name
 
-    def __sentence_add(self, sentence: tuple, grammar_tuple: tuple = None) -> None:
+    def __generate_index(self):
+        index = self.__current_index
+        self.__current_index += 1
+        return index
+
+    def __sentence_add(self, sentence: tuple, sentence_attribute: SentenceAttribute, grammar_tuple: tuple = None) -> None:
         self.__sentence_set.add(sentence)
+        self.__sentence_attribute_mapping[sentence] = sentence_attribute
         if grammar_tuple is None:
             self.__none_grammar_tuple_set.add(sentence)
         else:
@@ -56,8 +65,12 @@ class BosonScriptAnalyzer:
         else:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__positive_closure_cache[name] = hidden_name
-            self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
-            self.__sentence_add((hidden_name, name))
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, name), attribute)
             return hidden_name
 
     def __add_colin_closure(self, name: str) -> str:
@@ -66,8 +79,12 @@ class BosonScriptAnalyzer:
         else:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__colin_closure_cache[name] = hidden_name
-            self.__sentence_add((hidden_name, hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
-            self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
             return hidden_name
 
     def __add_optional(self, name: str) -> str:
@@ -76,15 +93,22 @@ class BosonScriptAnalyzer:
         else:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__optional_cache[name] = hidden_name
-            self.__sentence_add((hidden_name, name), ('{}0'.format(configure.boson_grammar_tuple_unpack),))
-            self.__sentence_add((hidden_name, configure.boson_null_symbol), tuple())
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack),))
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
             return hidden_name
 
     def __add_select(self, sentence_list: list) -> str:
         hidden_name = self.__generate_hidden_name()
-        for sentence in sentence_list:
+        for order, sentence in enumerate(sentence_list):
             select_sentence = (hidden_name,) + tuple(sentence)
-            self.__sentence_add(select_sentence)
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            attribute.order = order
+            self.__sentence_add(select_sentence, attribute)
             self.__naive_sentence_set.add(select_sentence)
         return hidden_name
 
@@ -95,7 +119,9 @@ class BosonScriptAnalyzer:
         else:
             hidden_name = self.__generate_hidden_name()
             self.__hidden_derivation_cache[derivation_tuple] = hidden_name
-            self.__sentence_add((hidden_name,) + tuple(derivation))
+            attribute = SentenceAttribute()
+            attribute.index = self.__generate_index()
+            self.__sentence_add((hidden_name,) + tuple(derivation), attribute)
             return hidden_name
 
     def command_list(self):
@@ -155,7 +181,7 @@ class BosonScriptAnalyzer:
         def _semantic_reduce(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             reduce_name = semantic_node[0].get_text()
             derivation_list = semantic_node[1]
-            for derivation in derivation_list.children():
+            for order, derivation in enumerate(derivation_list.children()):
                 derivation_body = derivation[0]
                 if len(derivation_body.children()) == 0 and not derivation_body.is_null():
                     sentence = (reduce_name, derivation_body.get_text())
@@ -163,22 +189,26 @@ class BosonScriptAnalyzer:
                     sentence = (reduce_name,) + tuple(get_semantic_node_text_list(derivation_body))
                 else:
                     sentence = (reduce_name, configure.boson_null_symbol)
-                self.__sentence_set.add(sentence)
                 if len(sentence) == 2:
                     for i in range(2):
                         if sentence[i].startswith(configure.boson_operator_name_prefix) or sentence[i].startswith(configure.boson_hidden_name_prefix):
                             break
                     else:
                         self.__naive_sentence_set.add(sentence)
+                grammar_tuple = None
                 if len(derivation.children()) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
                 elif len(derivation.children()) == 2:
-                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(get_semantic_node_data_list(derivation[1]))
+                    grammar_tuple = tuple(get_semantic_node_data_list(derivation[1]))
                 elif len(derivation.children()) == 3:
                     self.__sentence_grammar_name_mapping[sentence] = derivation[1].get_text()
-                    self.__sentence_grammar_tuple_mapping[sentence] = tuple(get_semantic_node_data_list(derivation[2]))
+                    grammar_tuple = tuple(get_semantic_node_data_list(derivation[2]))
                 else:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
+                attribute = SentenceAttribute()
+                attribute.index = self.__generate_index()
+                attribute.order = order
+                self.__sentence_add(sentence, attribute, grammar_tuple)
             return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('name_closure')
