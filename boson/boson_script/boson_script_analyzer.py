@@ -27,8 +27,8 @@ class BosonScriptAnalyzer:
         self.__sentence_attribute_mapping: dict = {}
         self.__none_grammar_tuple_set: set = set()
         self.__command_list: list = []
-        self.__literal_map: dict = {}
-        self.__literal_reverse_map: dict = {}
+        self.__literal_mapping: dict = {}
+        self.__literal_reverse_mapping: dict = {}
         self.__sentence_grammar_name_mapping: dict = {}
         self.__naive_sentence_set: set = set()
         self.__literal_number: int = 1
@@ -39,14 +39,14 @@ class BosonScriptAnalyzer:
         self.__positive_closure_cache: dict = {}
         self.__colin_closure_cache: dict = {}
         self.__optional_cache: dict = {}
-        self.__current_index: int = 0
+        self.__current_index: int = 1
 
     def __generate_hidden_name(self, prefix: str = configure.boson_hidden_name_prefix) -> str:
         hidden_name = '{}{}'.format(prefix, self.__hidden_name_number)
         self.__hidden_name_number += 1
         return hidden_name
 
-    def __generate_index(self):
+    def __generate_index(self) -> int:
         index = self.__current_index
         self.__current_index += 1
         return index
@@ -66,10 +66,10 @@ class BosonScriptAnalyzer:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__positive_closure_cache[name] = hidden_name
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, name), attribute)
             return hidden_name
 
@@ -80,10 +80,10 @@ class BosonScriptAnalyzer:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__colin_closure_cache[name] = hidden_name
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
             return hidden_name
 
@@ -94,10 +94,10 @@ class BosonScriptAnalyzer:
             hidden_name = self.__generate_hidden_name(configure.boson_operator_name_prefix)
             self.__optional_cache[name] = hidden_name
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack),))
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
             return hidden_name
 
@@ -106,7 +106,7 @@ class BosonScriptAnalyzer:
         for order, sentence in enumerate(sentence_list):
             select_sentence = (hidden_name,) + tuple(sentence)
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             attribute.order = order
             self.__sentence_add(select_sentence, attribute)
             self.__naive_sentence_set.add(select_sentence)
@@ -120,38 +120,41 @@ class BosonScriptAnalyzer:
             hidden_name = self.__generate_hidden_name()
             self.__hidden_derivation_cache[derivation_tuple] = hidden_name
             attribute = SentenceAttribute()
-            attribute.index = self.__generate_index()
+            attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name,) + tuple(derivation), attribute)
             return hidden_name
 
-    def command_list(self):
+    def command_list(self) -> list:
         return self.__command_list
 
-    def lexical_definition(self):
+    def lexical_definition(self) -> dict:
         return self.__lexical_definition
 
-    def sentence_set(self):
+    def sentence_set(self) -> set:
         return self.__sentence_set
 
-    def sentence_grammar_tuple_mapping(self):
+    def sentence_grammar_tuple_mapping(self) -> dict:
         return self.__sentence_grammar_tuple_mapping
 
-    def none_grammar_tuple_set(self):
+    def sentence_attribute_mapping(self) -> dict:
+        return self.__sentence_attribute_mapping
+
+    def none_grammar_tuple_set(self) -> set:
         return self.__none_grammar_tuple_set
 
-    def literal_map(self):
-        return self.__literal_map
+    def literal_mapping(self) -> dict:
+        return self.__literal_mapping
 
-    def literal_reverse_map(self):
-        return self.__literal_reverse_map
+    def literal_reverse_mapping(self) -> dict:
+        return self.__literal_reverse_mapping
 
-    def sentence_grammar_name_mapping(self):
+    def sentence_grammar_name_mapping(self) -> dict:
         return self.__sentence_grammar_name_mapping
 
-    def naive_sentence_set(self):
+    def naive_sentence_set(self) -> set:
         return self.__naive_sentence_set
 
-    def init_semantic(self):
+    def init_semantic(self) -> None:
         @interpreter.register_action('command')
         def _semantic_command(semantic_node) -> BosonSemanticsNode:
             command_name = semantic_node[0].get_text()
@@ -197,7 +200,7 @@ class BosonScriptAnalyzer:
                         self.__naive_sentence_set.add(sentence)
                 grammar_tuple = None
                 attribute = SentenceAttribute()
-                attribute.index = self.__generate_index()
+                attribute.parse_index = self.__generate_index()
                 attribute.order = order
                 if len(derivation.children()) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
@@ -283,13 +286,13 @@ class BosonScriptAnalyzer:
         @interpreter.register_action('literal')
         def _semantic_literal(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             literal_string = semantic_node[0].get_text()[1: -1]
-            if literal_string in self.__literal_map:
-                literal_symbol = self.__literal_map[literal_string]
+            if literal_string in self.__literal_mapping:
+                literal_symbol = self.__literal_mapping[literal_string]
             else:
                 literal_symbol = configure.boson_symbol_template.format(self.__literal_number)
                 self.__literal_number += 1
-                self.__literal_map[literal_string] = literal_symbol
-                self.__literal_reverse_map[literal_symbol] = literal_string
+                self.__literal_mapping[literal_string] = literal_symbol
+                self.__literal_reverse_mapping[literal_symbol] = literal_string
                 self.__lexical_definition[literal_symbol] = {
                     'regular': '\\' + '\\'.join(literal_string),
                     'non_greedy': False,
@@ -368,7 +371,7 @@ class BosonScriptAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def tokenize_and_parse(self, boson_script_text: str):
+    def tokenize_and_parse(self, boson_script_text: str) -> None:
         lexer = BosonLexer()
         if lexer.tokenize(boson_script_text) != lexer.no_error_index():
             raise ValueError('[Boson Script Analyzer] Invalid Token [Line: {}, Index: {}]'.format(lexer.line(), lexer.error_index()))

@@ -1,12 +1,13 @@
 from abc import abstractmethod
 
 import boson.configure as configure
+from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.generator import ParserGenerator
 
 
 class BottomUpParserGenerator(ParserGenerator):
-    def __init__(self, sentence_set: set):
-        super().__init__(sentence_set)
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+        super().__init__(sentence_set, sentence_attribute_mapping)
         self._non_terminal_reduction_mapping: dict = {}
         self._nfa_state_number_inverted_mapping: dict = {}
         self._nfa_move_table: dict = {}
@@ -23,7 +24,7 @@ class BottomUpParserGenerator(ParserGenerator):
     def initialize(self) -> None:
         super().initialize()
         self._non_terminal_reduction_mapping = {}
-        for sentence in self._sentence_list:
+        for sentence in self._sentence_set:
             self._non_terminal_reduction_mapping.setdefault(sentence[0], [])
             self._non_terminal_reduction_mapping[sentence[0]].append(sentence)
 

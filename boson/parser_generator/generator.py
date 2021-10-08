@@ -1,13 +1,14 @@
 from abc import ABCMeta
 
 import boson.configure as configure
+from boson.boson_script.sentence_attribute import SentenceAttribute
 
 
 class ParserGenerator(metaclass=ABCMeta):
-    def __init__(self, sentence_set: set):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
         self._sentence_set: set = set(sentence_set)
-        self._sentence_list: list = []
-        self._sentence_index_mapping: dict = {}
+        self._sentence_attribute_mapping: dict = sentence_attribute_mapping
+        self._index_sentence_mapping: dict = {}
         self._non_terminal_set: set = set()
         self._terminal_set: set = set()
         self._non_terminal_index_mapping: dict = {}
@@ -26,22 +27,34 @@ class ParserGenerator(metaclass=ABCMeta):
 
     def __augment_grammar(self) -> None:
         self._sentence_set.add(self._augmented_sentence)
+        self._sentence_attribute_mapping[self._augmented_sentence] = SentenceAttribute()
 
     def __normalize_sentence(self) -> None:
-        self._sentence_list = [self._augmented_sentence] + list(self._sentence_set - {self._augmented_sentence})
-        self._sentence_index_mapping = {}
         self._reduce_symbol_count = []
         self._reduce_non_terminal_index = []
-        for index, sentence in enumerate(self._sentence_list):
-            if sentence[-1] == configure.boson_null_symbol:
-                self._reduce_symbol_count.append(0)
+        reduce_symbol_count_mapping = {}
+        reduce_non_terminal_index_mapping = {}
+        current_index = 1
+        for sentence in self._sentence_set:
+            sentence_attribute = self._sentence_attribute_mapping[sentence]
+            if sentence == self._augmented_sentence:
+                sentence_attribute.sentence_index = 0
             else:
-                self._reduce_symbol_count.append(len(sentence) - 1)
-            self._sentence_index_mapping[sentence] = index
+                sentence_attribute.sentence_index = current_index
+                current_index += 1
+            self._sentence_attribute_mapping[sentence] = sentence_attribute
+            if sentence[-1] == configure.boson_null_symbol:
+                reduce_symbol_count_mapping[sentence_attribute.sentence_index] = 0
+            else:
+                reduce_symbol_count_mapping[sentence_attribute.sentence_index] = len(sentence) - 1
             non_terminal = sentence[0]
             self._reduce_non_terminal_index.append(self._non_terminal_index_mapping[non_terminal])
+            reduce_non_terminal_index_mapping[sentence_attribute.sentence_index] = self._non_terminal_index_mapping[non_terminal]
             self._non_terminal_sentence_index_mapping.setdefault(non_terminal, set())
-            self._non_terminal_sentence_index_mapping[non_terminal].add(index)
+            self._non_terminal_sentence_index_mapping[non_terminal].add(sentence_attribute.sentence_index)
+            self._index_sentence_mapping[sentence_attribute.sentence_index] = sentence
+        self._reduce_non_terminal_index = [index for _, index in sorted(reduce_non_terminal_index_mapping.items())]
+        self._reduce_symbol_count = [count for _, count in sorted(reduce_symbol_count_mapping.items())]
 
     def __generate_symbol_set(self) -> None:
         self._non_terminal_set = {sentence[0] for sentence in self._sentence_set}
@@ -112,17 +125,14 @@ class ParserGenerator(metaclass=ABCMeta):
                     old_set_size[non_terminal] = len(self._follow_set_mapping[non_terminal])
                     continue_loop = True
 
+    def sentence_set(self) -> set:
+        return self._sentence_set
+
     def non_terminal_set(self) -> set:
         return self._non_terminal_set
 
     def terminal_set(self) -> set:
         return self._terminal_set
-
-    def sentence_list(self) -> list:
-        return self._sentence_list
-
-    def origin_sentence_list(self) -> list:
-        return self._sentence_list[1:]
 
     def terminal_index_mapping(self) -> dict:
         return self._terminal_index_mapping
@@ -187,7 +197,7 @@ class ParserGenerator(metaclass=ABCMeta):
                         unpack_node = False
                     if hidden_name.startswith(configure.boson_operator_name_prefix):
                         for sentence_index in self._non_terminal_sentence_index_mapping[hidden_name]:
-                            sub_sentence = self._sentence_list[sentence_index]
+                            sub_sentence = self._index_sentence_mapping[sentence_index]
                             final_name = sub_sentence[-1]
                             if final_name.startswith(configure.boson_hidden_name_prefix):
                                 if unpack_node:
@@ -195,7 +205,7 @@ class ParserGenerator(metaclass=ABCMeta):
                                     origin_tuple = origin_tuple[:-1] + ('{}{}'.format(configure.boson_grammar_tuple_unpack, origin_tuple[-1]),)
                                     sentence_grammar_tuple_list.insert(0, (sub_sentence, origin_tuple))
                                 for final_sentence_index in self._non_terminal_sentence_index_mapping[final_name]:
-                                    sentence_grammar_tuple_list.append((self._sentence_list[final_sentence_index], sub_grammar_tuple))
+                                    sentence_grammar_tuple_list.append((self._index_sentence_mapping[final_sentence_index], sub_grammar_tuple))
                                 if not unpack_node:
                                     break
                         else:
@@ -203,19 +213,22 @@ class ParserGenerator(metaclass=ABCMeta):
                                 raise ValueError('[Parser Generator] Symbol Closure Can Not Use Grammar Tuple.')
                     elif hidden_name.startswith(configure.boson_hidden_name_prefix):
                         for sentence_index in self._non_terminal_sentence_index_mapping[hidden_name]:
-                            sentence_grammar_tuple_list.append((self._sentence_list[sentence_index], sub_grammar_tuple))
+                            sentence_grammar_tuple_list.append((self._index_sentence_mapping[sentence_index], sub_grammar_tuple))
                     else:
                         raise ValueError('[Parser Generator] Symbol Can Not Use Grammar Tuple.')
                 new_grammar_tuple.append((configure.boson_grammar_tuple_unpack if unpack else '') + str(index))
-            self._sentence_index_grammar_tuple_mapping[self._sentence_index_mapping[sentence]] = tuple(new_grammar_tuple)
-        self._none_grammar_tuple_sentence_index_set = set(range(len(self._sentence_list))) - set(self._sentence_index_grammar_tuple_mapping)
+            sentence_attribute = self._sentence_attribute_mapping[sentence]
+            self._sentence_index_grammar_tuple_mapping[sentence_attribute.sentence_index] = tuple(new_grammar_tuple)
+        self._none_grammar_tuple_sentence_index_set = set(range(len(self._sentence_set))) - set(self._sentence_index_grammar_tuple_mapping)
 
     def assemble_sentence_grammar_name(self, sentence_grammar_name_mapping: dict) -> None:
         self._reduce_number_grammar_name_mapping = {}
         for sentence, grammar_name in sentence_grammar_name_mapping.items():
-            self._reduce_number_grammar_name_mapping[self._sentence_index_mapping[sentence]] = grammar_name
+            sentence_attribute = self._sentence_attribute_mapping[sentence]
+            self._reduce_number_grammar_name_mapping[sentence_attribute.sentence_index] = grammar_name
 
     def assemble_naive_sentence(self, naive_sentence_set: set) -> None:
         self._naive_reduce_number_set = set()
         for sentence in naive_sentence_set | self._grammar_tuple_naive_sentence_set:
-            self._naive_reduce_number_set.add(self._sentence_index_mapping[sentence])
+            sentence_attribute = self._sentence_attribute_mapping[sentence]
+            self._naive_reduce_number_set.add(sentence_attribute.sentence_index)

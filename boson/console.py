@@ -127,7 +127,7 @@ def console_main() -> None:
             step += 1
             display('[{}] Generate Grammar Analysis Table... '.format(step), indent=4, newline=False)
             start_time = time.time()
-            parser_generator = parser_generator_library[arguments.analyzer](script_analyzer.sentence_set())
+            parser_generator = parser_generator_library[arguments.analyzer](script_analyzer.sentence_set(), script_analyzer.sentence_attribute_mapping())
             parser_generator.initialize()
             parser_generator.assemble_sentence_grammar_name(script_analyzer.sentence_grammar_name_mapping())
             parser_generator.assemble_grammar_tuple(script_analyzer.sentence_grammar_tuple_mapping())
@@ -138,7 +138,7 @@ def console_main() -> None:
             end_time = time.time()
             display('Done [{:.4f}s]'.format(end_time - start_time))
             display('> Algorithm: {}'.format(arguments.analyzer.upper()), indent=8)
-            display('> Grammar Sentence Count: {}'.format(len(parser_generator.origin_sentence_list())), indent=8)
+            display('> Grammar Sentence Count: {}'.format(len(parser_generator.sentence_set()) - 1), indent=8)
             display('> Non-Terminal Symbol Count: {}'.format(len(parser_generator.non_terminal_set())), indent=8)
             display('> Terminal Symbol Count: {}'.format(len(parser_generator.terminal_set())), indent=8)
             if isinstance(parser_generator, BottomUpParserGenerator):
@@ -159,8 +159,8 @@ def console_main() -> None:
                 }
                 display('[Error] Conflict', indent=4)
                 for state_number, conflict_type, terminal in parser_generator.conflict_list():
-                    if terminal in script_analyzer.literal_reverse_map():
-                        terminal = '\'{}\''.format(script_analyzer.literal_reverse_map()[terminal])
+                    if terminal in script_analyzer.literal_reverse_mapping():
+                        terminal = '\'{}\''.format(script_analyzer.literal_reverse_mapping()[terminal])
                     display('[Conflict State: {}] <{}> Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal), indent=8)
             if not arguments.force and parser_generator.conflict_list():
                 return

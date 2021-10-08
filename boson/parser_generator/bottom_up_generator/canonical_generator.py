@@ -1,12 +1,13 @@
 from abc import abstractmethod
 
 import boson.configure as configure
+from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpParserGenerator
 
 
 class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
-    def __init__(self, sentence_set: set):
-        super().__init__(sentence_set)
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+        super().__init__(sentence_set, sentence_attribute_mapping)
         self._action_table: list = []
         self._sparse_action_table: dict = {}
         self._goto_table: list = []
@@ -55,7 +56,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                             if old_reduce_number == reduce_number:
                                 continue
                             if conflict_resolver_enable:
-                                old_shorter = len(self._sentence_list[old_reduce_number]) < len(self._sentence_list[reduce_number])
+                                old_shorter = len(self._index_sentence_mapping[old_reduce_number]) < len(self._index_sentence_mapping[reduce_number])
                                 longer = configure.boson_option['reduce_reduce_conflict_resolver'] == 'long'
                                 if not (old_shorter ^ longer):
                                     self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)

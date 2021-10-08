@@ -1,10 +1,11 @@
 import boson.configure as configure
+from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 
 
 class LALRParserGenerator(BottomUpCanonicalParserGenerator):
-    def __init__(self, sentence_set: set):
-        super().__init__(sentence_set)
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+        super().__init__(sentence_set, sentence_attribute_mapping)
 
     def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
         if sentence[0] == configure.boson_augmented_start:
@@ -81,5 +82,6 @@ class LALRParserGenerator(BottomUpCanonicalParserGenerator):
             for nfa_state_number in dfa_state:
                 sentence, flag, _ = self._nfa_state_number_inverted_mapping[nfa_state_number]
                 if flag == len(sentence):
-                    dfa_state_reduce[self._sentence_index_mapping[sentence]] = dfa_state_nfa_state_look_ahead_mapping[dfa_state_number][nfa_state_number]
+                    sentence_attribute = self._sentence_attribute_mapping[sentence]
+                    dfa_state_reduce[sentence_attribute.sentence_index] = dfa_state_nfa_state_look_ahead_mapping[dfa_state_number][nfa_state_number]
             self._dfa_state_reduce_mapping[dfa_state_number] = dfa_state_reduce
