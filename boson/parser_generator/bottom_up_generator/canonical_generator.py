@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import List, Dict, Tuple
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
@@ -6,13 +7,13 @@ from boson.parser_generator.bottom_up_generator import BottomUpParserGenerator
 
 
 class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
-    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: Dict[tuple, SentenceAttribute]):
         super().__init__(sentence_set, sentence_attribute_mapping)
-        self._action_table: list = []
-        self._sparse_action_table: dict = {}
-        self._goto_table: list = []
-        self._sparse_goto_table: dict = {}
-        self._conflict_list: list = []
+        self._action_table: List[List[str]] = []
+        self._sparse_action_table: Dict[int, Dict[int, str]] = {}
+        self._goto_table: List[List[int]] = []
+        self._sparse_goto_table: Dict[int, Dict[int, int]] = {}
+        self._conflict_list: List[Tuple[int, int, str]] = []
 
     def action_table(self) -> list:
         return self._action_table
@@ -64,6 +65,16 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                                 self._conflict_list.append((state_number, configure.boson_conflict_reduce_reduce, terminal))
                         elif old_sign == configure.boson_table_sign_shift:
                             if conflict_resolver_enable:
+                                reduce_sentence = self._index_sentence_mapping[reduce_number]
+                                nfa_state_number_set = self._dfa_state_number_inverted_mapping[state_number]
+                                for nfa_state_number in nfa_state_number_set:
+                                    nfa_sentence, nfa_flag, _ = self._nfa_state_number_inverted_mapping[nfa_state_number]
+                                    if nfa_flag < len(nfa_sentence) and nfa_sentence[nfa_flag] == terminal:
+                                        reduce_sentence_attribute = self._sentence_attribute_mapping[reduce_sentence]
+                                        nfa_sentence_attribute = self._sentence_attribute_mapping[nfa_sentence]
+                                        if reduce_sentence_attribute.order < nfa_sentence_attribute.order:
+                                            self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                                            break
                                 if configure.boson_option['shift_reduce_conflict_resolver'] == 'reduce':
                                     self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
                             else:

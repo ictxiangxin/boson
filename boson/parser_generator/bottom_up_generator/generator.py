@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Dict
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
@@ -6,13 +7,14 @@ from boson.parser_generator.generator import ParserGenerator
 
 
 class BottomUpParserGenerator(ParserGenerator):
-    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: Dict[tuple, SentenceAttribute]):
         super().__init__(sentence_set, sentence_attribute_mapping)
         self._non_terminal_reduction_mapping: dict = {}
         self._nfa_state_number_inverted_mapping: dict = {}
         self._nfa_move_table: dict = {}
         self._dfa_state_reduce_mapping: dict = {}
         self._dfa_state_number_mapping: dict = {}
+        self._dfa_state_number_inverted_mapping: dict = {}
         self._dfa_move_table: dict = {}
 
     def state_reduce_mapping(self) -> dict:
@@ -135,6 +137,8 @@ class BottomUpParserGenerator(ParserGenerator):
                     dfa_state_wait_list.append(new_dfa_state)
                 self._dfa_move_table.setdefault(dfa_from_state_number, {})
                 self._dfa_move_table[dfa_from_state_number][symbol] = dfa_to_state_number
+        for nfa_state_set, dfa_state_number in self._dfa_state_number_mapping.items():
+            self._dfa_state_number_inverted_mapping[dfa_state_number] = nfa_state_set
         self._end_processing()
 
     @abstractmethod

@@ -1,11 +1,12 @@
 from abc import ABCMeta
+from typing import Dict
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 
 
 class ParserGenerator(metaclass=ABCMeta):
-    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: Dict[tuple, SentenceAttribute]):
         self._sentence_set: set = set(sentence_set)
         self._sentence_attribute_mapping: dict = sentence_attribute_mapping
         self._index_sentence_mapping: dict = {}

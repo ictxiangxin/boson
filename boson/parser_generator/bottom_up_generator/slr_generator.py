@@ -1,9 +1,11 @@
+from typing import Dict
+
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 
 
 class SLRParserGenerator(BottomUpCanonicalParserGenerator):
-    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: Dict[tuple, SentenceAttribute]):
         super().__init__(sentence_set, sentence_attribute_mapping)
 
     def initialize(self) -> None:

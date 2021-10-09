@@ -1,10 +1,12 @@
+from typing import Dict
+
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
 
 
 class LALRParserGenerator(BottomUpCanonicalParserGenerator):
-    def __init__(self, sentence_set: set, sentence_attribute_mapping: dict[tuple:SentenceAttribute]):
+    def __init__(self, sentence_set: set, sentence_attribute_mapping: Dict[tuple, SentenceAttribute]):
         super().__init__(sentence_set, sentence_attribute_mapping)
 
     def _non_terminal_look_ahead_set(self, sentence: tuple, flag: int, look_ahead_set: (set, frozenset)) -> (frozenset, None):
