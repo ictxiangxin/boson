@@ -23,7 +23,7 @@ class LRParserGenerator(BottomUpCanonicalParserGenerator):
             for nfa_state_number in dfa_state:
                 sentence, flag, look_ahead_set = self._nfa_state_number_inverted_mapping[nfa_state_number]
                 if flag == len(sentence):
-                    sentence_attribute = self._sentence_attribute_mapping[sentence]
+                    sentence_attribute: SentenceAttribute = self._sentence_attribute_mapping[sentence]
                     dfa_state_reduce.setdefault(sentence_attribute.sentence_index, set())
                     dfa_state_reduce[sentence_attribute.sentence_index] |= look_ahead_set
             self._dfa_state_reduce_mapping[dfa_state_number] = dfa_state_reduce

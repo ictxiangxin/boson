@@ -159,7 +159,7 @@ namespace boson {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             { {{- state }}, {
                 {%- for compact_tuple in state_move_table %}
-                { {{- compact_tuple[0] }}, { {%- for character in each[1] -%}
+                { {{- compact_tuple[0] }}, { {%- for character in compact_tuple[1] -%}
                     '{{ ('\\%s' if character == '\'' else '%s') % character.encode('unicode-escape').decode() }}'
                 {%- if not loop.last %}, {% endif -%}
                 {%- endfor -%}}, { {%- for range in compact_tuple[2] -%}
