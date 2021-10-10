@@ -53,6 +53,8 @@ boson_operator_name_prefix = '{}operator_'.format(boson_reserved_symbol)
 boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
 boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
 
+boson_log_file_default_path = '.'
+
 boson_option = {
     'start_symbol': 'start',
     'token_class_name': 'BosonToken',
