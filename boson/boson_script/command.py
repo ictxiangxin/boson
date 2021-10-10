@@ -19,8 +19,8 @@ class CommandExecutor:
             'parser_sparse_table': {'yes', 'no'},
             'lexer_compact_table': {'yes', 'no'},
             'conflict_resolver': {'yes', 'no'},
-            'shift_reduce_conflict_resolver': {'shift', 'reduce'},
-            'reduce_reduce_conflict_resolver': {'long', 'short'},
+            'shift_reduce_conflict_resolver': {'order', 'shift', 'reduce'},
+            'reduce_reduce_conflict_resolver': {'order', 'long', 'short'},
         }
         self.__split_symbol = '_'
 
