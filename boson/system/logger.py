@@ -40,17 +40,17 @@ class Logger:
             self.__log_file.close()
 
     def generate_log_file_name(self):
-        self.__file_name: str = configure.boson_name + time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()) + '.log'
+        self.__file_name: str = configure.boson_name + '_' + time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + '.log'
 
     def log(self, text: str, level: LogLevel):
-        log_head = '[{}]'.format(time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()))
-        log_level = '<{}>'.format(level)
-        self.__log_file.writelines(['{} {} {}'.format(log_head, log_level, text)])
+        log_head = '[{}]'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        log_level = '<{}>'.format(level.value)
+        self.__log_file.write('{} {} {}\n'.format(log_head, log_level, text))
 
     def log_block(self, block_text: str, level: LogLevel):
-        log_head = '[{}] <{}>'.format(time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()), level)
-        log_block_start = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
-        log_block_end = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'
+        log_head = '[{}] <{}>\n'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), level.value)
+        log_block_start = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n'
+        log_block_end = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
         self.__log_file.writelines([log_head, log_block_start, block_text, log_block_end])
 
     def error(self, text: str):
@@ -76,3 +76,6 @@ class Logger:
 
     def debug_block(self, block_text: str):
         self.log_block(block_text, LogLevel.debug)
+
+
+logger = Logger()

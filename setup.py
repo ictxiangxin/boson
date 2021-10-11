@@ -29,6 +29,7 @@ if __name__ == '__main__':
         keywords=[configure.boson_package_name, configure.boson_description],
         packages=[
             configure.boson_package_name,
+            configure.boson_package_name + '.system',
             configure.boson_package_name + '.binary_generator',
             configure.boson_package_name + '.boson_script',
             configure.boson_package_name + '.boson_script.boson_script_parser',

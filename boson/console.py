@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import time
+import traceback
 from argparse import RawTextHelpFormatter
 
 import boson.configure as configure
@@ -19,6 +20,7 @@ from boson.parser_generator import \
     SLRParserGenerator, \
     LRParserGenerator, \
     LALRParserGenerator
+from boson.system.logger import logger
 
 parser_generator_library = {
     'slr': SLRParserGenerator,
@@ -93,6 +95,7 @@ def console_main() -> None:
     quiet = arguments.quiet
     welcome()
     source_file = None
+    logger.initialize()
     try:
         display('[Generate Analyzer Code]')
         step = 1
@@ -189,8 +192,13 @@ def console_main() -> None:
         global_end_time = time.time()
         display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))
         display()
-    except Exception as e:
+    except ValueError as e:
+        logger.error(str(e))
         display('\n\n[Error] {}'.format(e), file=sys.stderr)
+    except Exception as e:
+        logger.error_block(traceback.format_exc())
+        display('\n\n[Error] {}'.format(repr(e)), file=sys.stderr)
     finally:
+        logger.close()
         if source_file is not None:
             source_file.close()
