@@ -39,6 +39,7 @@ class BosonScriptAnalyzer:
         self.__positive_closure_cache: dict = {}
         self.__colin_closure_cache: dict = {}
         self.__optional_cache: dict = {}
+        self.__sentence_order_base_mapping: dict = {}
         self.__current_index: int = 1
 
     def __generate_hidden_name(self, prefix: str = configure.boson_hidden_name_prefix) -> str:
@@ -184,6 +185,8 @@ class BosonScriptAnalyzer:
         def _semantic_reduce(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             reduce_name = semantic_node[0].get_text()
             derivation_list = semantic_node[1]
+            self.__sentence_order_base_mapping.setdefault(reduce_name, 0)
+            order_base = self.__sentence_order_base_mapping[reduce_name]
             for order, derivation in enumerate(derivation_list.children()):
                 derivation_body = derivation[0]
                 if len(derivation_body.children()) == 0 and not derivation_body.is_null():
@@ -201,7 +204,7 @@ class BosonScriptAnalyzer:
                 grammar_tuple = None
                 attribute = SentenceAttribute()
                 attribute.parse_index = self.__generate_index()
-                attribute.order = order
+                attribute.order = order_base + order
                 if len(derivation.children()) == 1:
                     self.__none_grammar_tuple_set.add(sentence)
                 else:
@@ -211,6 +214,7 @@ class BosonScriptAnalyzer:
                     if derivation[3].children():
                         attribute.custom = derivation[3][0].get_data()
                 self.__sentence_add(sentence, attribute, grammar_tuple)
+            self.__sentence_order_base_mapping[reduce_name] += len(derivation_list.children())
             return BosonSemanticsNode.null_node()
 
         @interpreter.register_action('name_closure')
