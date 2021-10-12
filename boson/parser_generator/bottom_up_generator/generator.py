@@ -119,7 +119,7 @@ class BottomUpParserGenerator(ParserGenerator):
             move_closure_mapping: Dict[str, Set[int]] = {}
             for nfa_state_number in dfa_state:
                 if nfa_state_number in self._nfa_move_table:
-                    state_move_table: Union[set[int], tuple[Optional[int], str, int]] = self._nfa_move_table[nfa_state_number]
+                    state_move_table: Union[Set[int], Tuple[Optional[int], str, int]] = self._nfa_move_table[nfa_state_number]
                     if isinstance(state_move_table, tuple):
                         move_closure_mapping.setdefault(state_move_table[1], set())
                         move_closure_mapping[state_move_table[1]].add(state_move_table[2])
