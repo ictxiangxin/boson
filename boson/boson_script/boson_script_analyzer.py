@@ -371,7 +371,7 @@ class BosonScriptAnalyzer:
                 else:
                     break
             offset: int = grammar.error_index - start_index - 1
-            error_token_list = token_list[start_index + 1: end_index]
+            error_token_list: list = token_list[start_index + 1: end_index]
             error_message: str = '\n[Boson Script Analyzer] Syntax Error <Line: {}>\n'.format(error_line)
             error_token_text_list: List[str] = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))
