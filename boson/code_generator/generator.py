@@ -1,6 +1,7 @@
 import os.path
+from typing import Any, Dict
 
-import jinja2
+from jinja2 import Environment, PackageLoader, Template
 
 import boson.configure as configure
 from boson.lexer_generator.generator import LexerGenerator
@@ -9,16 +10,16 @@ from boson.parser_generator.bottom_up_generator.canonical_generator import Botto
 
 class CodeGenerator:
     def __init__(self, output_path: str, language: str, mode: str, checker: bool):
-        self._output_path = output_path
-        self._language = language
-        self._mode = mode
-        self._checker = checker
-        self.__environment = jinja2.Environment(
-            loader=jinja2.PackageLoader(
+        self._output_path: str = output_path
+        self._language: str = language
+        self._mode: str = mode
+        self._checker: bool = checker
+        self.__environment: Environment = Environment(
+            loader=PackageLoader(
                 configure.boson_package_name,
                 os.path.join(configure.boson_template_directory, self._mode, self._language, 'checker' if self._checker else ''),
                 encoding=configure.boson_default_encoding))
-        self._template_data: dict = {
+        self._template_data: Dict[str, Any] = {
             'configure': configure,
             'option': {
                 'generate_lexer': False,
@@ -29,8 +30,8 @@ class CodeGenerator:
         }
 
     def _generate_code(self, template_file: str, output_file: str) -> None:
-        template = self.__environment.get_template(template_file + configure.boson_template_postfix)
-        code_text = template.render(self._template_data)
+        template: Template = self.__environment.get_template(template_file + configure.boson_template_postfix)
+        code_text: str = template.render(self._template_data)
         with open(os.path.join(self._output_path, output_file), 'w', encoding=configure.boson_default_encoding) as code_file:
             code_file.write(code_text)
 
