@@ -16,15 +16,16 @@
 ####################################
 #        Lexical Definition        #
 ####################################
-name     = <[_a-zA-Z][_a-zA-Z0-9]*>;
-node     = <$[0-9]+>;
-number   = <\-?[0-9]+|0x[0-9a-fA-F]+>;
-string   = <".*[^\\]"|'.*[^\\]'>!;
-regular  = <\<.*[^\\]\>>!;
-comment  = <#[^\r\n]*>@{skip};
-command  = <%[_a-zA-Z]+>;
-skip     = <[\ \t]+>@{skip};
-newline  = <\r\n|\n>@{skip, newline};
+name      = <[_a-zA-Z][_a-zA-Z0-9]*>;
+node      = <$[0-9]+>;
+node_name = <${name}>;
+number    = <\-?[0-9]+|0x[0-9a-fA-F]+>;
+string    = <".*[^\\]"|'.*[^\\]'>!;
+regular   = <\<.*[^\\]\>>!;
+comment   = <#[^\r\n]*>@{skip};
+command   = <%[_a-zA-Z]+>;
+skip      = <[\ \t]+>@{skip};
+newline   = <\r\n|\n>@{skip, newline};
 
 
 #####################################
@@ -51,7 +52,7 @@ derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1($
 
 derivation_body : sentence | '~' | ;
 
-sentence : element+ = (*$0);
+sentence : element_define+ = (*$0);
 
 grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
               | '[' node ']' = getter_tuple($1)
@@ -60,6 +61,8 @@ grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
 node_element_list : node_element (',' node_element)* = ($0, *$1[$1]);
 
 node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
+
+element_define : element ['@' name] = ($0, *$1($1));
 
 element : complex_element | symbol [closure] = name_closure($0, *$1);
 
