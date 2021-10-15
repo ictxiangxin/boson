@@ -2,6 +2,7 @@ from typing import Optional, List, Dict, Tuple, Set, FrozenSet
 
 import boson.configure as configure
 from boson.lexer_generator.lexical_dfa import LexicalDFA
+from boson.system.logger import logger
 
 
 class LexicalNFA:
@@ -57,6 +58,7 @@ class LexicalNFA:
         self.__move_table[from_state][character].add(to_state)
 
     def construct(self, full_character_set: Optional[Set[str]] = None) -> None:
+        logger.info('[Lexical NFA] Construct Lexer NFA.')
         if full_character_set is None:
             full_character_set: Set[str] = self.character_set()
         if self.__reverse_delay_construct:
@@ -92,6 +94,7 @@ class LexicalNFA:
         return self.__move_table
 
     def transform_to_dfa(self) -> LexicalDFA:
+        logger.info('[Lexical NFA] Transform Lexer NFA to DFA.')
         self.__generate_state_epsilon_closure_mapping()
         dfa_state_number: int = configure.boson_lexical_default_state
         dfa_entity: LexicalDFA = LexicalDFA()

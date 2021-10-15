@@ -5,6 +5,7 @@ from boson.lexer_generator.lexical_dfa import LexicalDFA
 from boson.lexer_generator.lexical_nfa import LexicalNFA
 from boson.lexer_generator.regular_analyzer import BosonRegularAnalyzer
 from boson.lexer_generator.regular_parser import RegularLexer
+from boson.system.logger import logger
 
 
 class LexerGenerator:
@@ -40,6 +41,7 @@ class LexerGenerator:
         return self.__lexical_dfa.lexical_symbol_mapping()
 
     def generate_lexical_dfa(self) -> None:
+        logger.info('[Lexer Generator] Generate Lexical DFA.')
         tokenizer: RegularLexer = RegularLexer()
         reference_set: Set[str] = set()
 
@@ -81,6 +83,7 @@ class LexerGenerator:
                 self.__non_greedy_state_set.add(state)
 
     def generate_compact_move_table(self) -> None:
+        logger.info('[Lexer Generator] Generate Compact Move Table.')
         self.__compact_move_table: Dict[int, List[list]] = {}
         for from_state, move_table in self.__lexical_dfa.move_table().items():
             reverse_mapping: Dict[int, Set[str]] = {}

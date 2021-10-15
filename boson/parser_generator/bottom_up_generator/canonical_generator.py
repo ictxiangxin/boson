@@ -5,6 +5,7 @@ import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.option import option as boson_option
 from boson.parser_generator.bottom_up_generator import BottomUpParserGenerator
+from boson.system.logger import logger
 
 
 class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
@@ -36,6 +37,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
         self._generate_non_terminal_first_set()
 
     def generate_parse_table(self) -> None:
+        logger.info('[Bottom-Up Canonical Parser Generator] Generate Parse Table.')
         conflict_resolver_enable: bool = boson_option['parser']['conflict_resolver']['enable'] == 'True'
         self._action_table: List[List[str]] = [[configure.boson_table_sign_error] * (len(self._terminal_index_mapping) + 1) for _ in range(len(self._dfa_state_number_mapping))]
         self._goto_table: List[List[int]] = [[configure.boson_invalid_goto] * len(self._non_terminal_index_mapping) for _ in range(len(self._dfa_state_number_mapping))]
@@ -98,6 +100,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                             self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
 
     def parse_table_sparsification(self) -> None:
+        logger.info('[Bottom-Up Canonical Parser Generator] Parse Table Sparsification.')
         self._sparse_action_table: Dict[int, Dict[int, str]] = {}
         for state, state_action_table in enumerate(self._action_table):
             sparse_state_action_table = {}

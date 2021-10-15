@@ -1,6 +1,7 @@
 from typing import Dict
 
 from boson.option import option
+from boson.system.logger import logger
 
 
 class CommandExecutor:
@@ -65,6 +66,7 @@ class CommandExecutor:
                 raise ValueError('Option Key Invalid: Key={}, ExpectKey={}'.format(key, list(option_template.keys())))
 
     def execute(self, command_list: list) -> None:
+        logger.info('[Boson Command] Execute Command.')
         for command_line in command_list:
             command = command_line[0][1:]
             match command:

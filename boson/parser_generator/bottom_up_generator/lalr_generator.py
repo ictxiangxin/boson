@@ -3,6 +3,7 @@ from typing import Optional, Dict, Tuple, Set, FrozenSet
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
+from boson.system.logger import logger
 
 
 class LALRParserGenerator(BottomUpCanonicalParserGenerator):
@@ -16,6 +17,7 @@ class LALRParserGenerator(BottomUpCanonicalParserGenerator):
             return None
 
     def _end_processing(self) -> None:
+        logger.info('[LALR Analyzer] End Processing.')
         null_right_sentence_dfa_nfa_set: Set[Tuple[int, int]] = set()
         dfa_state_channel_look_ahead_mapping: Dict[int, Dict[str]] = {}
         dfa_state_nfa_state_look_ahead_mapping: Dict[int, Dict[int, Set[str]]] = {}

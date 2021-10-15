@@ -4,9 +4,10 @@ from typing import Any, Dict
 from jinja2 import Environment, PackageLoader, Template
 
 import boson.configure as configure
-from boson.option import option as boson_option
 from boson.lexer_generator.generator import LexerGenerator
+from boson.option import option as boson_option
 from boson.parser_generator.bottom_up_generator.canonical_generator import BottomUpCanonicalParserGenerator
+from boson.system.logger import logger
 
 
 class CodeGenerator:
@@ -38,6 +39,7 @@ class CodeGenerator:
             code_file.write(code_text)
 
     def dispose_lexer(self, lexer_generator: LexerGenerator) -> None:
+        logger.info('[Code Generator] Dispose Lexer.')
         self._template_data['option']['generate_lexer'] = True
         self._template_data['lexer'] = {
             'move_table': lexer_generator.move_table(),
@@ -51,6 +53,7 @@ class CodeGenerator:
         }
 
     def dispose_parser(self, parser_generator):
+        logger.info('[Code Generator] Dispose Parser.')
         self._template_data['option']['generate_parser'] = True
         if isinstance(parser_generator, BottomUpCanonicalParserGenerator):
             self._template_data['parser'] = {

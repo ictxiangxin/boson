@@ -1,5 +1,6 @@
 from boson.code_generator.generator import CodeGenerator
 from boson.option import option as boson_option
+from boson.system.logger import logger
 
 
 class JavaCodeGenerator(CodeGenerator):
@@ -7,6 +8,7 @@ class JavaCodeGenerator(CodeGenerator):
         super().__init__(output_path, 'java', mode, checker)
 
     def generate_code(self) -> None:
+        logger.info('[Java Code Generator] Generate Code.')
         if self._checker:
             self._generate_code('token.java', boson_option['code']['class_name']['token'] + '.java')
             if self._template_data['option']['generate_lexer']:

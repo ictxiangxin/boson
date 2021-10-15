@@ -1,5 +1,6 @@
 from boson.option import option as boson_option
 from boson.code_generator.generator import CodeGenerator
+from boson.system.logger import logger
 
 
 class PythonCodeGenerator(CodeGenerator):
@@ -7,6 +8,7 @@ class PythonCodeGenerator(CodeGenerator):
         super().__init__(output_path, 'python', mode, checker)
 
     def generate_code(self) -> None:
+        logger.info('[Python Code Generator] Generate Code.')
         if self._checker:
             self._generate_code('__init__.py', '__init__.py')
             self._generate_code('token.py', 'token.py')

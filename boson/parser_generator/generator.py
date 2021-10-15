@@ -4,6 +4,7 @@ from typing import List, Dict, Tuple, Set
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.option import option as boson_option
+from boson.system.logger import logger
 
 
 class ParserGenerator(metaclass=ABCMeta):
@@ -163,6 +164,7 @@ class ParserGenerator(metaclass=ABCMeta):
         self.__normalize_sentence()
 
     def assemble_grammar_tuple(self, sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[str | tuple, ...]]) -> None:
+        logger.info('[Parser Generator] Assemble Grammar Tuple.')
         self._sentence_index_grammar_tuple_mapping: Dict[int, Tuple[str | tuple, ...]] = {}
         self._grammar_tuple_naive_sentence_set: Set[Tuple[str, ...]] = set()
         sentence_grammar_tuple_list: List[Tuple[Tuple[str, ...], Tuple[str | tuple, ...]]] = list(sentence_grammar_tuple_mapping.items())
@@ -224,12 +226,14 @@ class ParserGenerator(metaclass=ABCMeta):
         self._none_grammar_tuple_sentence_index_set: Set[int] = set(range(len(self._sentence_set))) - set(self._sentence_index_grammar_tuple_mapping)
 
     def assemble_sentence_grammar_name(self, sentence_grammar_name_mapping: Dict[Tuple[str, ...], str]) -> None:
+        logger.info('[Parser Generator] Assemble Sentence Grammar Name.')
         self._reduce_number_grammar_name_mapping: Dict[int, str] = {}
         for sentence, grammar_name in sentence_grammar_name_mapping.items():
             sentence_attribute: SentenceAttribute = self._sentence_attribute_mapping[sentence]
             self._reduce_number_grammar_name_mapping[sentence_attribute.sentence_index] = grammar_name
 
     def assemble_naive_sentence(self, naive_sentence_set: Set[Tuple[str, ...]]) -> None:
+        logger.info('[Parser Generator] Assemble Naive Sentence.')
         self._naive_reduce_number_set: Set[int] = set()
         for sentence in naive_sentence_set | self._grammar_tuple_naive_sentence_set:
             sentence_attribute: SentenceAttribute = self._sentence_attribute_mapping[sentence]

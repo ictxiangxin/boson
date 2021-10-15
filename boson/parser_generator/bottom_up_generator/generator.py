@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Tuple, Set, FrozenSet
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.generator import ParserGenerator
+from boson.system.logger import logger
 
 
 class BottomUpParserGenerator(ParserGenerator):
@@ -31,6 +32,7 @@ class BottomUpParserGenerator(ParserGenerator):
             self._non_terminal_reduction_mapping[sentence[0]].append(sentence)
 
     def generate_parser_dfa(self) -> None:
+        logger.info('[Bottom-Up Parser Generator] Generate Parser DFA.')
         start_non_terminal_sentence: Tuple[str] = (configure.boson_augmented_start,)
         start_look_ahead_set: Optional[FrozenSet[str]] = self._non_terminal_look_ahead_set(start_non_terminal_sentence, 0, {configure.boson_end_symbol})
         start_nfa_state: Tuple[Tuple[str, ...], int, Optional[FrozenSet]] = (start_non_terminal_sentence, 0, start_look_ahead_set)

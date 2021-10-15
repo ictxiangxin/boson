@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Tuple, Set
 
 import boson.configure as configure
+from boson.system.logger import logger
 
 
 class LexicalDFA:
@@ -63,6 +64,7 @@ class LexicalDFA:
         return self.__lexical_symbol_mapping
 
     def minimize(self) -> None:
+        logger.info('[Lexical DFA] Minimize Lexer DFA.')
         group_number: int = 0
         state_group_number: Dict[int, int] = {}
         state_group_wait_list: List[Set[int]] = [set(self.__state_set - self.__end_state_set), set(self.__end_state_set)]

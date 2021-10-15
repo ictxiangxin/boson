@@ -64,6 +64,9 @@ def console_main() -> None:
         '-o', '--output', default='boson',
         help='Output Boson Code Path(Default Is `boson`).')
     argument_parser.add_argument(
+        '-l', '--log', action='store_true',
+        help='Enable Boson Log.')
+    argument_parser.add_argument(
         '-q', '--quiet', action='store_true',
         help='Display Nothing.')
     arguments = argument_parser.parse_args()
@@ -71,15 +74,18 @@ def console_main() -> None:
     quiet = arguments.quiet
     welcome()
     source_file = None
-    logger.initialize()
+    if arguments.log:
+        logger.initialize()
     try:
         display('[Generate Analyzer Code]')
         step = 1
         display('[{}] Parse Boson Script... '.format(step), indent=4, newline=False)
         start_time = time.time()
         global_start_time = start_time
+        logger.info('[Boson] Open Boson Script File: File="{}"'.format(arguments.boson_script_file))
         source_file = open(arguments.boson_script_file, 'r', encoding=configure.boson_default_encoding)
         script_analyzer = BosonScriptAnalyzer()
+        logger.info('[Boson] Parse Boson Script.')
         script_analyzer.tokenize_and_parse(source_file.read())
         command_executor = CommandExecutor()
         command_executor.execute(script_analyzer.command_list())
@@ -155,6 +161,7 @@ def console_main() -> None:
         if parser_generator is not None:
             code_generator.dispose_parser(parser_generator)
         code_generator.generate_code()
+        logger.info('[Boson] Generate Target Code: Path="{}"'.format(arguments.output))
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
         display('> Language: {}'.format(boson_option['code']['language'].upper()), indent=8)
@@ -168,7 +175,11 @@ def console_main() -> None:
         display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))
         display()
     except ValueError as e:
-        logger.error(str(e))
+        message = str(e)
+        if '\n' in message:
+            logger.error_block(message)
+        else:
+            logger.error(message)
         display('\n\n[Error] {}'.format(e), file=sys.stderr)
     except Exception as e:
         logger.error_block(traceback.format_exc())

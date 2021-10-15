@@ -2,6 +2,7 @@ from typing import Optional, Dict, Tuple, Set, FrozenSet
 
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
+from boson.system.logger import logger
 
 
 class SLRParserGenerator(BottomUpCanonicalParserGenerator):
@@ -16,6 +17,7 @@ class SLRParserGenerator(BottomUpCanonicalParserGenerator):
         return None
 
     def _end_processing(self) -> None:
+        logger.info('[SLR Analyzer] End Processing.')
         self._dfa_state_reduce_mapping: Dict[int, Dict[int, Set[str]]] = {}
         for dfa_state, dfa_state_number in self._dfa_state_number_mapping.items():
             dfa_state_reduce: Dict[int, Set[str]] = {}

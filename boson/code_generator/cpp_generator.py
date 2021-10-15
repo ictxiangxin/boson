@@ -1,5 +1,6 @@
 from boson.code_generator.generator import CodeGenerator
 from boson.option import option as boson_option
+from boson.system.logger import logger
 
 
 class CppCodeGenerator(CodeGenerator):
@@ -7,6 +8,7 @@ class CppCodeGenerator(CodeGenerator):
         super().__init__(output_path, 'c++', mode, checker)
 
     def generate_code(self) -> None:
+        logger.info('[Cpp Code Generator] Generate Code.')
         if self._checker:
             self._generate_code('boson.hpp', 'boson.hpp')
             self._generate_code('token.hpp', 'token.hpp')
