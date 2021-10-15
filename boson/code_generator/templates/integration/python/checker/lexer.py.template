@@ -11,18 +11,20 @@
 """
 
 {% endif -%}
+from typing import Dict, List, Set
+
 from .token import {{ configure.boson_option['token_class_name'] }}
 
 
 class {{ configure.boson_option['lexer_class_name'] }}:
     def __init__(self):
-        self.__token_list: list = []
+        self.__token_list: List[{{ configure.boson_option['token_class_name'] }}] = []
         self.__line: int = {{ configure.boson_lexical_start_line }}
         self.__error_index: int = {{ configure.boson_lexical_no_error_index }}
         self.__no_error_index: int = {{ configure.boson_lexical_no_error_index }}
         self.__skip: bool = {{ configure.boson_lexical_default_skip }}
         {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
-        self.__compact_move_table: dict = {
+        self.__compact_move_table: Dict[int, List[list]] = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             {{ state }}: [
                 {%- for compact_tuple in state_move_table %}
@@ -50,7 +52,7 @@ class {{ configure.boson_option['lexer_class_name'] }}:
             {%- endfor %}
         }
         {%- else %}
-        self.__move_table: dict = {
+        self.__move_table: Dict[int, list] = {
             {%- for state, state_move_table in lexer.move_table.items() %}
             {{ state }}: [{{ state_move_table.get(True, -1) }}, {
                 {%- for character, to_state in state_move_table.items() -%}
@@ -64,28 +66,28 @@ class {{ configure.boson_option['lexer_class_name'] }}:
             {%- endfor %}
         }
         {%- endif %}
-        self.__character_set: set = {
+        self.__character_set: Set[str] = {
             {%- for character in lexer.character_set -%}
             '{{ ('\\%s' if character == '\'' else '%s') % character.encode('unicode-escape').decode() }}'
             {%- if not loop.last %}, {% endif -%}
             {%- endfor -%}
         }
         self.__start_state: int = {{ lexer.start_state }}
-        self.__end_state_set: set = {{ lexer.end_state_set }}
-        self.__lexical_symbol_mapping: dict = {
+        self.__end_state_set: Set[int] = {{ lexer.end_state_set }}
+        self.__lexical_symbol_mapping: Dict[int, str] = {
             {%- for state, symbol in lexer.lexical_symbol_mapping.items() %}
             {{ state }}: '{{ symbol }}'
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__non_greedy_state_set: set = {{ lexer.non_greedy_state_set }}
-        self.__symbol_function_mapping: dict = {
+        self.__non_greedy_state_set: Set[int] = {{ lexer.non_greedy_state_set }}
+        self.__symbol_function_mapping: Dict[str, List[str]] = {
             {%- for symbol, function_list in lexer.symbol_function_mapping.items() %}
             '{{ symbol }}': {{ function_list }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__lexical_function: dict = {}
+        self.__lexical_function: Dict[str, callable] = {}
 
     def _invoke_lexical_function(self, symbol: str) -> None:
         self.__skip = {{ configure.boson_lexical_default_skip }}
@@ -97,12 +99,12 @@ class {{ configure.boson_option['lexer_class_name'] }}:
                     self.skip()
 
     def _generate_token(self, state: int) -> None:
-        symbol = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
+        symbol: str = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
         self._invoke_lexical_function(symbol)
         if not self.__skip:
             self.__token_list.append({{ configure.boson_option['token_class_name'] }}(symbol))
 
-    def token_list(self) -> list:
+    def token_list(self) -> List[{{ configure.boson_option['token_class_name'] }}]:
         return self.__token_list
 
     def line(self) -> int:
@@ -121,63 +123,63 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
-        self.__token_list = []
-        self.__error_index = self.__no_error_index
-        self.__line = {{ configure.boson_lexical_start_line }}
-        state = self.__start_state
-        index = 0
+        self.__token_list: List[{{ configure.boson_option['token_class_name'] }}] = []
+        self.__error_index: int = self.__no_error_index
+        self.__line: int = {{ configure.boson_lexical_start_line }}
+        state: int = self.__start_state
+        index: int = 0
         while index < len(text):
-            character = text[index]
+            character: str = text[index]
             index += 1
-            get_token = False
+            get_token: bool = False
             if state in self.__non_greedy_state_set:
-                get_token = True
+                get_token: bool = True
             {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
             if not get_token and state in self.__compact_move_table:
                 for attribute, character_set, range_list, next_state in self.__compact_move_table[state]:
                     if attribute == 2:
-                        condition = character not in character_set
+                        condition: bool = character not in character_set
                         for min_character, max_character in range_list:
                             condition &= character < min_character or character > max_character
                     else:
-                        condition = character in character_set
+                        condition: bool = character in character_set
                         if attribute == 1 and character not in self.__character_set:
-                            condition = True
+                            condition: bool = True
                         for min_character, max_character in range_list:
                             if condition or min_character <= character <= max_character:
-                                condition = True
+                                condition: bool = True
                                 break
                     if condition:
-                        state = next_state
+                        state: int = next_state
                         break
             {%- else %}
             if not get_token and state in self.__move_table:
                 wildcard, character_move_table = self.__move_table[state]
                 if character in character_move_table:
-                    state = character_move_table[character]
+                    state: int = character_move_table[character]
                 elif wildcard != -1 and character not in self.__character_set:
-                    state = wildcard
+                    state: int = wildcard
             {%- endif %}
                 else:
                     if state in self.__end_state_set:
-                        get_token = True
+                        get_token: bool = True
                     else:
-                        self.__error_index = index - 1
+                        self.__error_index: int = index - 1
                         return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
-                    get_token = True
+                    get_token: bool = True
                 else:
-                    self.__error_index = index - 1
+                    self.__error_index: int = index - 1
                     return self.__error_index
             if get_token:
                 self._generate_token(state)
-                state = self.__start_state
+                state: int = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
             self._generate_token(state)
         else:
-            self.__error_index = index - 1
+            self.__error_index: int = index - 1
             return self.__error_index
         self.__token_list.append({{ configure.boson_option['token_class_name'] }}('{{ configure.boson_end_symbol }}'))
         return self.__error_index

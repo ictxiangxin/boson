@@ -11,6 +11,8 @@
 """
 
 {% endif -%}
+from typing import Dict, List, Tuple
+
 from .token import {{ configure.boson_option['token_class_name'] }}
 from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
 from .grammar import {{ configure.boson_option['grammar_class_name'] }}
@@ -18,94 +20,94 @@ from .grammar import {{ configure.boson_option['grammar_class_name'] }}
 
 class {{ configure.boson_option['parser_class_name'] }}:
     def __init__(self):
-        self.__terminal_index_mapping: dict = {
+        self.__terminal_index_mapping: Dict[str, int] = {
             {%- for terminal, index in parser.terminal_index_mapping.items() %}
             '{{ terminal }}': {{ index }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
-        self.__sparse_action_table: dict = {
+        self.__sparse_action_table: Dict[int, Dict[int, str]] = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             {{ i }}: {{ sub_table }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__sparse_goto_table: dict = {
+        self.__sparse_goto_table: Dict[int, Dict[int, int]] = {
             {%- for i, sub_table in parser.sparse_goto_table.items() %}
             {{ i }}: {{ sub_table }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
         {%- else %}
-        self.__action_table: list = [
+        self.__action_table: List[List[str]] = [
             {%- for line in parser.action_table %}
             {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
-        self.__goto_table: list = [
+        self.__goto_table: List[List[int]] = [
             {%- for line in parser.goto_table %}
             {{ line }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         ]
         {%- endif %}
-        self.__sentence_index_grammar_tuple_mapping: dict = {
+        self.__sentence_index_grammar_tuple_mapping: Dict[int, Tuple[str, ...]] = {
             {%- for sentence_index, grammar_tuple in parser.sentence_index_grammar_tuple_mapping.items() %}
             {{ sentence_index }}: {{ grammar_tuple }}
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__reduce_symbol_count: list = {{ parser.reduce_symbol_count }}
-        self.__reduce_non_terminal_index: list = {{ parser.reduce_non_terminal_index }}
+        self.__reduce_symbol_count: List[int] = {{ parser.reduce_symbol_count }}
+        self.__reduce_non_terminal_index: List[int] = {{ parser.reduce_non_terminal_index }}
 
-    def parse(self, token_list: list) -> {{ configure.boson_option['grammar_class_name'] }}:
-        grammar = {{ configure.boson_option['grammar_class_name'] }}()
-        analysis_stack = [0]
-        symbol_stack = []
-        token_index = 0
+    def parse(self, token_list: List[{{ configure.boson_option['token_class_name'] }}]) -> {{ configure.boson_option['grammar_class_name'] }}:
+        grammar: {{ configure.boson_option['grammar_class_name'] }} = {{ configure.boson_option['grammar_class_name'] }}()
+        analysis_stack: List[int] = [0]
+        symbol_stack: List[{{ configure.boson_option['grammar_node_class_name'] }}] = []
+        token_index: int = 0
         while token_index < len(token_list):
             token: {{ configure.boson_option['token_class_name'] }} = token_list[token_index]
-            current_state = analysis_stack[-1]
+            current_state: int = analysis_stack[-1]
             if token.symbol in self.__terminal_index_mapping:
             {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
-                operation = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
+                operation: str = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
             {%- else %}
-                operation = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
+                operation: str = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
             {%- endif %}
             else:
-                operation = '{{ configure.boson_table_sign_error }}'
-            operation_flag = operation[0]
+                operation: str = '{{ configure.boson_table_sign_error }}'
+            operation_flag: str = operation[0]
             if operation_flag == '{{ configure.boson_table_sign_error }}':
                 grammar.error_index = token_index
                 return grammar
             elif operation_flag == '{{ configure.boson_table_sign_shift }}':
                 analysis_stack.append(int(operation[1:]))
                 token_index += 1
-                grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}(token.text)
+                grammar_node: {{ configure.boson_option['grammar_node_class_name'] }} = {{ configure.boson_option['grammar_node_class_name'] }}(token.text)
                 symbol_stack.append(grammar_node)
             elif operation_flag == '{{ configure.boson_table_sign_reduce }}':
-                statement_index = int(operation[1:])
-                reduce_count = self.__reduce_symbol_count[statement_index]
+                statement_index: int = int(operation[1:])
+                reduce_count: int = self.__reduce_symbol_count[statement_index]
                 for _ in range(reduce_count):
                     analysis_stack.pop()
-                current_state = analysis_stack[-1]
-                current_non_terminal_index = self.__reduce_non_terminal_index[statement_index]
+                current_state: int = analysis_stack[-1]
+                current_non_terminal_index: int = self.__reduce_non_terminal_index[statement_index]
                 {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
-                goto_next_state = self.__sparse_goto_table.get(current_state, {}).get(current_non_terminal_index, {{ configure.boson_invalid_goto }})
+                goto_next_state: int = self.__sparse_goto_table.get(current_state, {}).get(current_non_terminal_index, {{ configure.boson_invalid_goto }})
                 {%- else %}
-                goto_next_state = self.__goto_table[current_state][current_non_terminal_index]
+                goto_next_state: int = self.__goto_table[current_state][current_non_terminal_index]
                 {%- endif %}
                 if goto_next_state == {{ configure.boson_invalid_goto }}:
                     raise ValueError('Invalid goto action: state={}, non-terminal={}'.format(current_state, current_non_terminal_index))
                 analysis_stack.append(goto_next_state)
                 {%- if parser.sentence_index_grammar_tuple_mapping %}
                 if statement_index in self.__sentence_index_grammar_tuple_mapping:
-                    symbol_package = []
+                    symbol_package: List[{{ configure.boson_option['grammar_node_class_name'] }}] = []
                     for _ in range(reduce_count):
                         symbol_package.insert(0, symbol_stack.pop())
-                    grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
+                    grammar_node: {{ configure.boson_option['grammar_node_class_name'] }} = {{ configure.boson_option['grammar_node_class_name'] }}()
                     for node_string in self.__sentence_index_grammar_tuple_mapping[statement_index]:
                         if node_string[0] == '{{ configure.boson_grammar_tuple_unpack }}':
                             for node in symbol_package[int(node_string[1:])]:
@@ -121,7 +123,7 @@ class {{ configure.boson_option['parser_class_name'] }}:
                 {%- else %}
                 if statement_index in {{ parser.none_grammar_tuple_sentence_index_set }}:
                 {%- endif %}
-                    grammar_node = {{ configure.boson_option['grammar_node_class_name'] }}()
+                    grammar_node: {{ configure.boson_option['grammar_node_class_name'] }} = {{ configure.boson_option['grammar_node_class_name'] }}()
                     for _ in range(reduce_count):
                         grammar_node.insert(0, symbol_stack.pop())
                     grammar_node.set_reduce_number(statement_index)

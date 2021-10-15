@@ -1,14 +1,16 @@
+from typing import Dict, List, Set
+
 from .token import LexicalToken
 
 
 class BosonLexer:
     def __init__(self):
-        self.__token_list: list = []
+        self.__token_list: List[LexicalToken] = []
         self.__line: int = 1
         self.__error_index: int = -1
         self.__no_error_index: int = -1
         self.__skip: bool = False
-        self.__compact_move_table: dict = {
+        self.__compact_move_table: Dict[int, List[list]] = {
             0: [
                 [0, {'_'}, [('A', 'Z'), ('a', 'z')], 1],
                 [0, {'$'}, [], 2],
@@ -53,47 +55,47 @@ class BosonLexer:
                 [0, {'_'}, [('A', 'Z'), ('a', 'z')], 27]
             ],
             28: [
-                [2, {'\n', '\r'}, [], 28]
+                [2, {'\r', '\n'}, [], 28]
             ],
             6: [
                 [2, {'\\'}, [], 29],
                 [0, {'\\'}, [], 6]
             ],
             29: [
-                [2, {'\\', '>'}, [], 29],
-                [0, {'\\'}, [], 6],
-                [0, {'>'}, [], 30]
+                [2, {'>', '\\'}, [], 29],
+                [0, {'>'}, [], 30],
+                [0, {'\\'}, [], 6]
             ],
             30: [
-                [2, {'\\', '>'}, [], 29],
-                [0, {'\\'}, [], 6],
-                [0, {'>'}, [], 30]
+                [2, {'>', '\\'}, [], 29],
+                [0, {'>'}, [], 30],
+                [0, {'\\'}, [], 6]
             ],
             32: [
                 [2, {'\\'}, [], 31],
                 [0, {'\\'}, [], 32]
             ],
             31: [
-                [2, {'\\', '\''}, [], 31],
-                [0, {'\\'}, [], 32],
-                [0, {'\''}, [], 33]
+                [2, {'\'', '\\'}, [], 31],
+                [0, {'\''}, [], 33],
+                [0, {'\\'}, [], 32]
             ],
             33: [
-                [2, {'\\', '\''}, [], 31],
-                [0, {'\\'}, [], 32],
-                [0, {'\''}, [], 33]
+                [2, {'\'', '\\'}, [], 31],
+                [0, {'\''}, [], 33],
+                [0, {'\\'}, [], 32]
             ],
             35: [
                 [2, {'\\'}, [], 34],
                 [0, {'\\'}, [], 35]
             ],
             34: [
-                [2, {'\\', '"'}, [], 34],
+                [2, {'"', '\\'}, [], 34],
                 [0, {'"'}, [], 36],
                 [0, {'\\'}, [], 35]
             ],
             36: [
-                [2, {'\\', '"'}, [], 34],
+                [2, {'"', '\\'}, [], 34],
                 [0, {'"'}, [], 36],
                 [0, {'\\'}, [], 35]
             ],
@@ -123,10 +125,10 @@ class BosonLexer:
                 [0, {'_'}, [('0', '9'), ('A', 'Z'), ('a', 'z')], 1]
             ]
         }
-        self.__character_set: set = {'m', 'I', '%', 't', '\t', 'z', 'D', 'Q', 'C', 'i', 'P', 'H', '\\', '!', 'n', '[', 'o', '$', 'F', 'g', 'd', 's', 'c', '\r', 'y', '\n', 'v', '"', 'q', ']', 'L', 'R', 'U', '(', '{', 'h', 'k', 'j', 'b', 'a', 'X', '4', '}', 'J', ':', '-', 'Z', '0', ',', '*', '@', '3', '7', 'M', 'l', 'W', 'f', 'S', 'B', 'A', '5', ')', '9', 'u', 'N', 'O', 'Y', '1', '=', 'x', 'E', 'G', '2', '>', '<', '~', '_', '8', 'K', '#', '\'', 'V', '|', 'w', ' ', 'e', 'r', '6', ';', '+', 'p', 'T'}
+        self.__character_set: Set[str] = {'4', '!', 'k', 'q', '@', ',', '+', 'h', '|', 'G', 'o', '=', 'X', 'Z', '2', 'j', 'B', '#', '>', 'f', ')', 'u', 'n', 'E', '7', 'K', 'b', 'm', 'L', 'A', 'U', 'R', 'I', '(', 'e', '<', ']', 'p', 'V', '5', '9', 'g', '1', 's', 'P', 'O', 'T', 'F', '~', 'd', '%', 'r', 'l', '\'', 'Q', 'c', '"', '\r', 't', 'i', 'D', '}', '3', 'H', 'N', '_', '$', 'v', 'W', '[', '\\', '\n', '{', 'a', ':', 'x', 'w', 'z', 'S', 'Y', 'J', '8', ' ', ';', 'M', '*', '\t', 'y', '6', '-', 'C', '0'}
         self.__start_state: int = 0
-        self.__end_state_set: set = {1, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 33, 36, 38, 39}
-        self.__lexical_symbol_mapping: dict = {
+        self.__end_state_set: Set[int] = {1, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 33, 36, 38, 39}
+        self.__lexical_symbol_mapping: Dict[int, str] = {
             1: 'name',
             4: 'number',
             5: 'number',
@@ -156,16 +158,16 @@ class BosonLexer:
             38: 'number',
             39: 'node'
         }
-        self.__non_greedy_state_set: set = {33, 36, 30}
-        self.__symbol_function_mapping: dict = {
+        self.__non_greedy_state_set: Set[int] = {33, 36, 30}
+        self.__symbol_function_mapping: Dict[str, List[str]] = {
             'comment': ['skip'],
             'skip': ['skip'],
             'newline': ['skip', 'newline']
         }
-        self.__lexical_function: dict = {}
+        self.__lexical_function: Dict[str, callable] = {}
 
     def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
-        self.__skip = False
+        self.__skip: bool = False
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
                 if function in self.__lexical_function:
@@ -177,12 +179,12 @@ class BosonLexer:
         return token_string
 
     def _generate_token(self, state: int, token_string: str) -> None:
-        symbol = self.__lexical_symbol_mapping.get(state, '!symbol')
-        token_string = self._invoke_lexical_function(symbol, token_string)
+        symbol: str = self.__lexical_symbol_mapping.get(state, '!symbol')
+        token_string: str = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
             self.__token_list.append(LexicalToken(token_string, self.__line, symbol))
 
-    def token_list(self) -> list:
+    def token_list(self) -> List[LexicalToken]:
         return self.__token_list
 
     def line(self) -> int:
@@ -201,57 +203,57 @@ class BosonLexer:
         return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
-        self.__token_list = []
-        self.__error_index = self.__no_error_index
-        self.__line = 1
-        state = self.__start_state
-        token_string = ''
-        index = 0
+        self.__token_list: List[LexicalToken] = []
+        self.__error_index: int = self.__no_error_index
+        self.__line: int = 1
+        state: int = self.__start_state
+        token_string: str = ''
+        index: int = 0
         while index < len(text):
-            character = text[index]
+            character: str = text[index]
             index += 1
-            get_token = False
+            get_token: bool = False
             if state in self.__non_greedy_state_set:
-                get_token = True
+                get_token: bool = True
             if not get_token and state in self.__compact_move_table:
                 for attribute, character_set, range_list, next_state in self.__compact_move_table[state]:
                     if attribute == 2:
-                        condition = character not in character_set
+                        condition: bool = character not in character_set
                         for min_character, max_character in range_list:
                             condition &= character < min_character or character > max_character
                     else:
-                        condition = character in character_set
+                        condition: bool = character in character_set
                         if attribute == 1 and character not in self.__character_set:
-                            condition = True
+                            condition: bool = True
                         for min_character, max_character in range_list:
                             if condition or min_character <= character <= max_character:
-                                condition = True
+                                condition: bool = True
                                 break
                     if condition:
                         token_string += character
-                        state = next_state
+                        state: int = next_state
                         break
                 else:
                     if state in self.__end_state_set:
-                        get_token = True
+                        get_token: bool = True
                     else:
-                        self.__error_index = index - 1
+                        self.__error_index: int = index - 1
                         return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
-                    get_token = True
+                    get_token: bool = True
                 else:
-                    self.__error_index = index - 1
+                    self.__error_index: int = index - 1
                     return self.__error_index
             if get_token:
                 self._generate_token(state, token_string)
-                token_string = ''
-                state = self.__start_state
+                token_string: str = ''
+                state: int = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
             self._generate_token(state, token_string)
         else:
-            self.__error_index = index - 1
+            self.__error_index: int = index - 1
             return self.__error_index
         self.__token_list.append(LexicalToken('', self.__line, '$'))
         return self.__error_index

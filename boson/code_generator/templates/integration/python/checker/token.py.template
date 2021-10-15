@@ -16,5 +16,5 @@ class {{ configure.boson_option['token_class_name'] }}:
     symbol: str
 
     def __init__(self, symbol: str):
-        self.symbol = symbol
+        self.symbol: str = symbol
 

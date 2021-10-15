@@ -2,6 +2,7 @@ from typing import Optional, Union, Any, List, Dict, Set, Tuple
 
 import boson.configure as configure
 from boson.boson_script.boson_script_parser import \
+    LexicalToken, \
     BosonGrammar, \
     BosonGrammarNode, \
     BosonLexer, \
@@ -350,7 +351,7 @@ class BosonScriptAnalyzer:
                 number_node.set_data(int(number_text))
             return number_node
 
-    def parse(self, token_list: list) -> BosonGrammarNode:
+    def parse(self, token_list: List[LexicalToken]) -> BosonGrammarNode:
         grammar: BosonGrammar = self.__parser.parse(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
@@ -371,7 +372,7 @@ class BosonScriptAnalyzer:
                 else:
                     break
             offset: int = grammar.error_index - start_index - 1
-            error_token_list: list = token_list[start_index + 1: end_index]
+            error_token_list: List[LexicalToken] = token_list[start_index + 1: end_index]
             error_message: str = '\n[Boson Script Analyzer] Syntax Error <Line: {}>\n'.format(error_line)
             error_token_text_list: List[str] = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))

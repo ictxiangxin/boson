@@ -1,33 +1,35 @@
+from typing import Dict, Set
+
 from .semantic_node import BosonSemanticsNode
 from .grammar_node import BosonGrammarNode
 
 
 class BosonInterpreter:
     def __init__(self):
-        self.__reduce_number_grammar_name_mapping: dict = {
-            4: 'command',
-            39: 'lexical_define',
-            46: 'reduce',
-            25: 'getter_tuple',
-            5: 'grammar_node',
-            30: 'name_closure',
-            26: 'literal',
-            86: 'complex_closure',
-            35: 'complex_optional',
-            76: 'select',
-            43: 'attribute',
-            91: 'string',
-            62: 'number',
-            88: 'attribute_value_list'
+        self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
+            41: 'command',
+            5: 'lexical_define',
+            70: 'reduce',
+            32: 'getter_tuple',
+            13: 'grammar_node',
+            24: 'name_closure',
+            7: 'literal',
+            78: 'complex_closure',
+            49: 'complex_optional',
+            55: 'select',
+            90: 'attribute',
+            23: 'string',
+            53: 'number',
+            77: 'attribute_value_list'
         }
-        self.__naive_reduce_number_set: set = {7, 13, 16, 19, 22, 26, 27, 29, 32, 33, 34, 36, 56, 60, 62, 63, 65, 75, 91}
-        self.__semantic_action_mapping: dict = {}
+        self.__naive_reduce_number_set: Set[int] = {3, 6, 7, 10, 23, 30, 42, 44, 46, 51, 53, 58, 61, 63, 67, 72, 75, 82, 84}
+        self.__semantic_action_mapping: Dict[str, callable] = {}
 
     def __semantics_analysis(self, grammar_tree: BosonGrammarNode) -> BosonSemanticsNode:
         if grammar_tree.get_reduce_number() in self.__reduce_number_grammar_name_mapping:
-            grammar_name = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
+            grammar_name: str = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
         else:
-            grammar_name = '!grammar_hidden'
+            grammar_name: str = '!grammar_hidden'
         semantic_node = BosonSemanticsNode()
         if len(grammar_tree.children()) == 0:
             semantic_node.set_reduce_number(grammar_tree.get_reduce_number())

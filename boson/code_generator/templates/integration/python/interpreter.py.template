@@ -11,26 +11,28 @@
 """
 
 {% endif -%}
+from typing import Dict, Set
+
 from .semantic_node import {{ configure.boson_option['semantic_node_class_name'] }}
 from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
 
 
 class {{ configure.boson_option['interpreter_class_name'] }}:
     def __init__(self):
-        self.__reduce_number_grammar_name_mapping: dict = {
+        self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
             {%- for reduce_number, grammar_name in parser.reduce_number_grammar_name_mapping.items() %}
             {{ reduce_number }}: '{{ grammar_name }}'
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        self.__naive_reduce_number_set: set = {{ parser.naive_reduce_number_set }}
-        self.__semantic_action_mapping: dict = {}
+        self.__naive_reduce_number_set: Set[int] = {{ parser.naive_reduce_number_set }}
+        self.__semantic_action_mapping: Dict[str, callable] = {}
 
     def __semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}) -> {{ configure.boson_option['semantic_node_class_name'] }}:
         if grammar_tree.get_reduce_number() in self.__reduce_number_grammar_name_mapping:
-            grammar_name = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
+            grammar_name: str = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
         else:
-            grammar_name = '{{ configure.boson_grammar_name_prefix }}hidden'
+            grammar_name: str = '{{ configure.boson_grammar_name_prefix }}hidden'
         semantic_node = {{ configure.boson_option['semantic_node_class_name'] }}()
         if len(grammar_tree.children()) == 0:
             semantic_node.set_reduce_number(grammar_tree.get_reduce_number())

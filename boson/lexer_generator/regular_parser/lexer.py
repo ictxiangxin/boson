@@ -1,14 +1,16 @@
+from typing import Dict, List, Set
+
 from .token import RegularToken
 
 
 class RegularLexer:
     def __init__(self):
-        self.__token_list: list = []
+        self.__token_list: List[RegularToken] = []
         self.__line: int = 1
         self.__error_index: int = -1
         self.__no_error_index: int = -1
         self.__skip: bool = False
-        self.__compact_move_table: dict = {
+        self.__compact_move_table: Dict[int, List[list]] = {
             0: [
                 [0, set(), [('0', '9')], 1],
                 [0, {'\\'}, [], 2],
@@ -52,10 +54,10 @@ class RegularLexer:
                 [0, set(), [('0', '9'), ('A', 'F'), ('a', 'f')], 25]
             ]
         }
-        self.__character_set: set = {')', 'v', 'L', 'U', '(', '_', 'S', 'u', 'w', 'l', 's', '9', '.', '4', 'B', 'o', '7', 'A', 'I', 'e', '6', 'f', 'r', 'H', 'q', '-', 'n', '8', 'O', 'a', 'E', 'j', 'Z', 'R', 't', '5', 'W', 'P', '^', 'i', 'm', '\\', 'J', '1', 'k', 'X', '*', 'c', 'G', '3', 'N', '{', '+', 'C', 'D', 'V', 'K', '|', 'h', 'F', 'Y', '0', 'p', ']', 'y', 'M', 'Q', '}', '[', 'x', ',', 'g', '2', 'z', 'd', '?', 'b', 'T'}
+        self.__character_set: Set[str] = {'b', 'Q', 'h', 'e', 'O', '*', '6', 'I', 'A', 'k', '0', 'o', 'c', '_', 's', '|', 'Y', ']', 'v', 'l', '}', '2', 'D', 'H', 'Z', 'a', 'C', 'S', '8', '\\', 'R', '1', 'm', 'j', 'V', '4', 'n', 'w', '.', 'd', 'x', 'r', ')', 'f', '3', 'B', '{', '^', 'z', 'M', ',', 'g', 'N', 'J', 'P', 't', 'U', 'i', '9', 'T', '[', 'W', '+', 'G', 'E', 'q', 'y', '5', '7', 'u', 'K', 'X', '(', 'F', '-', 'p', 'L', '?'}
         self.__start_state: int = 0
-        self.__end_state_set: set = {1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 25}
-        self.__lexical_symbol_mapping: dict = {
+        self.__end_state_set: Set[int] = {1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 25}
+        self.__lexical_symbol_mapping: Dict[int, str] = {
             1: 'single_number',
             3: '!symbol_12',
             4: 'normal_character',
@@ -77,14 +79,14 @@ class RegularLexer:
             21: 'escape_character',
             25: 'unicode_character'
         }
-        self.__non_greedy_state_set: set = set()
-        self.__symbol_function_mapping: dict = {
+        self.__non_greedy_state_set: Set[int] = set()
+        self.__symbol_function_mapping: Dict[str, List[str]] = {
             'reference': ['reference']
         }
-        self.__lexical_function: dict = {}
+        self.__lexical_function: Dict[str, callable] = {}
 
     def _invoke_lexical_function(self, symbol: str, token_string: str) -> str:
-        self.__skip = False
+        self.__skip: bool = False
         if symbol in self.__symbol_function_mapping:
             for function in self.__symbol_function_mapping[symbol]:
                 if function in self.__lexical_function:
@@ -96,12 +98,12 @@ class RegularLexer:
         return token_string
 
     def _generate_token(self, state: int, token_string: str) -> None:
-        symbol = self.__lexical_symbol_mapping.get(state, '!symbol')
-        token_string = self._invoke_lexical_function(symbol, token_string)
+        symbol: str = self.__lexical_symbol_mapping.get(state, '!symbol')
+        token_string: str = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
             self.__token_list.append(RegularToken(token_string, self.__line, symbol))
 
-    def token_list(self) -> list:
+    def token_list(self) -> List[RegularToken]:
         return self.__token_list
 
     def line(self) -> int:
@@ -120,57 +122,57 @@ class RegularLexer:
         return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
-        self.__token_list = []
-        self.__error_index = self.__no_error_index
-        self.__line = 1
-        state = self.__start_state
-        token_string = ''
-        index = 0
+        self.__token_list: List[RegularToken] = []
+        self.__error_index: int = self.__no_error_index
+        self.__line: int = 1
+        state: int = self.__start_state
+        token_string: str = ''
+        index: int = 0
         while index < len(text):
-            character = text[index]
+            character: str = text[index]
             index += 1
-            get_token = False
+            get_token: bool = False
             if state in self.__non_greedy_state_set:
-                get_token = True
+                get_token: bool = True
             if not get_token and state in self.__compact_move_table:
                 for attribute, character_set, range_list, next_state in self.__compact_move_table[state]:
                     if attribute == 2:
-                        condition = character not in character_set
+                        condition: bool = character not in character_set
                         for min_character, max_character in range_list:
                             condition &= character < min_character or character > max_character
                     else:
-                        condition = character in character_set
+                        condition: bool = character in character_set
                         if attribute == 1 and character not in self.__character_set:
-                            condition = True
+                            condition: bool = True
                         for min_character, max_character in range_list:
                             if condition or min_character <= character <= max_character:
-                                condition = True
+                                condition: bool = True
                                 break
                     if condition:
                         token_string += character
-                        state = next_state
+                        state: int = next_state
                         break
                 else:
                     if state in self.__end_state_set:
-                        get_token = True
+                        get_token: bool = True
                     else:
-                        self.__error_index = index - 1
+                        self.__error_index: int = index - 1
                         return self.__error_index
             else:
                 if get_token or state in self.__end_state_set:
-                    get_token = True
+                    get_token: bool = True
                 else:
-                    self.__error_index = index - 1
+                    self.__error_index: int = index - 1
                     return self.__error_index
             if get_token:
                 self._generate_token(state, token_string)
-                token_string = ''
-                state = self.__start_state
+                token_string: str = ''
+                state: int = self.__start_state
                 index -= 1
         if state in self.__end_state_set:
             self._generate_token(state, token_string)
         else:
-            self.__error_index = index - 1
+            self.__error_index: int = index - 1
             return self.__error_index
         self.__token_list.append(RegularToken('', self.__line, '$'))
         return self.__error_index

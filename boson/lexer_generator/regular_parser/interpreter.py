@@ -1,29 +1,31 @@
+from typing import Dict, Set
+
 from .semantic_node import BosonSemanticsNode
 from .grammar_node import BosonGrammarNode
 
 
 class RegularInterpreter:
     def __init__(self):
-        self.__reduce_number_grammar_name_mapping: dict = {
-            35: 'regular_expression',
-            27: 'expression',
-            24: 'branch',
-            4: 'group',
-            39: 'simple_construct',
-            8: 'wildcard_character',
-            23: 'unicode',
-            22: 'select',
-            21: 'reference',
-            18: 'construct_number'
+        self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
+            13: 'regular_expression',
+            19: 'expression',
+            10: 'branch',
+            16: 'group',
+            22: 'simple_construct',
+            18: 'wildcard_character',
+            24: 'unicode',
+            38: 'select',
+            15: 'reference',
+            35: 'construct_number'
         }
-        self.__naive_reduce_number_set: set = {2, 35, 5, 38, 39, 8, 41, 10, 14, 19, 20, 21, 23, 25, 31}
-        self.__semantic_action_mapping: dict = {}
+        self.__naive_reduce_number_set: Set[int] = {1, 4, 6, 7, 8, 41, 11, 12, 13, 15, 17, 18, 22, 24, 25}
+        self.__semantic_action_mapping: Dict[str, callable] = {}
 
     def __semantics_analysis(self, grammar_tree: BosonGrammarNode) -> BosonSemanticsNode:
         if grammar_tree.get_reduce_number() in self.__reduce_number_grammar_name_mapping:
-            grammar_name = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
+            grammar_name: str = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
         else:
-            grammar_name = '!grammar_hidden'
+            grammar_name: str = '!grammar_hidden'
         semantic_node = BosonSemanticsNode()
         if len(grammar_tree.children()) == 0:
             semantic_node.set_reduce_number(grammar_tree.get_reduce_number())

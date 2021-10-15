@@ -4,6 +4,6 @@ class LexicalToken:
     symbol: str
 
     def __init__(self, text: str, line: int, symbol: str):
-        self.text = text
-        self.line = line
-        self.symbol = symbol
+        self.text: str = text
+        self.line: int = line
+        self.symbol: str = symbol

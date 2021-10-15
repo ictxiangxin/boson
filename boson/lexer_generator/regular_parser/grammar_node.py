@@ -1,7 +1,12 @@
+from __future__ import annotations
+
+from typing import List
+
+
 class BosonGrammarNode:
     def __init__(self, text: str = ''):
         self.__reduce_number = -1
-        self.__children: list = []
+        self.__children: List[BosonGrammarNode] = []
         self.__text: str = text
 
     def __getitem__(self, item):
@@ -11,13 +16,13 @@ class BosonGrammarNode:
         return self.__reduce_number
 
     def set_reduce_number(self, reduce_number: int) -> None:
-        self.__reduce_number = reduce_number
+        self.__reduce_number: int = reduce_number
 
     def get_text(self) -> str:
         return self.__text
 
     def set_text(self, text: str) -> None:
-        self.__text = text
+        self.__text: str = text
 
     def append(self, item) -> None:
         self.__children.append(item)
@@ -25,5 +30,5 @@ class BosonGrammarNode:
     def insert(self, index, item) -> None:
         self.__children.insert(index, item)
 
-    def children(self) -> list:
+    def children(self) -> List[BosonGrammarNode]:
         return self.__children

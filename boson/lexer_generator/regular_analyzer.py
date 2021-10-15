@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Set
+from typing import Optional, Dict, List, Set
 
 import boson.configure as configure
 from boson.lexer_generator.lexical_nfa import \
@@ -12,6 +12,7 @@ from boson.lexer_generator.lexical_nfa import \
     bs_create_nfa_link, \
     bs_create_nfa_reverse_delay_construct
 from boson.lexer_generator.regular_parser import \
+    RegularToken, \
     BosonGrammar, \
     BosonGrammarNode, \
     RegularParser, \
@@ -164,7 +165,7 @@ class BosonRegularAnalyzer:
             else:
                 raise ValueError('[Boson Regular Analyzer] Circular Reference.')
 
-    def parse(self, token_list: list) -> BosonGrammarNode:
+    def parse(self, token_list: List[RegularToken]) -> BosonGrammarNode:
         grammar: BosonGrammar = self.__parser.parse(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
@@ -192,7 +193,7 @@ class BosonRegularAnalyzer:
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 
-    def parse_to_lexical(self, token_list: list) -> LexicalNFA:
+    def parse_to_lexical(self, token_list: List[RegularToken]) -> LexicalNFA:
         self.init_semantic()
         interpreter.execute(self.parse(token_list))
         return self.__lexical_nfa

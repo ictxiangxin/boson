@@ -1,16 +1,21 @@
+from __future__ import annotations
+
+from typing import List
+
+
 class BosonSemanticsNode:
     def __init__(self, data=None):
         self.__reduce_number: int = -1
         self.__text: str = ''
-        self.__children: list = []
+        self.__children: List[BosonSemanticsNode] = []
         self.__data = data
         self.__is_null: bool = False
 
-    def __getitem__(self, index):
-        return self.__children[index]
+    def __getitem__(self, item):
+        return self.__children[item]
 
     def make_null(self) -> None:
-        self.__is_null = True
+        self.__is_null: bool = True
 
     def is_null(self) -> bool:
         return self.__is_null
@@ -24,8 +29,8 @@ class BosonSemanticsNode:
     def get_reduce_number(self) -> int:
         return self.__reduce_number
 
-    def set_reduce_number(self, reduce_number) -> None:
-        self.__reduce_number = reduce_number
+    def set_reduce_number(self, reduce_number: int) -> None:
+        self.__reduce_number: int = reduce_number
 
     def get_text(self) -> str:
         return self.__text
@@ -39,11 +44,11 @@ class BosonSemanticsNode:
     def insert(self, index, item) -> None:
         self.__children.insert(index, item)
 
-    def children(self) -> list:
+    def children(self) -> List[BosonSemanticsNode]:
         return self.__children
 
     @staticmethod
-    def null_node():
-        node = BosonSemanticsNode()
+    def null_node() -> BosonSemanticsNode:
+        node: BosonSemanticsNode = BosonSemanticsNode()
         node.make_null()
         return node

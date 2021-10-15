@@ -1,17 +1,19 @@
+from typing import Optional
+
 from .grammar_node import BosonGrammarNode
 
 
 class BosonGrammar:
     def __init__(self):
-        self.__grammar_tree: (BosonGrammarNode, None) = None
+        self.__grammar_tree: Optional[BosonGrammarNode] = None
         self.__error_index: int = -1
         self.__no_error_index: int = -1
 
-    def get_grammar_tree(self) -> (BosonGrammarNode, None):
+    def get_grammar_tree(self) -> Optional[BosonGrammarNode]:
         return self.__grammar_tree
 
     def set_grammar_tree(self, grammar_tree: BosonGrammarNode) -> None:
-        self.__grammar_tree = grammar_tree
+        self.__grammar_tree: Optional[BosonGrammarNode] = grammar_tree
 
     grammar_tree = property(get_grammar_tree, set_grammar_tree)
 
