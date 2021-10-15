@@ -1,7 +1,7 @@
 boson_name = 'Boson'
 boson_package_name = 'boson'
 boson_version_major = 1
-boson_version_minor = 5
+boson_version_minor = 6
 boson_title = '{} v{}.{}'.format(boson_name, boson_version_major, boson_version_minor)
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
@@ -54,23 +54,3 @@ boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
 boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
 
 boson_log_file_default_path = '.'
-
-boson_option = {
-    'start_symbol': 'start',
-    'token_class_name': 'BosonToken',
-    'lexer_class_name': 'BosonLexer',
-    'parser_class_name': 'BosonParser',
-    'grammar_class_name': 'BosonGrammar',
-    'grammar_node_class_name': 'BosonGrammarNode',
-    'interpreter_class_name': 'BosonInterpreter',
-    'semantic_node_class_name': 'BosonSemanticsNode',
-    'generate_interpreter': 'yes',
-    'generate_lexer': 'yes',
-    'code_comment': 'yes',
-    'lexer_unicode': 'no',
-    'parser_sparse_table': 'yes',
-    'lexer_compact_table': 'yes',
-    'conflict_resolver': 'no',
-    'shift_reduce_conflict_resolver': 'shift',
-    'reduce_reduce_conflict_resolver': 'long',
-}

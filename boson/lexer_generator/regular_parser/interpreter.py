@@ -7,18 +7,18 @@ from .grammar_node import BosonGrammarNode
 class RegularInterpreter:
     def __init__(self):
         self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
-            13: 'regular_expression',
-            19: 'expression',
-            10: 'branch',
+            1: 'regular_expression',
+            31: 'expression',
+            17: 'branch',
             16: 'group',
-            22: 'simple_construct',
-            18: 'wildcard_character',
-            24: 'unicode',
-            38: 'select',
-            15: 'reference',
-            35: 'construct_number'
+            28: 'simple_construct',
+            39: 'wildcard_character',
+            29: 'unicode',
+            6: 'select',
+            13: 'reference',
+            34: 'construct_number'
         }
-        self.__naive_reduce_number_set: Set[int] = {1, 4, 6, 7, 8, 41, 11, 12, 13, 15, 17, 18, 22, 24, 25}
+        self.__naive_reduce_number_set: Set[int] = {32, 1, 2, 35, 36, 37, 39, 10, 13, 15, 20, 21, 22, 28, 29}
         self.__semantic_action_mapping: Dict[str, callable] = {}
 
     def __semantics_analysis(self, grammar_tree: BosonGrammarNode) -> BosonSemanticsNode:

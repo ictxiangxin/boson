@@ -1,5 +1,5 @@
-import boson.configure as configure
 from boson.code_generator.generator import CodeGenerator
+from boson.option import option as boson_option
 
 
 class JavaScriptCodeGenerator(CodeGenerator):
@@ -21,6 +21,6 @@ class JavaScriptCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.js', 'grammar_node.js')
                 self._generate_code('grammar.js', 'grammar.js')
                 self._generate_code('parser.js', 'parser.js')
-            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
+            if self._template_data['option']['generate_parser'] and boson_option['code']['generate']['interpreter'] == 'True':
                 self._generate_code('semantic_node.js', 'semantic_node.js')
                 self._generate_code('interpreter.js', 'interpreter.js')

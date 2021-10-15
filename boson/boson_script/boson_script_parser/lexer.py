@@ -1,11 +1,11 @@
 from typing import Dict, List, Set
 
-from .token import LexicalToken
+from .token import BosonToken
 
 
 class BosonLexer:
     def __init__(self):
-        self.__token_list: List[LexicalToken] = []
+        self.__token_list: List[BosonToken] = []
         self.__line: int = 1
         self.__error_index: int = -1
         self.__no_error_index: int = -1
@@ -55,7 +55,7 @@ class BosonLexer:
                 [0, {'_'}, [('A', 'Z'), ('a', 'z')], 27]
             ],
             28: [
-                [2, {'\r', '\n'}, [], 28]
+                [2, {'\n', '\r'}, [], 28]
             ],
             6: [
                 [2, {'\\'}, [], 29],
@@ -90,12 +90,12 @@ class BosonLexer:
                 [0, {'\\'}, [], 35]
             ],
             34: [
-                [2, {'"', '\\'}, [], 34],
+                [2, {'\\', '"'}, [], 34],
                 [0, {'"'}, [], 36],
                 [0, {'\\'}, [], 35]
             ],
             36: [
-                [2, {'"', '\\'}, [], 34],
+                [2, {'\\', '"'}, [], 34],
                 [0, {'"'}, [], 36],
                 [0, {'\\'}, [], 35]
             ],
@@ -125,7 +125,7 @@ class BosonLexer:
                 [0, {'_'}, [('0', '9'), ('A', 'Z'), ('a', 'z')], 1]
             ]
         }
-        self.__character_set: Set[str] = {'4', '!', 'k', 'q', '@', ',', '+', 'h', '|', 'G', 'o', '=', 'X', 'Z', '2', 'j', 'B', '#', '>', 'f', ')', 'u', 'n', 'E', '7', 'K', 'b', 'm', 'L', 'A', 'U', 'R', 'I', '(', 'e', '<', ']', 'p', 'V', '5', '9', 'g', '1', 's', 'P', 'O', 'T', 'F', '~', 'd', '%', 'r', 'l', '\'', 'Q', 'c', '"', '\r', 't', 'i', 'D', '}', '3', 'H', 'N', '_', '$', 'v', 'W', '[', '\\', '\n', '{', 'a', ':', 'x', 'w', 'z', 'S', 'Y', 'J', '8', ' ', ';', 'M', '*', '\t', 'y', '6', '-', 'C', '0'}
+        self.__character_set: Set[str] = {'\'', '2', 'L', 'g', 'N', 'X', 'c', '!', '%', '_', 'F', 'r', 'B', 'e', 'f', ']', ';', '<', '"', '#', 'Q', 'S', 'z', 'm', '-', 'w', '5', '8', '1', 'n', 'Z', 'o', 'x', '3', '$', '>', 'v', '~', 'j', 'W', '+', '6', '4', '(', '\n', 'O', ' ', 'R', '7', 'K', '[', 'y', 'P', 'i', 'p', 'H', '9', 'D', 'I', '0', 'u', '@', 'h', ')', '|', 'J', 'T', '\r', ',', '{', 'V', ':', '*', 'G', '\t', 'Y', 'a', 'q', '\\', '}', 's', 'M', 'A', 'E', 'l', 'b', 'k', 't', 'd', 'C', '=', 'U'}
         self.__start_state: int = 0
         self.__end_state_set: Set[int] = {1, 4, 5, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 30, 33, 36, 38, 39}
         self.__lexical_symbol_mapping: Dict[int, str] = {
@@ -182,9 +182,9 @@ class BosonLexer:
         symbol: str = self.__lexical_symbol_mapping.get(state, '!symbol')
         token_string: str = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
-            self.__token_list.append(LexicalToken(token_string, self.__line, symbol))
+            self.__token_list.append(BosonToken(token_string, self.__line, symbol))
 
-    def token_list(self) -> List[LexicalToken]:
+    def token_list(self) -> List[BosonToken]:
         return self.__token_list
 
     def line(self) -> int:
@@ -203,7 +203,7 @@ class BosonLexer:
         return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
-        self.__token_list: List[LexicalToken] = []
+        self.__token_list: List[BosonToken] = []
         self.__error_index: int = self.__no_error_index
         self.__line: int = 1
         state: int = self.__start_state
@@ -255,7 +255,7 @@ class BosonLexer:
         else:
             self.__error_index: int = index - 1
             return self.__error_index
-        self.__token_list.append(LexicalToken('', self.__line, '$'))
+        self.__token_list.append(BosonToken('', self.__line, '$'))
         return self.__error_index
 
     def register_function(self, function_name: str) -> callable:

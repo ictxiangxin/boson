@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -18,11 +18,11 @@
 
 namespace boson {
     template <class T>
-    class {{ configure.boson_option['semantic_node_class_name'] }} {
+    class {{ boson_code_option['class_name']['semantic_node'] }} {
     public:
-        {{ configure.boson_option['semantic_node_class_name'] }}<T>() = default;
+        {{ boson_code_option['class_name']['semantic_node'] }}<T>() = default;
 
-        explicit {{ configure.boson_option['semantic_node_class_name'] }}<T>(T data): _data(data) {}
+        explicit {{ boson_code_option['class_name']['semantic_node'] }}<T>(T data): _data(data) {}
 
         void make_null() {
             this->_is_null;
@@ -56,24 +56,24 @@ namespace boson {
             this->_text = text;
         }
 
-        void append(const {{ configure.boson_option['semantic_node_class_name'] }}<T> &item) {
+        void append(const {{ boson_code_option['class_name']['semantic_node'] }}<T> &item) {
             this->_children.push_back(item);
         }
 
-        void insert(int index, const {{ configure.boson_option['semantic_node_class_name'] }}<T> &item) {
+        void insert(int index, const {{ boson_code_option['class_name']['semantic_node'] }}<T> &item) {
             this->_children.insert(this->_children.begin() + index, item);
         }
 
-        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}<T>> &children() {
+        std::vector<{{ boson_code_option['class_name']['semantic_node'] }}<T>> &children() {
             return this->_children;
         }
 
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> &operator[](int index) {
+        {{ boson_code_option['class_name']['semantic_node'] }}<T> &operator[](int index) {
             return this->_children[index];
         }
 
-        static {{ configure.boson_option['semantic_node_class_name'] }}<T> null_node() {
-            static {{ configure.boson_option['semantic_node_class_name'] }}<T> node;
+        static {{ boson_code_option['class_name']['semantic_node'] }}<T> null_node() {
+            static {{ boson_code_option['class_name']['semantic_node'] }}<T> node;
             node.make_null();
             return node;
         }
@@ -81,7 +81,7 @@ namespace boson {
     protected:
         int _reduce_number = -1;
         std::string _text{};
-        std::vector<{{ configure.boson_option['semantic_node_class_name'] }}<T>> _children{};
+        std::vector<{{ boson_code_option['class_name']['semantic_node'] }}<T>> _children{};
         T _data;
         bool _is_null = false;
     };

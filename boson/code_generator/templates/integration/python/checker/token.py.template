@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -12,7 +12,7 @@
 
 
 {% endif -%}
-class {{ configure.boson_option['token_class_name'] }}:
+class {{ boson_code_option['class_name']['token'] }}:
     symbol: str
 
     def __init__(self, symbol: str):

@@ -6,6 +6,7 @@ import traceback
 from argparse import RawTextHelpFormatter
 
 import boson.configure as configure
+from boson.option import option as boson_option
 from boson.boson_script import BosonScriptAnalyzer
 from boson.boson_script import CommandExecutor
 from boson.code_generator import \
@@ -63,31 +64,6 @@ def console_main() -> None:
         '-o', '--output', default='boson',
         help='Output Boson Code Path(Default Is `boson`).')
     argument_parser.add_argument(
-        '-a', '--analyzer', default='lalr', choices=['slr', 'lr', 'lalr'],
-        help='Grammar Analyzer Type (Default Is LALR).\n'
-             '  slr  - SLR(1) (Simple LR)\n'
-             '  lr   - LR(1) (Canonical LR)\n'
-             '  lalr - LALR(1) (Look-Ahead LR)\n')
-    argument_parser.add_argument(
-        '-l', '--language', default='python', choices=['python', 'c++', 'java', 'javascript'],
-        help='Generate Code Program Language (Default Is Python3).\n'
-             '  python     - Python3 Code.\n'
-             '  c++        - C++ Code.\n'
-             '  java       - Java Code.\n'
-             '  javascript - JavaScript Code.\n')
-    argument_parser.add_argument(
-        '-m', '--mode', default='integration', choices=['integration', 'library', 'binary'],
-        help='Analyzer Mode (Default Is Integration).\n'
-             '  integration - Analyzer Table Integrated In Code.\n'
-             '  library     - Analyzer Static Library Code.\n'
-             '  binary      - Binary File Used for Drive Library.\n')
-    argument_parser.add_argument(
-        '-c', '--checker', action='store_true',
-        help='Generate Checker Instead Of Full Lexer And Parser.')
-    argument_parser.add_argument(
-        '-f', '--force', action='store_true',
-        help='Force Generate Parse Table When Exist Conflicts.')
-    argument_parser.add_argument(
         '-q', '--quiet', action='store_true',
         help='Display Nothing.')
     arguments = argument_parser.parse_args()
@@ -112,7 +88,7 @@ def console_main() -> None:
         display('> Commands Count: {}'.format(len(script_analyzer.command_list())), indent=8)
         display('> Lexical Definition: {}'.format('Yes' if script_analyzer.lexical_definition() else 'No'), indent=8)
         display('> Grammar Definition: {}'.format('Yes' if script_analyzer.sentence_set() else 'No'), indent=8)
-        if configure.boson_option['generate_lexer'] == 'yes' and script_analyzer.lexical_definition():
+        if boson_option['code']['generate']['lexer'] == 'True' and script_analyzer.lexical_definition():
             step += 1
             display('[{}] Generate Lexical Analysis Table... '.format(step), indent=4, newline=False)
             start_time = time.time()
@@ -130,7 +106,7 @@ def console_main() -> None:
             step += 1
             display('[{}] Generate Grammar Analysis Table... '.format(step), indent=4, newline=False)
             start_time = time.time()
-            parser_generator = parser_generator_library[arguments.analyzer](script_analyzer.sentence_set(), script_analyzer.sentence_attribute_mapping())
+            parser_generator = parser_generator_library[boson_option['parser']['analyzer']](script_analyzer.sentence_set(), script_analyzer.sentence_attribute_mapping())
             parser_generator.initialize()
             parser_generator.assemble_sentence_grammar_name(script_analyzer.sentence_grammar_name_mapping())
             parser_generator.assemble_grammar_tuple(script_analyzer.sentence_grammar_tuple_mapping())
@@ -140,7 +116,7 @@ def console_main() -> None:
             parser_generator.parse_table_sparsification()
             end_time = time.time()
             display('Done [{:.4f}s]'.format(end_time - start_time))
-            display('> Algorithm: {}'.format(arguments.analyzer.upper()), indent=8)
+            display('> Algorithm: {}'.format(boson_option['parser']['analyzer'].upper()), indent=8)
             display('> Grammar Sentence Count: {}'.format(len(parser_generator.sentence_set()) - 1), indent=8)
             display('> Non-Terminal Symbol Count: {}'.format(len(parser_generator.non_terminal_set())), indent=8)
             display('> Terminal Symbol Count: {}'.format(len(parser_generator.terminal_set())), indent=8)
@@ -165,7 +141,6 @@ def console_main() -> None:
                     if terminal in script_analyzer.literal_reverse_mapping():
                         terminal = '\'{}\''.format(script_analyzer.literal_reverse_mapping()[terminal])
                     display('[Conflict State: {}] <{}> Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal), indent=8)
-            if not arguments.force and parser_generator.conflict_list():
                 return
         else:
             parser_generator = None
@@ -174,7 +149,7 @@ def console_main() -> None:
         start_time = time.time()
         if not os.path.isdir(arguments.output):
             os.mkdir(arguments.output)
-        code_generator = code_generator_library[arguments.language](arguments.output, arguments.mode, arguments.checker)
+        code_generator = code_generator_library[boson_option['code']['language']](arguments.output, boson_option['mode'], boson_option['code']['checker'] == 'True')
         if lexical_analyzer is not None:
             code_generator.dispose_lexer(lexical_analyzer)
         if parser_generator is not None:
@@ -182,12 +157,12 @@ def console_main() -> None:
         code_generator.generate_code()
         end_time = time.time()
         display('Done [{:.4f}s]'.format(end_time - start_time))
-        display('> Language: {}'.format(arguments.language.upper()), indent=8)
-        display('> Mode: {}'.format(arguments.mode.capitalize()), indent=8)
-        display('> Checker: {}'.format('Yes' if arguments.checker else 'No'), indent=8)
+        display('> Language: {}'.format(boson_option['code']['language'].upper()), indent=8)
+        display('> Mode: {}'.format(boson_option['mode'].capitalize()), indent=8)
+        display('> Checker: {}'.format('Yes' if boson_option['code']['checker'] == 'True' else 'No'), indent=8)
         display('> Generate Lexer: {}'.format('Yes' if lexical_analyzer else 'No'), indent=8)
         display('> Generate Parser: {}'.format('Yes' if parser_generator else 'No'), indent=8)
-        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and configure.boson_option['generate_interpreter'] == 'yes' else 'No'), indent=8)
+        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and boson_option['code']['generate']['interpreter'] == 'True' else 'No'), indent=8)
         display('> Output Path: "{}"'.format(arguments.output), indent=8)
         global_end_time = time.time()
         display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))

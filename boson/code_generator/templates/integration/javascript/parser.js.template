@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -11,10 +11,10 @@
 */
 
 {% endif -%}
-import { {{- configure.boson_option['grammar_class_name'] }}} from './grammar';
-import { {{- configure.boson_option['grammar_node_class_name'] }}} from './grammar_node';
+import { {{- boson_code_option['class_name']['grammar'] }}} from './grammar';
+import { {{- boson_code_option['class_name']['grammar_node'] }}} from './grammar_node';
 
-export class {{ configure.boson_option['parser_class_name'] }} {
+export class {{ boson_code_option['class_name']['parser'] }} {
     constructor() {
         this._terminalIndexMapping = {
             {%- for terminal, index in parser.terminal_index_mapping.items() %}
@@ -22,7 +22,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
         this._sparseActionTable = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             {{ i }}: {
@@ -101,7 +101,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
     }
 
     parse(tokenList) {
-        let grammar = new {{ configure.boson_option['grammar_class_name'] }}();
+        let grammar = new {{ boson_code_option['class_name']['grammar'] }}();
         let analysisStack = [0];
         let symbolStack = [];
         let tokenIndex = 0;
@@ -110,7 +110,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
             const currentState = analysisStack[analysisStack.length - 1];
             let operation = '{{ configure.boson_table_sign_error }}';
             if (this._terminalIndexMapping.hasOwnProperty(token.symbol)) {
-            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+            {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                 const terminalIndex = this._terminalIndexMapping[token.symbol];
                 if (this._sparseActionTable.hasOwnProperty(currentState)) {
                     const actions = this._sparseActionTable[currentState];
@@ -129,7 +129,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
             } else if (operationFlag === '{{ configure.boson_table_sign_shift }}') {
                 analysisStack.push(parseInt(operation.substring(1)));
                 tokenIndex++;
-                symbolStack.push(new {{ configure.boson_option['grammar_node_class_name'] }}(token.text));
+                symbolStack.push(new {{ boson_code_option['class_name']['grammar_node'] }}(token.text));
             } else if (operationFlag === '{{ configure.boson_table_sign_reduce }}') {
                 const statementIndex = parseInt(operation.substring(1));
                 const reduceCount = this._reduceSymbolCount[statementIndex];
@@ -138,7 +138,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
                 }
                 const currentState = analysisStack[analysisStack.length - 1];
                 const currentNonTerminalIndexMapping = this._reduceNonTerminalIndex[statementIndex];
-                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                 let gotoNextState = -1;
                 if (this._sparseGotoTable.hasOwnProperty(currentState)) {
                     const gotoTable = this._sparseGotoTable[currentState];
@@ -159,7 +159,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
                     for (let i = 0; i < reduceCount; i++) {
                         symbolPackage.splice(0, 0, symbolStack.pop());
                     }
-                    let grammarNode = new {{ configure.boson_option['grammar_node_class_name'] }}();
+                    let grammarNode = new {{ boson_code_option['class_name']['grammar_node'] }}();
                     for (const index in this._sentenceIndexGrammarTupleMapping[statementIndex]) {
                         const nodeString = this._sentenceIndexGrammarTupleMapping[statementIndex][index];
                         if (nodeString[0] === '{{ configure.boson_grammar_tuple_unpack }}') {
@@ -181,7 +181,7 @@ export class {{ configure.boson_option['parser_class_name'] }} {
                 {%- else %}
                 if (this._noneGrammarTupleReduceSet.has(statementIndex)) {
                 {%- endif %}
-                    let grammarNode = new {{ configure.boson_option['grammar_node_class_name'] }}();
+                    let grammarNode = new {{ boson_code_option['class_name']['grammar_node'] }}();
                     for (let i = 0; i < reduceCount; i++) {
                         grammarNode.insert(0, symbolStack.pop());
                     }

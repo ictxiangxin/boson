@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 

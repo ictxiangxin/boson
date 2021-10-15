@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -21,24 +21,24 @@
 #include "token.hpp"
 
 namespace boson {
-    class {{ configure.boson_option['parser_class_name'] }} {
+    class {{ boson_code_option['class_name']['parser'] }} {
     public:
-        {{ configure.boson_option['parser_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['parser'] }}() = default;
 
         int check_pass_index() const {
             return this->_check_pass_index;
         }
 
-        int check(std::vector<{{ configure.boson_option['token_class_name'] }}> token_list) {
+        int check(std::vector<{{ boson_code_option['class_name']['token'] }}> token_list) {
             std::stack<int> analysis_stack;
             analysis_stack.push(0);
             int token_index = 0;
             while (token_index < token_list.size()) {
-                {{ configure.boson_option['token_class_name'] }} &token = token_list[token_index];
+                {{ boson_code_option['class_name']['token'] }} &token = token_list[token_index];
                 int current_state = analysis_stack.top();
                 std::string operation = "{{ configure.boson_table_sign_error }}";
                 if (this->_terminal_index_mapping.count(token.symbol)) {
-                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                     int terminal_index = this->_terminal_index_mapping[token.symbol];
                     if (this->_sparse_action_table.count(current_state)) {
                         std::unordered_map<int, std::string> &actions = this->_sparse_action_table[current_state];
@@ -65,7 +65,7 @@ namespace boson {
                     }
                     current_state = analysis_stack.top();
                     int current_non_terminal_index_mapping = this->_reduce_non_terminal_index[statement_index];
-                    {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                    {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                     int goto_next_state = -1;
                     if (this->_sparse_goto_table.count(current_state)) {
                         std::unordered_map<int, int> &goto_table = this->_sparse_goto_table[current_state];
@@ -96,7 +96,7 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
         std::unordered_map<int, std::unordered_map<int, std::string>> _sparse_action_table = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             { {{- i }}, {

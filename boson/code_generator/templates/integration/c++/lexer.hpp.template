@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -21,13 +21,13 @@
 #include "token.hpp"
 
 namespace boson {
-    class {{ configure.boson_option['lexer_class_name'] }} {
+    class {{ boson_code_option['class_name']['lexer'] }} {
     public:
         using lexical_function = std::function<string_t &(string_t &)>;
 
-        {{ configure.boson_option['lexer_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['lexer'] }}() = default;
 
-        std::vector<{{ configure.boson_option['token_class_name'] }}> &token_list() {
+        std::vector<{{ boson_code_option['class_name']['token'] }}> &token_list() {
             return this->_token_list;
         }
 
@@ -64,7 +64,7 @@ namespace boson {
                 if (this->_non_greedy_state_set.count(state)) {
                     get_token = true;
                 }
-                {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+                {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
                 if (this->_compact_move_table.count(state)) {
                     std::vector<std::tuple<int, std::set<char_t>, std::vector<std::tuple<char_t, char_t>>, int>> state_move_table = this->_compact_move_table[state];
                     unsigned long i;
@@ -149,12 +149,12 @@ namespace boson {
         }
 
     private:
-        std::vector<{{ configure.boson_option['token_class_name'] }}> _token_list{};
+        std::vector<{{ boson_code_option['class_name']['token'] }}> _token_list{};
         int _line = {{ configure.boson_lexical_start_line }};
         int _error_index = {{ configure.boson_lexical_no_error_index }};
         int _no_error_index = {{ configure.boson_lexical_no_error_index }};
         bool _skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
-        {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+        {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
         std::unordered_map<int, std::vector<std::tuple<int, std::set<char_t>, std::vector<std::tuple<char_t, char_t>>, int>>> _compact_move_table = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             { {{- state }}, {

@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -23,22 +23,22 @@
 #include "grammar_node.hpp"
 
 namespace boson {
-    class {{ configure.boson_option['parser_class_name'] }} {
+    class {{ boson_code_option['class_name']['parser'] }} {
     public:
-        {{ configure.boson_option['parser_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['parser'] }}() = default;
 
-        {{ configure.boson_option['grammar_class_name'] }} parse(std::vector<{{ configure.boson_option['token_class_name'] }}> token_list) {
-            {{ configure.boson_option['grammar_class_name'] }} grammar;
+        {{ boson_code_option['class_name']['grammar'] }} parse(std::vector<{{ boson_code_option['class_name']['token'] }}> token_list) {
+            {{ boson_code_option['class_name']['grammar'] }} grammar;
             std::stack<int> analysis_stack;
-            std::stack<{{ configure.boson_option['grammar_node_class_name'] }}> symbol_stack;
+            std::stack<{{ boson_code_option['class_name']['grammar_node'] }}> symbol_stack;
             analysis_stack.push(0);
             int token_index = 0;
             while (token_index < token_list.size()) {
-                {{ configure.boson_option['token_class_name'] }} &token = token_list[token_index];
+                {{ boson_code_option['class_name']['token'] }} &token = token_list[token_index];
                 int current_state = analysis_stack.top();
                 std::string operation = "{{ configure.boson_table_sign_error }}";
                 if (this->_terminal_index_mapping.count(token.symbol)) {
-                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                     int terminal_index = this->_terminal_index_mapping[token.symbol];
                     if (this->_sparse_action_table.count(current_state)) {
                         std::unordered_map<int, std::string> &actions = this->_sparse_action_table[current_state];
@@ -58,7 +58,7 @@ namespace boson {
                     int state_number = (int) strtol(operation.c_str() + 1, nullptr, 10);
                     analysis_stack.push(state_number);
                     token_index++;
-                    {{ configure.boson_option['grammar_node_class_name'] }} grammar_node(token.text);
+                    {{ boson_code_option['class_name']['grammar_node'] }} grammar_node(token.text);
                     symbol_stack.push(grammar_node);
                 } else if (operation_flag == '{{ configure.boson_table_sign_reduce }}') {
                     int statement_index = (int) strtol(operation.c_str() + 1, nullptr, 10);
@@ -68,7 +68,7 @@ namespace boson {
                     }
                     current_state = analysis_stack.top();
                     int current_non_terminal_index_mapping = this->_reduce_non_terminal_index[statement_index];
-                    {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                    {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                     int goto_next_state = -1;
                     if (this->_sparse_goto_table.count(current_state)) {
                         std::unordered_map<int, int> &goto_table = this->_sparse_goto_table[current_state];
@@ -85,16 +85,16 @@ namespace boson {
                     analysis_stack.push(goto_next_state);
                     {%- if parser.sentence_index_grammar_tuple_mapping %}
                     if (this->_sentence_index_grammar_tuple_mapping.count(statement_index)) {
-                        std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> symbol_package{};
+                        std::vector<{{ boson_code_option['class_name']['grammar_node'] }}> symbol_package{};
                         for (int i = 0; i < reduce_count; i++) {
                             symbol_package.insert(symbol_package.begin(), symbol_stack.top());
                             symbol_stack.pop();
                         }
-                        {{ configure.boson_option['grammar_node_class_name'] }} grammar_node;
+                        {{ boson_code_option['class_name']['grammar_node'] }} grammar_node;
                         for (std::string &node_string : this->_sentence_index_grammar_tuple_mapping[statement_index]) {
                             if (node_string[0] == '{{ configure.boson_grammar_tuple_unpack }}') {
                                 int reduce_number = (int) strtol(node_string.c_str() + 1, nullptr, 10);
-                                for ({{ configure.boson_option['grammar_node_class_name'] }} &node : symbol_package[reduce_number].children()) {
+                                for ({{ boson_code_option['class_name']['grammar_node'] }} &node : symbol_package[reduce_number].children()) {
                                     grammar_node.append(node);
                                 }
                             } else {
@@ -111,7 +111,7 @@ namespace boson {
                     {%- else %}
                     if (this->_non_grammar_tuple_reduce_set.count(statement_index)) {
                     {%- endif %}
-                        {{ configure.boson_option['grammar_node_class_name'] }} grammar_node;
+                        {{ boson_code_option['class_name']['grammar_node'] }} grammar_node;
                         for (int i = 0; i < reduce_count; i++) {
                             grammar_node.insert(0, symbol_stack.top());
                             symbol_stack.pop();
@@ -141,7 +141,7 @@ namespace boson {
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         };
-        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
         std::unordered_map<int, std::unordered_map<int, std::string>> _sparse_action_table = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             { {{- i }}, {

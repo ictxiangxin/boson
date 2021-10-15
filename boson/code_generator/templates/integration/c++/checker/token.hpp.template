@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -15,16 +15,16 @@
 #define _BOSON_TOKEN_HPP_
 
 namespace boson {
-    using char_t = {{ 'char16_t ' if configure.boson_option['lexer_unicode'] == 'yes' else 'char' }}
-    using string_t = {{ 'std::u16string' if configure.boson_option['lexer_unicode'] == 'yes' else 'std::string' }}
+    using char_t = {{ 'char16_t ' if boson_code_option['lexer']['unicode'] == 'True' else 'char' }}
+    using string_t = {{ 'std::u16string' if boson_code_option['lexer']['unicode'] == 'True' else 'std::string' }}
 
-    class {{ configure.boson_option['token_class_name'] }} {
+    class {{ boson_code_option['class_name']['token'] }} {
     public:
-        {{ configure.boson_option['token_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['token'] }}() = default;
 
-        {{ configure.boson_option['token_class_name'] }}(std::string &symbol): symbol(symbol) {}
+        {{ boson_code_option['class_name']['token'] }}(std::string &symbol): symbol(symbol) {}
 
-        {{ configure.boson_option['token_class_name'] }}(const char *symbol): symbol(symbol) {}
+        {{ boson_code_option['class_name']['token'] }}(const char *symbol): symbol(symbol) {}
 
         std::string symbol{};
     };

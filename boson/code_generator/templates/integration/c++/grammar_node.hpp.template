@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -15,11 +15,11 @@
 #define _BOSON_GRAMMAR_NODE_HPP_
 
 namespace boson {
-    class {{ configure.boson_option['grammar_node_class_name'] }} {
+    class {{ boson_code_option['class_name']['grammar_node'] }} {
     public:
-        {{ configure.boson_option['grammar_node_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['grammar_node'] }}() = default;
 
-        explicit {{ configure.boson_option['grammar_node_class_name'] }}(std::string &text) {
+        explicit {{ boson_code_option['class_name']['grammar_node'] }}(std::string &text) {
             this->set_text(text);
         }
 
@@ -39,26 +39,26 @@ namespace boson {
             this->_text = text;
         }
 
-        void append(const {{ configure.boson_option['grammar_node_class_name'] }} &item) {
+        void append(const {{ boson_code_option['class_name']['grammar_node'] }} &item) {
             this->_children.push_back(item);
         }
 
-        void insert(int index, const {{ configure.boson_option['grammar_node_class_name'] }} &item) {
+        void insert(int index, const {{ boson_code_option['class_name']['grammar_node'] }} &item) {
             this->_children.insert(this->_children.begin() + index, item);
         }
 
-        std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> &children() {
+        std::vector<{{ boson_code_option['class_name']['grammar_node'] }}> &children() {
             return this->_children;
         }
 
-        {{ configure.boson_option['grammar_node_class_name'] }} &operator[](int index) {
+        {{ boson_code_option['class_name']['grammar_node'] }} &operator[](int index) {
             return this->_children[index];
         }
 
     private:
         int _reduce_number = {{ configure.boson_grammar_default_reduce_number }};
         std::string _text{};
-        std::vector<{{ configure.boson_option['grammar_node_class_name'] }}> _children{};
+        std::vector<{{ boson_code_option['class_name']['grammar_node'] }}> _children{};
     };
 }
 

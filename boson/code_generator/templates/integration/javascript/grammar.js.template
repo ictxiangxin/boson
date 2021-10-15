@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -11,7 +11,7 @@
 */
 
 {% endif -%}
-export class {{ configure.boson_option['grammar_class_name'] }} {
+export class {{ boson_code_option['class_name']['grammar'] }} {
     constructor() {
         this._grammarTree = null;
         this._errorIndex = {{ configure.boson_grammar_no_error_index }};

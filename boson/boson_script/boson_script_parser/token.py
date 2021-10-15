@@ -1,4 +1,4 @@
-class LexicalToken:
+class BosonToken:
     text: str
     line: int
     symbol: str

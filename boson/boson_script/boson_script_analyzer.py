@@ -2,7 +2,7 @@ from typing import Optional, Union, Any, List, Dict, Set, Tuple
 
 import boson.configure as configure
 from boson.boson_script.boson_script_parser import \
-    LexicalToken, \
+    BosonToken, \
     BosonGrammar, \
     BosonGrammarNode, \
     BosonLexer, \
@@ -29,7 +29,7 @@ class BosonScriptAnalyzer:
         self.__sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[Union[str, tuple], ...]] = {}
         self.__sentence_attribute_mapping: Dict[Tuple[str, ...], SentenceAttribute] = {}
         self.__none_grammar_tuple_set: Set[Tuple[str, ...]] = set()
-        self.__command_list: List[List[Union[str, list]]] = []
+        self.__command_list: List[List[str | list | dict]] = []
         self.__literal_mapping: Dict[str, str] = {}
         self.__literal_reverse_mapping: Dict[str, str] = {}
         self.__sentence_grammar_name_mapping: Dict[Tuple[str, ...], str] = {}
@@ -162,7 +162,7 @@ class BosonScriptAnalyzer:
         @interpreter.register_action('command')
         def _semantic_command(semantic_node) -> BosonSemanticsNode:
             command_name: str = semantic_node[0].get_text()
-            command_arguments: List[str] = get_semantic_node_text_list(semantic_node[1])
+            command_arguments: List[str | dict] = [node.get_text() if node.get_text() else node.get_data() for node in semantic_node[1].children()]
             self.__command_list.append([command_name, command_arguments])
             return BosonSemanticsNode.null_node()
 
@@ -351,7 +351,7 @@ class BosonScriptAnalyzer:
                 number_node.set_data(int(number_text))
             return number_node
 
-    def parse(self, token_list: List[LexicalToken]) -> BosonGrammarNode:
+    def parse(self, token_list: List[BosonToken]) -> BosonGrammarNode:
         grammar: BosonGrammar = self.__parser.parse(token_list)
         if grammar.error_index == grammar.no_error_index():
             return grammar.grammar_tree
@@ -372,7 +372,7 @@ class BosonScriptAnalyzer:
                 else:
                     break
             offset: int = grammar.error_index - start_index - 1
-            error_token_list: List[LexicalToken] = token_list[start_index + 1: end_index]
+            error_token_list: List[BosonToken] = token_list[start_index + 1: end_index]
             error_message: str = '\n[Boson Script Analyzer] Syntax Error <Line: {}>\n'.format(error_line)
             error_token_text_list: List[str] = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))

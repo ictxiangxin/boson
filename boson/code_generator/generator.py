@@ -4,6 +4,7 @@ from typing import Any, Dict
 from jinja2 import Environment, PackageLoader, Template
 
 import boson.configure as configure
+from boson.option import option as boson_option
 from boson.lexer_generator.generator import LexerGenerator
 from boson.parser_generator.bottom_up_generator.canonical_generator import BottomUpCanonicalParserGenerator
 
@@ -21,6 +22,7 @@ class CodeGenerator:
                 encoding=configure.boson_default_encoding))
         self._template_data: Dict[str, Any] = {
             'configure': configure,
+            'boson_code_option': boson_option['code'],
             'option': {
                 'generate_lexer': False,
                 'generate_parser': False,

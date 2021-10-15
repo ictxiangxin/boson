@@ -1,12 +1,22 @@
-%TokenClassName RegularToken;
-%LexerClassName RegularLexer;
-%ParserClassName RegularParser;
-%InterpreterClassName RegularInterpreter;
-%GenerateInterpreter yes;
-%GenerateLexer yes;
-%CodeComment no;
-%ParserSparseTable yes;
-%StartSymbol regular_expression;
+####################################
+#              Option              #
+####################################
+%option {
+    parser = {
+        start_symbol = "regular_expression",
+    },
+    code = {
+        generate = {
+            comment = False,
+        },
+        class_name = {
+            token = "RegularToken",
+            lexer = "RegularLexer",
+            parser = "RegularParser",
+            interpreter = "RegularInterpreter",
+        },
+    }
+};
 
 
 ####################################

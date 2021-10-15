@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -13,11 +13,11 @@
 {% endif -%}
 from typing import Dict, Set
 
-from .semantic_node import {{ configure.boson_option['semantic_node_class_name'] }}
-from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
+from .semantic_node import {{ boson_code_option['class_name']['semantic_node'] }}
+from .grammar_node import {{ boson_code_option['class_name']['grammar_node'] }}
 
 
-class {{ configure.boson_option['interpreter_class_name'] }}:
+class {{ boson_code_option['class_name']['interpreter'] }}:
     def __init__(self):
         self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
             {%- for reduce_number, grammar_name in parser.reduce_number_grammar_name_mapping.items() %}
@@ -28,12 +28,12 @@ class {{ configure.boson_option['interpreter_class_name'] }}:
         self.__naive_reduce_number_set: Set[int] = {{ parser.naive_reduce_number_set }}
         self.__semantic_action_mapping: Dict[str, callable] = {}
 
-    def __semantics_analysis(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}) -> {{ configure.boson_option['semantic_node_class_name'] }}:
+    def __semantics_analysis(self, grammar_tree: {{ boson_code_option['class_name']['grammar_node'] }}) -> {{ boson_code_option['class_name']['semantic_node'] }}:
         if grammar_tree.get_reduce_number() in self.__reduce_number_grammar_name_mapping:
             grammar_name: str = self.__reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()]
         else:
             grammar_name: str = '{{ configure.boson_grammar_name_prefix }}hidden'
-        semantic_node = {{ configure.boson_option['semantic_node_class_name'] }}()
+        semantic_node = {{ boson_code_option['class_name']['semantic_node'] }}()
         if len(grammar_tree.children()) == 0:
             semantic_node.set_reduce_number(grammar_tree.get_reduce_number())
             semantic_node.set_text(grammar_tree.get_text())
@@ -44,7 +44,7 @@ class {{ configure.boson_option['interpreter_class_name'] }}:
             return self.__semantic_action_mapping[grammar_name](semantic_node)
         elif grammar_tree.get_reduce_number() in self.__naive_reduce_number_set:
             if len(semantic_node.children()) == 0:
-                return {{ configure.boson_option['semantic_node_class_name'] }}.null_node()
+                return {{ boson_code_option['class_name']['semantic_node'] }}.null_node()
             elif len(semantic_node.children()) == 1:
                 return semantic_node[0]
             else:
@@ -52,7 +52,7 @@ class {{ configure.boson_option['interpreter_class_name'] }}:
         else:
             return semantic_node
 
-    def execute(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}) -> {{ configure.boson_option['semantic_node_class_name'] }}:
+    def execute(self, grammar_tree: {{ boson_code_option['class_name']['grammar_node'] }}) -> {{ boson_code_option['class_name']['semantic_node'] }}:
         return self.__semantics_analysis(grammar_tree)
 
     def register_action(self, name: str) -> callable:

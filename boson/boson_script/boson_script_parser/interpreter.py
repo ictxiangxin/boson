@@ -7,22 +7,22 @@ from .grammar_node import BosonGrammarNode
 class BosonInterpreter:
     def __init__(self):
         self.__reduce_number_grammar_name_mapping: Dict[int, str] = {
-            41: 'command',
-            5: 'lexical_define',
-            70: 'reduce',
-            32: 'getter_tuple',
-            13: 'grammar_node',
-            24: 'name_closure',
-            7: 'literal',
-            78: 'complex_closure',
-            49: 'complex_optional',
-            55: 'select',
-            90: 'attribute',
-            23: 'string',
-            53: 'number',
-            77: 'attribute_value_list'
+            36: 'command',
+            20: 'lexical_define',
+            88: 'reduce',
+            29: 'getter_tuple',
+            6: 'grammar_node',
+            53: 'name_closure',
+            95: 'literal',
+            13: 'complex_closure',
+            89: 'complex_optional',
+            87: 'select',
+            16: 'attribute',
+            77: 'string',
+            54: 'number',
+            64: 'attribute_value_list'
         }
-        self.__naive_reduce_number_set: Set[int] = {3, 6, 7, 10, 23, 30, 42, 44, 46, 51, 53, 58, 61, 63, 67, 72, 75, 82, 84}
+        self.__naive_reduce_number_set: Set[int] = {4, 12, 14, 24, 28, 30, 42, 44, 45, 52, 54, 57, 59, 67, 77, 81, 83, 90, 93, 95}
         self.__semantic_action_mapping: Dict[str, callable] = {}
 
     def __semantics_analysis(self, grammar_tree: BosonGrammarNode) -> BosonSemanticsNode:

@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -13,20 +13,20 @@
 {% endif -%}
 from typing import Optional
 
-from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
+from .grammar_node import {{ boson_code_option['class_name']['grammar_node'] }}
 
 
-class {{ configure.boson_option['grammar_class_name'] }}:
+class {{ boson_code_option['class_name']['grammar'] }}:
     def __init__(self):
-        self.__grammar_tree: Optional[{{ configure.boson_option['grammar_node_class_name'] }}] = None
+        self.__grammar_tree: Optional[{{ boson_code_option['class_name']['grammar_node'] }}] = None
         self.__error_index: int = {{ configure.boson_grammar_no_error_index }}
         self.__no_error_index: int = {{ configure.boson_grammar_no_error_index }}
 
-    def get_grammar_tree(self) -> Optional[{{ configure.boson_option['grammar_node_class_name'] }}]:
+    def get_grammar_tree(self) -> Optional[{{ boson_code_option['class_name']['grammar_node'] }}]:
         return self.__grammar_tree
 
-    def set_grammar_tree(self, grammar_tree: {{ configure.boson_option['grammar_node_class_name'] }}) -> None:
-        self.__grammar_tree: Optional[{{ configure.boson_option['grammar_node_class_name'] }}] = grammar_tree
+    def set_grammar_tree(self, grammar_tree: {{ boson_code_option['class_name']['grammar_node'] }}) -> None:
+        self.__grammar_tree: Optional[{{ boson_code_option['class_name']['grammar_node'] }}] = grammar_tree
 
     grammar_tree = property(get_grammar_tree, set_grammar_tree)
 

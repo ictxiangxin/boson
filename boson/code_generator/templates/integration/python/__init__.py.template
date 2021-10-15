@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -12,16 +12,16 @@
 
 
 {% endif -%}
-from .token import {{ configure.boson_option['token_class_name'] }}
+from .token import {{ boson_code_option['class_name']['token'] }}
 {% if option.generate_lexer -%}
-from .lexer import {{ configure.boson_option['lexer_class_name'] }}
+from .lexer import {{ boson_code_option['class_name']['lexer'] }}
 {% endif -%}
 {% if option.generate_parser -%}
-from .grammar_node import {{ configure.boson_option['grammar_node_class_name'] }}
-from .grammar import {{ configure.boson_option['grammar_class_name'] }}
-from .parser import {{ configure.boson_option['parser_class_name'] }}
+from .grammar_node import {{ boson_code_option['class_name']['grammar_node'] }}
+from .grammar import {{ boson_code_option['class_name']['grammar'] }}
+from .parser import {{ boson_code_option['class_name']['parser'] }}
 {% endif -%}
-{% if option.generate_parser and configure.boson_option['generate_interpreter'] == 'yes' -%}
-from .semantic_node import {{ configure.boson_option['semantic_node_class_name'] }}
-from .interpreter import {{ configure.boson_option['interpreter_class_name'] }}
+{% if option.generate_parser and boson_code_option['generate']['interpreter'] == 'True' -%}
+from .semantic_node import {{ boson_code_option['class_name']['semantic_node'] }}
+from .interpreter import {{ boson_code_option['class_name']['interpreter'] }}
 {% endif -%}

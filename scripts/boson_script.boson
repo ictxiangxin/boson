@@ -1,12 +1,16 @@
-%TokenClassName LexicalToken;
-%LexerClassName BosonLexer;
-%ParserClassName BosonParser;
-%InterpreterClassName BosonInterpreter;
-%GenerateInterpreter yes;
-%GenerateLexer yes;
-%CodeComment no;
-%ParserSparseTable yes;
-%StartSymbol boson;
+####################################
+#              Option              #
+####################################
+%option {
+    parser = {
+        start_symbol = "boson",
+    },
+    code = {
+        generate = {
+            comment = False,
+        },
+    },
+};
 
 
 ####################################
@@ -33,7 +37,7 @@ statement : command_statement
           | grammar_statement
           ;
 
-command_statement : command (name | string)+ ';' = command($0, *$1);
+command_statement : command (name | string | attribute)+ ';' = command($0, *$1);
 
 lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3, $4(*$2));
 
@@ -69,7 +73,7 @@ sub_derivation : sentence | sentence ('|' sentence)+ = select($0, *$1[$1]);
 
 attribute : '{' key_value_list '}' = attribute($1);
 
-key_value_list : key_value (',' key_value)* = ($0, *$1[$1]);
+key_value_list : key_value (',' key_value)* [','] = ($0, *$1[$1]);
 
 key_value : name '=' attribute_value = ($0, $2);
 
@@ -78,6 +82,6 @@ attribute_value : name | value_list | attribute
                 | number = number($0)
                 ;
 
-value_list : '[' attribute_value (',' attribute_value)+ ']' = attribute_value_list($1, *$2[$1]);
+value_list : '[' attribute_value (',' attribute_value)+ [','] ']' = attribute_value_list($1, *$2[$1]);
 
 closure: '+' | '*';

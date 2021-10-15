@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -17,15 +17,15 @@
 #include "grammar_node.hpp"
 
 namespace boson {
-    class {{ configure.boson_option['grammar_class_name'] }} {
+    class {{ boson_code_option['class_name']['grammar'] }} {
     public:
-        {{ configure.boson_option['grammar_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['grammar'] }}() = default;
 
-        {{ configure.boson_option['grammar_node_class_name'] }} &get_grammar_tree() {
+        {{ boson_code_option['class_name']['grammar_node'] }} &get_grammar_tree() {
             return this->_grammar_tree;
         }
 
-        void set_grammar_tree({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
+        void set_grammar_tree({{ boson_code_option['class_name']['grammar_node'] }} &grammar_tree) {
             this->_grammar_tree = grammar_tree;
         }
 
@@ -42,7 +42,7 @@ namespace boson {
         }
 
     private:
-        {{ configure.boson_option['grammar_node_class_name'] }} _grammar_tree;
+        {{ boson_code_option['class_name']['grammar_node'] }} _grammar_tree;
         int _error_index = {{ configure.boson_grammar_no_error_index }};
         int _no_error_index = {{ configure.boson_grammar_no_error_index }};
     };

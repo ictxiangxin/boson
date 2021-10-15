@@ -3,6 +3,7 @@ from typing import Union, List, Dict, Tuple, Set
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
+from boson.option import option as boson_option
 
 
 class ParserGenerator(metaclass=ABCMeta):
@@ -24,7 +25,7 @@ class ParserGenerator(metaclass=ABCMeta):
         self._reduce_number_grammar_name_mapping: Dict[int, str] = {}
         self._naive_reduce_number_set: Set[int] = set()
         self._grammar_tuple_naive_sentence_set: Set[Tuple[str, ...]] = set()
-        self._augmented_sentence: Tuple[str, ...] = (configure.boson_augmented_start, configure.boson_option['start_symbol'])
+        self._augmented_sentence: Tuple[str, ...] = (configure.boson_augmented_start, boson_option['parser']['start_symbol'])
 
     def __augment_grammar(self) -> None:
         self._sentence_set.add(self._augmented_sentence)

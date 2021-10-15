@@ -1,5 +1,5 @@
-import boson.configure as configure
 from boson.code_generator.generator import CodeGenerator
+from boson.option import option as boson_option
 
 
 class CppCodeGenerator(CodeGenerator):
@@ -23,6 +23,6 @@ class CppCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.hpp', 'grammar_node.hpp')
                 self._generate_code('grammar.hpp', 'grammar.hpp')
                 self._generate_code('parser.hpp', 'parser.hpp')
-            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
+            if self._template_data['option']['generate_parser'] and boson_option['code']['generate']['interpreter'] == 'True':
                 self._generate_code('semantic_node.hpp', 'semantic_node.hpp')
                 self._generate_code('interpreter.hpp', 'interpreter.hpp')

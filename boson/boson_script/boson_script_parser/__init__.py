@@ -1,4 +1,4 @@
-from .token import LexicalToken
+from .token import BosonToken
 from .lexer import BosonLexer
 from .grammar_node import BosonGrammarNode
 from .grammar import BosonGrammar

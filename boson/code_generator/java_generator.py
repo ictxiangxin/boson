@@ -1,5 +1,5 @@
-import boson.configure as configure
 from boson.code_generator.generator import CodeGenerator
+from boson.option import option as boson_option
 
 
 class JavaCodeGenerator(CodeGenerator):
@@ -8,19 +8,19 @@ class JavaCodeGenerator(CodeGenerator):
 
     def generate_code(self) -> None:
         if self._checker:
-            self._generate_code('token.java', configure.boson_option['token_class_name'] + '.java')
+            self._generate_code('token.java', boson_option['code']['class_name']['token'] + '.java')
             if self._template_data['option']['generate_lexer']:
-                self._generate_code('lexer.java', configure.boson_option['lexer_class_name'] + '.java')
+                self._generate_code('lexer.java', boson_option['code']['class_name']['lexer'] + '.java')
             if self._template_data['option']['generate_parser']:
-                self._generate_code('parser.java', configure.boson_option['parser_class_name'] + '.java')
+                self._generate_code('parser.java', boson_option['code']['class_name']['parser'] + '.java')
         else:
-            self._generate_code('token.java', configure.boson_option['token_class_name'] + '.java')
+            self._generate_code('token.java', boson_option['code']['class_name']['token'] + '.java')
             if self._template_data['option']['generate_lexer']:
-                self._generate_code('lexer.java', configure.boson_option['lexer_class_name'] + '.java')
+                self._generate_code('lexer.java', boson_option['code']['class_name']['lexer'] + '.java')
             if self._template_data['option']['generate_parser']:
-                self._generate_code('grammar_node.java', configure.boson_option['grammar_node_class_name'] + '.java')
-                self._generate_code('grammar.java', configure.boson_option['grammar_class_name'] + '.java')
-                self._generate_code('parser.java', configure.boson_option['parser_class_name'] + '.java')
-            if self._template_data['option']['generate_parser'] and configure.boson_option['generate_interpreter'] == 'yes':
-                self._generate_code('semantic_node.java', configure.boson_option['semantic_node_class_name'] + '.java')
-                self._generate_code('interpreter.java', configure.boson_option['interpreter_class_name'] + '.java')
+                self._generate_code('grammar_node.java', boson_option['code']['class_name']['grammar_node'] + '.java')
+                self._generate_code('grammar.java', boson_option['code']['class_name']['grammar'] + '.java')
+                self._generate_code('parser.java', boson_option['code']['class_name']['parser'] + '.java')
+            if self._template_data['option']['generate_parser'] and boson_option['code']['generate']['interpreter'] == 'True':
+                self._generate_code('semantic_node.java', boson_option['code']['class_name']['semantic_node'] + '.java')
+                self._generate_code('interpreter.java', boson_option['code']['class_name']['interpreter'] + '.java')

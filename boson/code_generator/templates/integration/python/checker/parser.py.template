@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -13,10 +13,10 @@
 {% endif -%}
 from typing import Dict, List, Tuple
 
-from .token import {{ configure.boson_option['token_class_name'] }}
+from .token import {{ boson_code_option['class_name']['token'] }}
 
 
-class {{ configure.boson_option['parser_class_name'] }}:
+class {{ boson_code_option['class_name']['parser'] }}:
     def __init__(self):
         self.__terminal_index_mapping: Dict[str, int] = {
             {%- for terminal, index in parser.terminal_index_mapping.items() %}
@@ -24,7 +24,7 @@ class {{ configure.boson_option['parser_class_name'] }}:
             {%- if not loop.last %},{% endif -%}
             {%- endfor %}
         }
-        {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+        {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
         self.__sparse_action_table: Dict[int, Dict[int, str]] = {
             {%- for i, sub_table in parser.sparse_action_table.items() %}
             {{ i }}: {{ sub_table }}
@@ -58,14 +58,14 @@ class {{ configure.boson_option['parser_class_name'] }}:
     def check_pass_index(self) -> int:
         return self.__check_pass_index
 
-    def check(self, token_list: List[{{ configure.boson_option['token_class_name'] }}]) -> int:
+    def check(self, token_list: List[{{ boson_code_option['class_name']['token'] }}]) -> int:
         analysis_stack: List[int] = [0]
         token_index: int = 0
         while token_index < len(token_list):
-            token: {{ configure.boson_option['token_class_name'] }} = token_list[token_index]
+            token: {{ boson_code_option['class_name']['token'] }} = token_list[token_index]
             current_state: int = analysis_stack[-1]
             if token.symbol in self.__terminal_index_mapping:
-            {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+            {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                 operation: str = self.__sparse_action_table.get(current_state, {}).get(self.__terminal_index_mapping[token.symbol], '{{ configure.boson_table_sign_error }}')
             {%- else %}
                 operation: str = self.__action_table[current_state][self.__terminal_index_mapping[token.symbol]]
@@ -85,7 +85,7 @@ class {{ configure.boson_option['parser_class_name'] }}:
                     analysis_stack.pop()
                 current_state: int = analysis_stack[-1]
                 current_non_terminal_index = self.__reduce_non_terminal_index[statement_index]
-                {%- if configure.boson_option['parser_sparse_table'] == 'yes' %}
+                {%- if boson_code_option['parser']['sparse_table'] == 'True' %}
                 goto_next_state: int = self.__sparse_goto_table.get(current_state, {}).get(current_non_terminal_index, {{ configure.boson_invalid_goto }})
                 {%- else %}
                 goto_next_state: int = self.__goto_table[current_state][current_non_terminal_index]

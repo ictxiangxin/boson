@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -12,10 +12,10 @@
 
 
 {% endif -%}
-from .token import {{ configure.boson_option['token_class_name'] }}
+from .token import {{ boson_code_option['class_name']['token'] }}
 {% if option.generate_lexer -%}
-from .lexer import {{ configure.boson_option['lexer_class_name'] }}
+from .lexer import {{ boson_code_option['class_name']['lexer'] }}
 {% endif -%}
 {% if option.generate_parser -%}
-from .parser import {{ configure.boson_option['parser_class_name'] }}
+from .parser import {{ boson_code_option['class_name']['parser'] }}
 {% endif -%}

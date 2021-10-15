@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -17,10 +17,10 @@ from __future__ import annotations
 from typing import List
 
 
-class {{ configure.boson_option['grammar_node_class_name'] }}:
+class {{ boson_code_option['class_name']['grammar_node'] }}:
     def __init__(self, text: str = ''):
         self.__reduce_number = {{ configure.boson_grammar_default_reduce_number }}
-        self.__children: List[{{ configure.boson_option['grammar_node_class_name'] }}] = []
+        self.__children: List[{{ boson_code_option['class_name']['grammar_node'] }}] = []
         self.__text: str = text
 
     def __getitem__(self, item):
@@ -44,6 +44,6 @@ class {{ configure.boson_option['grammar_node_class_name'] }}:
     def insert(self, index, item) -> None:
         self.__children.insert(index, item)
 
-    def children(self) -> List[{{ configure.boson_option['grammar_node_class_name'] }}]:
+    def children(self) -> List[{{ boson_code_option['class_name']['grammar_node'] }}]:
         return self.__children
 

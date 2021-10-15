@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -11,9 +11,9 @@
 */
 
 {% endif -%}
-import { {{- configure.boson_option['semantic_node_class_name'] }}} from './semantic_node';
+import { {{- boson_code_option['class_name']['semantic_node'] }}} from './semantic_node';
 
-export class {{ configure.boson_option['interpreter_class_name'] }} {
+export class {{ boson_code_option['class_name']['interpreter'] }} {
     constructor() {
         this._reduceNumberGrammarNameMapping = {
             {%- for reduce_number, grammarName in parser.reduce_number_grammar_name_mapping.items() %}
@@ -45,7 +45,7 @@ export class {{ configure.boson_option['interpreter_class_name'] }} {
         } else {
             grammarName = "{{ configure.boson_grammar_name_prefix }}hidden";
         }
-        let semanticNode = {{ configure.boson_option['semantic_node_class_name'] }}();
+        let semanticNode = {{ boson_code_option['class_name']['semantic_node'] }}();
         if (grammarTree.children().isEmpty()) {
             semanticNode.setReduceNumber(grammarTree.getReduceNumber());
             semanticNode.setText(grammarTree.getText());
@@ -58,7 +58,7 @@ export class {{ configure.boson_option['interpreter_class_name'] }} {
             return this._semanticActionMapping[grammarName](semanticNode);
         } else if (this._naiveReduceNumberSet.has(grammarTree.getReduceNumber())) {
             if (semanticNode.children()isEmpty()) {
-                return {{ configure.boson_option['semantic_node_class_name'] }}.nullNode();
+                return {{ boson_code_option['class_name']['semantic_node'] }}.nullNode();
             } else if (semanticNode.children().length === 1) {
                 return semanticNode.get(0);
             } else {

@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -11,16 +11,16 @@
 */
 
 {% endif -%}
-import { {{- configure.boson_option['token_class_name'] }}} from './token';
+import { {{- boson_code_option['class_name']['token'] }}} from './token';
 
-export class {{ configure.boson_option['lexer_class_name'] }} {
+export class {{ boson_code_option['class_name']['lexer'] }} {
     constructor() {
         this._tokenList = [];
         this._line = {{ configure.boson_lexical_start_line }};
         this._errorIndex = {{ configure.boson_lexical_no_error_index }};
         this._noErrorIndex = {{ configure.boson_lexical_no_error_index }};
         this._skip = {{ 'true' if configure.boson_lexical_default_skip else 'false' }};
-        {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+        {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
         this._compactMoveTable = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             {{ state }}: [
@@ -128,7 +128,7 @@ export class {{ configure.boson_option['lexer_class_name'] }} {
             if (this._nonGreedyStateSet.has(state)) {
                 getToken = true;
             }
-            {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+            {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
             if (this._compactMoveTable.hasOwnProperty(state)) {
                 const stateMoveTable = this._compactMoveTable[state];
                 let i;
@@ -202,7 +202,7 @@ export class {{ configure.boson_option['lexer_class_name'] }} {
             this._errorIndex = index - 1;
             return this._errorIndex;
         }
-        this._tokenList.push(new {{ configure.boson_option['token_class_name'] }}('{{ configure.boson_end_symbol }}'));
+        this._tokenList.push(new {{ boson_code_option['class_name']['token'] }}('{{ configure.boson_end_symbol }}'));
         return this._errorIndex;
     }
 
@@ -233,7 +233,7 @@ export class {{ configure.boson_option['lexer_class_name'] }} {
         }
         this._invokeLexicalFunction(symbol);
         if (!this._skip) {
-            this._tokenList.push(new {{ configure.boson_option['token_class_name'] }}(symbol));
+            this._tokenList.push(new {{ boson_code_option['class_name']['token'] }}(symbol));
         }
     }
 }

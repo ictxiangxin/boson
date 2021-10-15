@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -13,17 +13,17 @@
 {% endif -%}
 from typing import Dict, List, Set
 
-from .token import {{ configure.boson_option['token_class_name'] }}
+from .token import {{ boson_code_option['class_name']['token'] }}
 
 
-class {{ configure.boson_option['lexer_class_name'] }}:
+class {{ boson_code_option['class_name']['lexer'] }}:
     def __init__(self):
-        self.__token_list: List[{{ configure.boson_option['token_class_name'] }}] = []
+        self.__token_list: List[{{ boson_code_option['class_name']['token'] }}] = []
         self.__line: int = {{ configure.boson_lexical_start_line }}
         self.__error_index: int = {{ configure.boson_lexical_no_error_index }}
         self.__no_error_index: int = {{ configure.boson_lexical_no_error_index }}
         self.__skip: bool = {{ configure.boson_lexical_default_skip }}
-        {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+        {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
         self.__compact_move_table: Dict[int, List[list]] = {
             {%- for state, state_move_table in lexer.compact_move_table.items() %}
             {{ state }}: [
@@ -105,9 +105,9 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         symbol: str = self.__lexical_symbol_mapping.get(state, '{{ configure.boson_default_symbol }}')
         token_string: str = self._invoke_lexical_function(symbol, token_string)
         if not self.__skip:
-            self.__token_list.append({{ configure.boson_option['token_class_name'] }}(token_string, self.__line, symbol))
+            self.__token_list.append({{ boson_code_option['class_name']['token'] }}(token_string, self.__line, symbol))
 
-    def token_list(self) -> List[{{ configure.boson_option['token_class_name'] }}]:
+    def token_list(self) -> List[{{ boson_code_option['class_name']['token'] }}]:
         return self.__token_list
 
     def line(self) -> int:
@@ -126,7 +126,7 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         return self.__no_error_index
 
     def tokenize(self, text: str) -> int:
-        self.__token_list: List[{{ configure.boson_option['token_class_name'] }}] = []
+        self.__token_list: List[{{ boson_code_option['class_name']['token'] }}] = []
         self.__error_index: int = self.__no_error_index
         self.__line: int = {{ configure.boson_lexical_start_line }}
         state: int = self.__start_state
@@ -138,7 +138,7 @@ class {{ configure.boson_option['lexer_class_name'] }}:
             get_token: bool = False
             if state in self.__non_greedy_state_set:
                 get_token: bool = True
-            {%- if configure.boson_option['lexer_compact_table'] == 'yes' %}
+            {%- if boson_code_option['lexer']['compact_table'] == 'True' %}
             if not get_token and state in self.__compact_move_table:
                 for attribute, character_set, range_list, next_state in self.__compact_move_table[state]:
                     if attribute == 2:
@@ -189,7 +189,7 @@ class {{ configure.boson_option['lexer_class_name'] }}:
         else:
             self.__error_index: int = index - 1
             return self.__error_index
-        self.__token_list.append({{ configure.boson_option['token_class_name'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
+        self.__token_list.append({{ boson_code_option['class_name']['token'] }}('', self.__line, '{{ configure.boson_end_symbol }}'))
         return self.__error_index
 
     def register_function(self, function_name: str) -> callable:

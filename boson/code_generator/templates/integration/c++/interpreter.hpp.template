@@ -1,4 +1,4 @@
-{% if configure.boson_option['code_comment'] == 'yes' -%}
+{% if boson_code_option['generate']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -23,13 +23,13 @@
 
 namespace boson {
     template <class T>
-    class {{ configure.boson_option['interpreter_class_name'] }} {
+    class {{ boson_code_option['class_name']['interpreter'] }} {
     public:
-        using semantic_function = std::function<{{ configure.boson_option['semantic_node_class_name'] }}<T>({{ configure.boson_option['semantic_node_class_name'] }}<T> &)>;
+        using semantic_function = std::function<{{ boson_code_option['class_name']['semantic_node'] }}<T>({{ boson_code_option['class_name']['semantic_node'] }}<T> &)>;
 
-        {{ configure.boson_option['interpreter_class_name'] }}() = default;
+        {{ boson_code_option['class_name']['interpreter'] }}() = default;
 
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> execute({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
+        {{ boson_code_option['class_name']['semantic_node'] }}<T> execute({{ boson_code_option['class_name']['grammar_node'] }} &grammar_tree) {
             return this->_semantics_analysis(grammar_tree);
         }
 
@@ -57,14 +57,14 @@ namespace boson {
         };
         std::unordered_map<std::string, semantic_function> _semantic_action_mapping{};
 
-        {{ configure.boson_option['semantic_node_class_name'] }}<T> _semantics_analysis({{ configure.boson_option['grammar_node_class_name'] }} &grammar_tree) {
+        {{ boson_code_option['class_name']['semantic_node'] }}<T> _semantics_analysis({{ boson_code_option['class_name']['grammar_node'] }} &grammar_tree) {
             std::string grammar_name{};
             if (this->_reduce_number_grammar_name_mapping.count(grammar_tree.get_reduce_number())) {
                 grammar_name = this->_reduce_number_grammar_name_mapping[grammar_tree.get_reduce_number()];
             } else {
                 grammar_name = "{{ configure.boson_grammar_name_prefix }}hidden";
             }
-            {{ configure.boson_option['semantic_node_class_name'] }}<T> semantic_node;
+            {{ boson_code_option['class_name']['semantic_node'] }}<T> semantic_node;
             if (grammar_tree.children().empty()) {
                 semantic_node.set_reduce_number(grammar_tree.get_reduce_number());
                 semantic_node.set_text(grammar_tree.get_text());
@@ -77,7 +77,7 @@ namespace boson {
                 return this->_semantic_action_mapping[grammar_name](semantic_node);
             } else if (this->_naive_reduce_number_set.count(grammar_tree.get_reduce_number())) {
                 if (semantic_node.children().empty()) {
-                    return {{ configure.boson_option['semantic_node_class_name'] }}<T>::null_node();
+                    return {{ boson_code_option['class_name']['semantic_node'] }}<T>::null_node();
                 } else if (semantic_node.children().size() == 1) {
                     return semantic_node[0];
                 } else {
