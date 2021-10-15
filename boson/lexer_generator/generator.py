@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Tuple, Set
+from typing import Optional, List, Dict, Tuple, Set
 
 import boson.configure as configure
 from boson.lexer_generator.lexical_dfa import LexicalDFA
@@ -8,8 +8,8 @@ from boson.lexer_generator.regular_parser import RegularLexer
 
 
 class LexerGenerator:
-    def __init__(self, lexical_definition: Dict[str, Dict[str, Union[str, int, bool, Optional[List[str]]]]]):
-        self.__lexical_definition: Dict[str, Dict[str, Union[str, int, bool, Optional[List[str]]]]] = dict(lexical_definition)
+    def __init__(self, lexical_definition: Dict[str, Dict[str, str | int | bool | Optional[List[str]]]]):
+        self.__lexical_definition: Dict[str, Dict[str, str | int | bool | Optional[List[str]]]] = dict(lexical_definition)
         self.__symbol_function_mapping: Dict[str, List[str]] = {}
         self.__non_greedy_state_set: Set[int] = set()
         self.__lexical_dfa: Optional[LexicalDFA] = None

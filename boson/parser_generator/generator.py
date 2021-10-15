@@ -1,5 +1,5 @@
 from abc import ABCMeta
-from typing import Union, List, Dict, Tuple, Set
+from typing import List, Dict, Tuple, Set
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
@@ -162,10 +162,10 @@ class ParserGenerator(metaclass=ABCMeta):
         self.__generate_symbol_set()
         self.__normalize_sentence()
 
-    def assemble_grammar_tuple(self, sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[Union[str, tuple], ...]]) -> None:
-        self._sentence_index_grammar_tuple_mapping: Dict[int, Tuple[Union[str, tuple], ...]] = {}
+    def assemble_grammar_tuple(self, sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[str | tuple, ...]]) -> None:
+        self._sentence_index_grammar_tuple_mapping: Dict[int, Tuple[str | tuple, ...]] = {}
         self._grammar_tuple_naive_sentence_set: Set[Tuple[str, ...]] = set()
-        sentence_grammar_tuple_list: List[Tuple[Tuple[str, ...], Tuple[Union[str, tuple], ...]]] = list(sentence_grammar_tuple_mapping.items())
+        sentence_grammar_tuple_list: List[Tuple[Tuple[str, ...], Tuple[str | tuple, ...]]] = list(sentence_grammar_tuple_mapping.items())
         while sentence_grammar_tuple_list:
             sentence, grammar_tuple = sentence_grammar_tuple_list.pop()
             new_grammar_tuple: List[str] = []

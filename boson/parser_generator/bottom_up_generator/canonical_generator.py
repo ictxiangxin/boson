@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Union, Optional, List, Dict, Tuple, Set, FrozenSet
+from typing import Optional, List, Dict, Tuple, Set, FrozenSet
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
@@ -116,7 +116,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                 self._sparse_goto_table[state] = sparse_state_goto_table
 
     @abstractmethod
-    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Union[Set[str], FrozenSet[str]]) -> Optional[FrozenSet[str]]:
+    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Set[str] | FrozenSet[str]) -> Optional[FrozenSet[str]]:
         pass
 
     @abstractmethod

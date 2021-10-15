@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Tuple, Set
+from typing import Optional, List, Dict, Tuple, Set
 
 import boson.configure as configure
 
@@ -80,7 +80,7 @@ class LexicalDFA:
                     check_pass: bool = True
                     group_changed: bool = False
                     for character in self.__alphabet(state_group) | {None}:
-                        split_group: Dict[Union[int, Tuple[int, str]], Set[int]] = {}
+                        split_group: Dict[int | Tuple[int, str], Set[int]] = {}
                         for state in state_group:
                             move_state: int = self.__move(state, character)
                             move_group_number: int = state_group_number.get(move_state, -1)

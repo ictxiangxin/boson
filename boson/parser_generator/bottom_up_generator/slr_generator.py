@@ -1,4 +1,4 @@
-from typing import Union, Optional, Dict, Tuple, Set, FrozenSet
+from typing import Optional, Dict, Tuple, Set, FrozenSet
 
 from boson.boson_script.sentence_attribute import SentenceAttribute
 from boson.parser_generator.bottom_up_generator import BottomUpCanonicalParserGenerator
@@ -12,7 +12,7 @@ class SLRParserGenerator(BottomUpCanonicalParserGenerator):
         super().initialize()
         self._generate_non_terminal_follow_set()
 
-    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Union[Set[str], FrozenSet[str]]) -> Optional[FrozenSet[str]]:
+    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Set[str] | FrozenSet[str]) -> Optional[FrozenSet[str]]:
         return None
 
     def _end_processing(self) -> None:

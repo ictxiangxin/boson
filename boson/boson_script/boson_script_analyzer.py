@@ -1,4 +1,4 @@
-from typing import Optional, Union, Any, List, Dict, Set, Tuple
+from typing import Optional, Any, List, Dict, Set, Tuple
 
 import boson.configure as configure
 from boson.boson_script.boson_script_parser import \
@@ -26,7 +26,7 @@ class BosonScriptAnalyzer:
     def __init__(self):
         self.__parser: BosonParser = BosonParser()
         self.__sentence_set: Set[Tuple[str, ...]] = set()
-        self.__sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[Union[str, tuple], ...]] = {}
+        self.__sentence_grammar_tuple_mapping: Dict[Tuple[str, ...], Tuple[str | tuple, ...]] = {}
         self.__sentence_attribute_mapping: Dict[Tuple[str, ...], SentenceAttribute] = {}
         self.__none_grammar_tuple_set: Set[Tuple[str, ...]] = set()
         self.__command_list: List[List[str | list | dict]] = []
@@ -36,7 +36,7 @@ class BosonScriptAnalyzer:
         self.__naive_sentence_set: Set[Tuple[str, ...]] = set()
         self.__literal_number: int = 1
         self.__hidden_name_number: int = 0
-        self.__lexical_definition: Dict[str, Dict[str, Union[str, int, bool, Optional[List[str]]]]] = {}
+        self.__lexical_definition: Dict[str, Dict[str, str | int | bool | Optional[List[str]]]] = {}
         self.__lexical_number: int = 0
         self.__hidden_derivation_cache: Dict[Tuple[str, ...], str] = {}
         self.__positive_closure_cache: Dict[str, str] = {}
@@ -55,7 +55,7 @@ class BosonScriptAnalyzer:
         self.__current_index += 1
         return index
 
-    def __sentence_add(self, sentence: Tuple[str, ...], sentence_attribute: SentenceAttribute, grammar_tuple: Optional[Tuple[Union[str, tuple], ...]] = None) -> None:
+    def __sentence_add(self, sentence: Tuple[str, ...], sentence_attribute: SentenceAttribute, grammar_tuple: Optional[Tuple[str | tuple, ...]] = None) -> None:
         self.__sentence_set.add(sentence)
         self.__sentence_attribute_mapping[sentence] = sentence_attribute
         if grammar_tuple is None:
@@ -128,16 +128,16 @@ class BosonScriptAnalyzer:
             self.__sentence_add((hidden_name,) + tuple(derivation), attribute)
             return hidden_name
 
-    def command_list(self) -> List[List[Union[str, list]]]:
+    def command_list(self) -> List[List[str | list]]:
         return self.__command_list
 
-    def lexical_definition(self) -> Dict[str, Dict[str, Union[str, int, bool, Optional[List[str]]]]]:
+    def lexical_definition(self) -> Dict[str, Dict[str, str | int | bool | Optional[List[str]]]]:
         return self.__lexical_definition
 
     def sentence_set(self) -> Set[Tuple[str, ...]]:
         return self.__sentence_set
 
-    def sentence_grammar_tuple_mapping(self) -> Dict[Tuple[str, ...], Tuple[Union[str, tuple], ...]]:
+    def sentence_grammar_tuple_mapping(self) -> Dict[Tuple[str, ...], Tuple[str | tuple, ...]]:
         return self.__sentence_grammar_tuple_mapping
 
     def sentence_attribute_mapping(self) -> Dict[Tuple[str, ...], SentenceAttribute]:
@@ -169,7 +169,7 @@ class BosonScriptAnalyzer:
         @interpreter.register_action('lexical_define')
         def _semantic_lexical_define(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             lexical_name: str = semantic_node[0].get_text()
-            definition: Dict[str, Union[str, int, bool, Optional[List[str]]]] = {
+            definition: Dict[str, str | int | bool | Optional[List[str]]] = {
                 'regular': semantic_node[1].get_text()[1:-1],
                 'number': self.__lexical_number
             }
@@ -213,7 +213,7 @@ class BosonScriptAnalyzer:
                 else:
                     if derivation[1].children():
                         self.__sentence_grammar_name_mapping[sentence] = derivation[1][0].get_text()
-                    grammar_tuple: Tuple[Union[str, tuple], ...] = tuple(get_semantic_node_data_list(derivation[2]))
+                    grammar_tuple: Tuple[str | tuple, ...] = tuple(get_semantic_node_data_list(derivation[2]))
                     if derivation[3].children():
                         attribute.custom = derivation[3][0].get_data()
                 self.__sentence_add(sentence, attribute, grammar_tuple)

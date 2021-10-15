@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Union, Optional, List, Dict, Tuple, Set, FrozenSet
+from typing import Optional, List, Dict, Tuple, Set, FrozenSet
 
 import boson.configure as configure
 from boson.boson_script.sentence_attribute import SentenceAttribute
@@ -11,7 +11,7 @@ class BottomUpParserGenerator(ParserGenerator):
         super().__init__(sentence_set, sentence_attribute_mapping)
         self._non_terminal_reduction_mapping: Dict[str, List[Tuple[str, ...]]] = {}
         self._nfa_state_number_inverted_mapping: Dict[int, Tuple[Tuple[str, ...], int, Optional[FrozenSet[str]]]] = {}
-        self._nfa_move_table: Dict[int, Union[Set[int], Tuple[Optional[int], str, int]]] = {}
+        self._nfa_move_table: Dict[int, Set[int] | Tuple[Optional[int], str, int]] = {}
         self._dfa_state_reduce_mapping: Dict[int, Dict[int, Set[str]]] = {}
         self._dfa_state_number_mapping: Dict[FrozenSet[int], int] = {}
         self._dfa_state_number_inverted_mapping: Dict[int, FrozenSet[int]] = {}
@@ -37,7 +37,7 @@ class BottomUpParserGenerator(ParserGenerator):
         nfa_state_number: int = configure.boson_grammar_default_state
         nfa_state_number_mapping: Dict[Tuple[Tuple[str, ...], int, Optional[FrozenSet]], int] = {start_nfa_state: nfa_state_number}
         self._nfa_state_number_inverted_mapping = {nfa_state_number: start_nfa_state}
-        self._nfa_move_table: Dict[int, Union[Set[int], Tuple[Optional[int], str, int]]] = {}
+        self._nfa_move_table: Dict[int, Set[int] | Tuple[Optional[int], str, int]] = {}
         nfa_state_number += 1
         non_terminal_nfa_state_number_set: Set[int] = {0}
         visited_nfa_state_set: Set[Tuple[Tuple[str, ...], int, Optional[FrozenSet[str]]]] = set()
@@ -119,7 +119,7 @@ class BottomUpParserGenerator(ParserGenerator):
             move_closure_mapping: Dict[str, Set[int]] = {}
             for nfa_state_number in dfa_state:
                 if nfa_state_number in self._nfa_move_table:
-                    state_move_table: Union[Set[int], Tuple[Optional[int], str, int]] = self._nfa_move_table[nfa_state_number]
+                    state_move_table: Set[int] | Tuple[Optional[int], str, int] = self._nfa_move_table[nfa_state_number]
                     if isinstance(state_move_table, tuple):
                         move_closure_mapping.setdefault(state_move_table[1], set())
                         move_closure_mapping[state_move_table[1]].add(state_move_table[2])
@@ -142,7 +142,7 @@ class BottomUpParserGenerator(ParserGenerator):
         self._end_processing()
 
     @abstractmethod
-    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Union[Set[str], FrozenSet[str]]) -> Optional[FrozenSet[str]]:
+    def _non_terminal_look_ahead_set(self, sentence: Tuple[str, ...], flag: int, look_ahead_set: Set[str] | FrozenSet[str]) -> Optional[FrozenSet[str]]:
         pass
 
     @abstractmethod
