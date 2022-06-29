@@ -265,9 +265,14 @@ class BosonScriptAnalyzer:
 
         @interpreter.register_action('getter_tuple')
         def _semantic_getter_tuple(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            number_text = semantic_node[0].get_text()
+            if number_text.startswith('0x'):
+                index = int(number_text, 16)
+            else:
+                index = int(number_text)
             getter_node: BosonSemanticsNode = BosonSemanticsNode()
             getter_node.append(BosonSemanticsNode(configure.boson_grammar_tuple_unpack))
-            getter_node.append(BosonSemanticsNode(semantic_node[0].get_text()[1:]))
+            getter_node.append(BosonSemanticsNode(str(index)))
             return getter_node
 
         @interpreter.register_action('grammar_node')

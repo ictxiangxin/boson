@@ -42,11 +42,11 @@ command_statement : command (name | string | attribute)+ ';' = command($0, *$1);
 
 lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3, $4(*$2));
 
-lexical_function : name (',' name)* = ($0, *$1[$1]);
+lexical_function : name (',' name)* = ($0, *$1[1]);
 
 grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
 
-derivation_list : derivation ('|' derivation)* = ($0, *$1[$1]);
+derivation_list : derivation ('|' derivation)* = ($0, *$1[1]);
 
 derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1($1, $2, $3));
 
@@ -55,14 +55,14 @@ derivation_body : sentence | '~' | ;
 sentence : element_define+ = (*$0);
 
 grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
-              | '[' node ']' = getter_tuple($1)
+              | '[' number ']' = getter_tuple($1)
               ;
 
-node_element_list : node_element (',' node_element)* = ($0, *$1[$1]);
+node_element_list : node_element (',' node_element)* = ($0, *$1[1]);
 
 node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
 
-element_define : element ['@' name] = ($0, $1[$1]);
+element_define : element ['@' name] = ($0, $1[1]);
 
 element : complex_element | symbol [closure] = name_closure($0, *$1);
 
@@ -76,7 +76,7 @@ sub_derivation : sentence | sentence ('|' sentence)+ = select($0, *$1[$1]);
 
 attribute : '{' key_value_list '}' = attribute($1);
 
-key_value_list : key_value (',' key_value)* [','] = ($0, *$1[$1]);
+key_value_list : key_value (',' key_value)* [','] = ($0, *$1[1]);
 
 key_value : name '=' attribute_value = ($0, $2);
 
@@ -85,6 +85,6 @@ attribute_value : name | value_list | attribute
                 | number = number($0)
                 ;
 
-value_list : '[' attribute_value (',' attribute_value)+ [','] ']' = attribute_value_list($1, *$2[$1]);
+value_list : '[' attribute_value (',' attribute_value)+ [','] ']' = attribute_value_list($1, *$2[1]);
 
 closure: '+' | '*';
