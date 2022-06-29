@@ -62,7 +62,7 @@ node_element_list : node_element (',' node_element)* = ($0, *$1[$1]);
 
 node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
 
-element_define : element ['@' name] = ($0, *$1($1));
+element_define : element ['@' name] = ($0, $1[$1]);
 
 element : complex_element | symbol [closure] = name_closure($0, *$1);
 
