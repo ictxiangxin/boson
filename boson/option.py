@@ -12,7 +12,7 @@ option = {
     'code': {
         'checker': 'False',
         'language': 'python',
-        'generate': {
+        'generator': {
             'lexer': 'True',
             'interpreter': 'True',
             'comment': 'True',

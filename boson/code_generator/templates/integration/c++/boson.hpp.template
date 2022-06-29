@@ -1,4 +1,4 @@
-{% if boson_code_option['generate']['comment'] == 'True' -%}
+{% if boson_code_option['generator']['comment'] == 'True' -%}
 /*
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -23,7 +23,7 @@
 #include "grammar.hpp"
 #include "parser.hpp"
 {% endif -%}
-{% if option.generate_parser and boson_code_option['generate']['interpreter'] == 'True' -%}
+{% if option.generate_parser and boson_code_option['generator']['interpreter'] == 'True' -%}
 #include "semantic_node.hpp"
 #include "interpreter.hpp"
 {% endif %}

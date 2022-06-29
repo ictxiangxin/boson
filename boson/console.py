@@ -94,7 +94,7 @@ def console_main() -> None:
         display('> Commands Count: {}'.format(len(script_analyzer.command_list())), indent=8)
         display('> Lexical Definition: {}'.format('Yes' if script_analyzer.lexical_definition() else 'No'), indent=8)
         display('> Grammar Definition: {}'.format('Yes' if script_analyzer.sentence_set() else 'No'), indent=8)
-        if boson_option['code']['generate']['lexer'] == 'True' and script_analyzer.lexical_definition():
+        if boson_option['code']['generator']['lexer'] == 'True' and script_analyzer.lexical_definition():
             step += 1
             display('[{}] Generate Lexical Analysis Table... '.format(step), indent=4, newline=False)
             start_time = time.time()
@@ -169,7 +169,7 @@ def console_main() -> None:
         display('> Checker: {}'.format('Yes' if boson_option['code']['checker'] == 'True' else 'No'), indent=8)
         display('> Generate Lexer: {}'.format('Yes' if lexical_analyzer else 'No'), indent=8)
         display('> Generate Parser: {}'.format('Yes' if parser_generator else 'No'), indent=8)
-        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and boson_option['code']['generate']['interpreter'] == 'True' else 'No'), indent=8)
+        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and boson_option['code']['generator']['interpreter'] == 'True' else 'No'), indent=8)
         display('> Output Path: "{}"'.format(arguments.output), indent=8)
         global_end_time = time.time()
         display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))

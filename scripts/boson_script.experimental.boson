@@ -6,7 +6,7 @@
         start_symbol = "boson",
     },
     code = {
-        generate = {
+        generator = {
             comment = False,
         },
     },

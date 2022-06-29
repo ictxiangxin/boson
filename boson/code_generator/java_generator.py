@@ -23,6 +23,6 @@ class JavaCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.java', boson_option['code']['class_name']['grammar_node'] + '.java')
                 self._generate_code('grammar.java', boson_option['code']['class_name']['grammar'] + '.java')
                 self._generate_code('parser.java', boson_option['code']['class_name']['parser'] + '.java')
-            if self._template_data['option']['generate_parser'] and boson_option['code']['generate']['interpreter'] == 'True':
+            if self._template_data['option']['generate_parser'] and boson_option['code']['generator']['interpreter'] == 'True':
                 self._generate_code('semantic_node.java', boson_option['code']['class_name']['semantic_node'] + '.java')
                 self._generate_code('interpreter.java', boson_option['code']['class_name']['interpreter'] + '.java')

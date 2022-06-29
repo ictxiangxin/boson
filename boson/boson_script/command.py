@@ -20,7 +20,7 @@ class CommandExecutor:
             'code': {
                 'checker': (str, ('True', 'False')),
                 'language': (str, ('python', 'c++', 'java', 'javascript')),
-                'generate': {
+                'generator': {
                     'lexer': (str, ('True', 'False')),
                     'interpreter': (str, ('True', 'False')),
                     'comment': (str, ('True', 'False')),

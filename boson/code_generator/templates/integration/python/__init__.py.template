@@ -1,4 +1,4 @@
-{% if boson_code_option['generate']['comment'] == 'True' -%}
+{% if boson_code_option['generator']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 
@@ -21,7 +21,7 @@ from .grammar_node import {{ boson_code_option['class_name']['grammar_node'] }}
 from .grammar import {{ boson_code_option['class_name']['grammar'] }}
 from .parser import {{ boson_code_option['class_name']['parser'] }}
 {% endif -%}
-{% if option.generate_parser and boson_code_option['generate']['interpreter'] == 'True' -%}
+{% if option.generate_parser and boson_code_option['generator']['interpreter'] == 'True' -%}
 from .semantic_node import {{ boson_code_option['class_name']['semantic_node'] }}
 from .interpreter import {{ boson_code_option['class_name']['interpreter'] }}
 {% endif -%}

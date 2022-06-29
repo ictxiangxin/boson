@@ -1,4 +1,4 @@
-{% if boson_code_option['generate']['comment'] == 'True' -%}
+{% if boson_code_option['generator']['comment'] == 'True' -%}
 """
     {{ configure.boson_title }} - {{ configure.boson_description }}
 

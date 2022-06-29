@@ -6,7 +6,7 @@
         start_symbol = "regular_expression",
     },
     code = {
-        generate = {
+        generator = {
             comment = False,
         },
         class_name = {

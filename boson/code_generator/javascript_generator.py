@@ -23,6 +23,6 @@ class JavaScriptCodeGenerator(CodeGenerator):
                 self._generate_code('grammar_node.js', 'grammar_node.js')
                 self._generate_code('grammar.js', 'grammar.js')
                 self._generate_code('parser.js', 'parser.js')
-            if self._template_data['option']['generate_parser'] and boson_option['code']['generate']['interpreter'] == 'True':
+            if self._template_data['option']['generate_parser'] and boson_option['code']['generator']['interpreter'] == 'True':
                 self._generate_code('semantic_node.js', 'semantic_node.js')
                 self._generate_code('interpreter.js', 'interpreter.js')
