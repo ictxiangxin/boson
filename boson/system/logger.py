@@ -51,14 +51,14 @@ class Logger:
     def log(self, text: str, level: LogLevel):
         if not self.__enable:
             return
-        log_head = '[{}]'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        log_level = '<{}>'.format(level.value)
-        self.__log_file.write('{} {} {}\n'.format(log_head, log_level, text))
+        log_head = f'[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}]'
+        log_level = f'<{level.value}>'
+        self.__log_file.write(f'{log_head} {log_level} {text}\n')
 
     def log_block(self, block_text: str, level: LogLevel):
         if not self.__enable:
             return
-        log_head = '[{}] <{}>\n'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), level.value)
+        log_head = f'[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}] <{level.value}>\n'
         log_block_start = '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n'
         log_block_end = '<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n'
         self.__log_file.writelines([log_head, log_block_start, block_text, log_block_end])

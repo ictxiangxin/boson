@@ -206,7 +206,7 @@ class ParserGenerator(metaclass=ABCMeta):
                             if final_name.startswith(configure.boson_hidden_name_prefix):
                                 if unpack_node:
                                     origin_tuple: tuple = sentence_grammar_tuple_mapping.get(sub_sentence, ('0',))
-                                    origin_tuple: tuple = origin_tuple[:-1] + ('{}{}'.format(configure.boson_grammar_tuple_unpack, origin_tuple[-1]),)
+                                    origin_tuple: tuple = origin_tuple[:-1] + (f'{configure.boson_grammar_tuple_unpack}{origin_tuple[-1]}',)
                                     sentence_grammar_tuple_list.insert(0, (sub_sentence, origin_tuple))
                                 for final_sentence_index in self._non_terminal_sentence_index_mapping[final_name]:
                                     sentence_grammar_tuple_list.append((self._index_sentence_mapping[final_sentence_index], sub_grammar_tuple))

@@ -50,20 +50,20 @@ class CommandExecutor:
             if key in option_template:
                 if isinstance(option_template[key], dict):
                     if not isinstance(value, dict):
-                        raise ValueError('Option Type Invalid: Key={}, Type={}, ExpectType=dict'.format(key, type(value).__name__))
+                        raise ValueError(f'Option Type Invalid: Key={key}, Type={type(value).__name__}, ExpectType=dict')
                     self.set_option(value, option_system[key], option_template[key])
                 else:
                     expect_type, rule = option_template[key]
                     if expect_type == str:
                         if not isinstance(value, str):
-                            raise ValueError('Option Type Invalid: Key={}, Type={}, ExpectType=str'.format(key, type(value).__name__))
+                            raise ValueError(f'Option Type Invalid: Key={key}, Type={type(value).__name__}, ExpectType=str')
                         if rule is not None and value not in rule:
-                            raise ValueError('Option Value Invalid: Key={}, Value={}, ExpectValue={}'.format(key, value, rule))
+                            raise ValueError(f'Option Value Invalid: Key={key}, Value={value}, ExpectValue={rule}')
                         option_system[key] = value
                     else:
                         raise RuntimeError('[Boson Option] Never Touch Here.')
             else:
-                raise ValueError('Option Key Invalid: Key={}, ExpectKey={}'.format(key, list(option_template.keys())))
+                raise ValueError(f'Option Key Invalid: Key={key}, ExpectKey={list(option_template.keys())}')
 
     def execute(self, command_list: list) -> None:
         logger.info('[Boson Command] Execute Command.')
@@ -74,4 +74,4 @@ class CommandExecutor:
                     option_user: Dict[str, str | list | dict] = command_line[1][0]
                     self.set_option(option_user, option, self.__boson_option_template)
                 case _:
-                    raise ValueError('Invalid command: {}'.format(command))
+                    raise ValueError(f'Invalid command: {command}')

@@ -1,9 +1,6 @@
-import boson.configure as configure
+from setuptools import setup
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+import boson.configure as configure
 
 install_requires = [
     'jinja2>=2.7',
@@ -12,7 +9,7 @@ install_requires = [
 if __name__ == '__main__':
     setup(
         name=configure.boson_package_name,
-        version='{}.{}'.format(configure.boson_version_major, configure.boson_version_minor),
+        version=f'{configure.boson_version_major}.{configure.boson_version_minor}',
         url=configure.boson_url,
         license=configure.boson_license,
         author=configure.boson_author,
@@ -20,7 +17,7 @@ if __name__ == '__main__':
         maintainer=configure.boson_author,
         maintainer_email=configure.boson_email,
         description=configure.boson_description,
-        long_description='{} - {}'.format(configure.boson_title, configure.boson_description),
+        long_description=f'{configure.boson_title} - {configure.boson_description}',
         platforms=[
             'MS Windows',
             'Mac X',
@@ -40,14 +37,14 @@ if __name__ == '__main__':
             configure.boson_package_name + '.parser_generator.bottom_up_generator',
         ],
         package_data={configure.boson_package_name: [
-            '{}/integration/python/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/python/checker/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/c++/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/c++/checker/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/java/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/java/checker/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/javascript/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
-            '{}/integration/javascript/checker/*{}'.format(configure.boson_template_directory, configure.boson_template_postfix),
+            f'{configure.boson_template_directory}/integration/python/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/python/checker/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/c++/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/c++/checker/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/java/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/java/checker/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/javascript/*{configure.boson_template_postfix}',
+            f'{configure.boson_template_directory}/integration/javascript/checker/*{configure.boson_template_postfix}',
         ]},
         install_requires=install_requires,
         entry_points={

@@ -1,8 +1,8 @@
 boson_name = 'Boson'
 boson_package_name = 'boson'
 boson_version_major = 1
-boson_version_minor = 6
-boson_title = '{} v{}.{}'.format(boson_name, boson_version_major, boson_version_minor)
+boson_version_minor = 7
+boson_title = f'{boson_name} v{boson_version_major}.{boson_version_minor}'
 boson_author = 'ict'
 boson_email = 'ictxiangxin@hotmail.com'
 boson_url = 'https://github.com/ictxiangxin/boson'
@@ -46,11 +46,11 @@ boson_reserved_symbol = '!'
 boson_end_symbol = '$'
 boson_null_symbol = '~'
 
-boson_symbol_template = '{}symbol_{}'.format(boson_reserved_symbol, '{}')
-boson_augmented_start = '{}start'.format(boson_reserved_symbol)
-boson_hidden_name_prefix = '{}name_'.format(boson_reserved_symbol)
-boson_operator_name_prefix = '{}operator_'.format(boson_reserved_symbol)
-boson_grammar_name_prefix = '{}grammar_'.format(boson_reserved_symbol)
-boson_default_symbol = '{}symbol'.format(boson_reserved_symbol)
+boson_symbol_template = f'{boson_reserved_symbol}symbol_{{}}'
+boson_augmented_start = f'{boson_reserved_symbol}start'
+boson_hidden_name_prefix = f'{boson_reserved_symbol}name_'
+boson_operator_name_prefix = f'{boson_reserved_symbol}operator_'
+boson_grammar_name_prefix = f'{boson_reserved_symbol}grammar_'
+boson_default_symbol = f'{boson_reserved_symbol}symbol'
 
 boson_log_file_default_path = '.'

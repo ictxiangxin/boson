@@ -45,7 +45,7 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
         for state_number, state_move_table in self._dfa_move_table.items():
             for symbol, next_state in state_move_table.items():
                 if symbol in self._terminal_index_mapping:
-                    self._action_table[state_number][self._terminal_index_mapping[symbol]] = '{}{}'.format(configure.boson_table_sign_shift, next_state)
+                    self._action_table[state_number][self._terminal_index_mapping[symbol]] = f'{configure.boson_table_sign_shift}{next_state}'
                 else:
                     self._goto_table[state_number][self._non_terminal_index_mapping[symbol]] = next_state
         for state_number, reduce_terminal_set_mapping in self._dfa_state_reduce_mapping.items():
@@ -64,12 +64,12 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                                     sentence_attribute: SentenceAttribute = self._sentence_attribute_mapping[self._index_sentence_mapping[reduce_number]]
                                     old_sentence_attribute: SentenceAttribute = self._sentence_attribute_mapping[self._index_sentence_mapping[old_reduce_number]]
                                     if sentence_attribute.order < old_sentence_attribute.order:
-                                        self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                                        self._action_table[state_number][terminal_index] = f'{configure.boson_table_sign_reduce}{reduce_number}'
                                 else:
                                     old_shorter: bool = len(self._index_sentence_mapping[old_reduce_number]) < len(self._index_sentence_mapping[reduce_number])
                                     longer: bool = boson_option['parser']['conflict_resolver']['reduce_reduce'] == 'long'
                                     if not (old_shorter ^ longer):
-                                        self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                                        self._action_table[state_number][terminal_index] = f'{configure.boson_table_sign_reduce}{reduce_number}'
                             else:
                                 self._conflict_list.append((state_number, configure.boson_conflict_reduce_reduce, terminal))
                         elif old_sign == configure.boson_table_sign_shift:
@@ -83,21 +83,21 @@ class BottomUpCanonicalParserGenerator(BottomUpParserGenerator):
                                             reduce_sentence_attribute = self._sentence_attribute_mapping[reduce_sentence]
                                             nfa_sentence_attribute = self._sentence_attribute_mapping[nfa_sentence]
                                             if reduce_sentence_attribute.order < nfa_sentence_attribute.order:
-                                                self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                                                self._action_table[state_number][terminal_index] = f'{configure.boson_table_sign_reduce}{reduce_number}'
                                                 break
                                 elif boson_option['parser']['conflict_resolver']['shift_reduce'] == 'reduce':
-                                    self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                                    self._action_table[state_number][terminal_index] = f'{configure.boson_table_sign_reduce}{reduce_number}'
                             else:
                                 self._conflict_list.append((state_number, configure.boson_conflict_shift_reduce, terminal))
                         else:
-                            raise ValueError('[Bottom-Up Canonical Parser Generator] Invalid Action: {}'.format(old_action))
+                            raise ValueError(f'[Bottom-Up Canonical Parser Generator] Invalid Action: {old_action}')
                         if not conflict_resolver_enable:
-                            self._action_table[state_number][terminal_index] += '/{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                            self._action_table[state_number][terminal_index] += f'/{configure.boson_table_sign_reduce}{reduce_number}'
                     else:
                         if reduce_number == 0:
                             self._action_table[state_number][terminal_index] = configure.boson_table_sign_accept
                         else:
-                            self._action_table[state_number][terminal_index] = '{}{}'.format(configure.boson_table_sign_reduce, reduce_number)
+                            self._action_table[state_number][terminal_index] = f'{configure.boson_table_sign_reduce}{reduce_number}'
 
     def parse_table_sparsification(self) -> None:
         logger.info('[Bottom-Up Canonical Parser Generator] Parse Table Sparsification.')

@@ -134,7 +134,7 @@ class BosonRegularAnalyzer:
                             start_unicode += 1
                         select_character_set |= character_range_set
                     else:
-                        raise ValueError('[Boson Regular Analyzer] Character range invalid: <{}-{}>.'.format(each_select[0].get_text(), each_select[1].get_text()))
+                        raise ValueError(f'[Boson Regular Analyzer] Character range invalid: <{each_select[0].get_text()}-{each_select[1].get_text()}>.')
                 else:
                     raise RuntimeError('[Boson Regular Analyzer] Never Touch Here.')
             if reverse:
@@ -187,9 +187,9 @@ class BosonRegularAnalyzer:
                     break
             offset: int = grammar.error_index - start_index - 1
             error_token_list: list = token_list[start_index + 1: end_index]
-            error_message: str = '\n[Boson Regular Analyzer] Syntax Error [Line: {}] \n'.format(error_line)
+            error_message: str = f'\n[Boson Regular Analyzer] Syntax Error [Line: {error_line}] \n'
             error_token_text_list = [token.text for token in error_token_list]
-            error_message += '{}\n'.format(' '.join(error_token_text_list))
+            error_message += f'{" ".join(error_token_text_list)}\n'
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 

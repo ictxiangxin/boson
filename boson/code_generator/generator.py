@@ -70,4 +70,4 @@ class CodeGenerator:
                 'naive_reduce_number_set': parser_generator.naive_reduce_number_set(),
             }
         else:
-            raise ValueError('[Code Generator] Invalid Parser Generator Type: "{}".'.format(type(parser_generator)))
+            raise ValueError(f'[Code Generator] Invalid Parser Generator Type: "{type(parser_generator)}".')

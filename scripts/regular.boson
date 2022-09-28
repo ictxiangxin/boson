@@ -22,11 +22,7 @@
 ####################################
 #        Lexical Definition        #
 ####################################
-single_number     = <[0-9]>;
-unicode_character = <\\u[0-9a-fA-F]{4}>;
-reference         = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>@{reference};
-escape_character  = <\\.>;
-normal_character  = <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]>;
+reference = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>@{reference};
 
 
 #####################################
@@ -46,26 +42,26 @@ element : simple_element = simple_construct($0)
         ;
 
 simple_element : character
-               | escape_character
+               | <\\.> # Escape Character
                ;
 
-character : normal_character
-          | unicode_character = unicode($0)
-          | single_number
+character : <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]> # Normal Character
+          | <\\u[0-9a-fA-F]{4}> = unicode($0) # Unicode Character
+          | <[0-9]> # Number
           ;
 
-complex_element : '[' ['^'] select_element+ ']' = select(*$1, $2)
+complex_element : '[' ['^']@reverse select_element+@character_set ']' = select(*$reverse, $character_set)
                 | '(' expression ')' = [1]
                 | reference = reference($0)
                 ;
 
 select_element : simple_element
-               | character '-' character = ($0, $2)
+               | character@start '-' character@end = ($start, $end)
                ;
 
 postfix : '+' | '*' | '?'
-        | '{' number ',' [number] '}' = ($1, *$3)
+        | '{' number@min ',' [number]@max '}' = ($min, *$max)
         | '{' number '}' = ($1, $1)
         ;
 
-number : single_number+ = construct_number(*$0);
+number : <[0-9]>+ = construct_number(*$0);

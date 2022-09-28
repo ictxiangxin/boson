@@ -100,7 +100,7 @@ class {{ boson_code_option['class_name']['parser'] }}:
                 goto_next_state: int = self.__goto_table[current_state][current_non_terminal_index]
                 {%- endif %}
                 if goto_next_state == {{ configure.boson_invalid_goto }}:
-                    raise ValueError('Invalid goto action: state={}, non-terminal={}'.format(current_state, current_non_terminal_index))
+                    raise ValueError(f'Invalid goto action: state={current_state}, non-terminal={current_non_terminal_index}')
                 analysis_stack.append(goto_next_state)
                 {%- if parser.sentence_index_grammar_tuple_mapping %}
                 if statement_index in self.__sentence_index_grammar_tuple_mapping:
@@ -131,12 +131,12 @@ class {{ boson_code_option['class_name']['parser'] }}:
                 {%- endif %}
                 {%- if parser.none_grammar_tuple_sentence_index_set or parser.none_grammar_tuple_sentence_index_set %}
                 else:
-                    raise ValueError('Invalid reduce number: reduce={}'.format(statement_index))
+                    raise ValueError(f'Invalid reduce number: reduce={statement_index}')
                 {%- endif %}
             elif operation_flag == '{{ configure.boson_table_sign_accept }}':
                 grammar.grammar_tree = symbol_stack[0]
                 return grammar
             else:
-                raise ValueError('Invalid action: action={}'.format(operation))
+                raise ValueError(f'Invalid action: action={operation}')
         raise RuntimeError('Analyzer unusual exit.')
 

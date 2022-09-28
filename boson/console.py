@@ -45,17 +45,17 @@ def display(text: str = '', indent: int = 0, newline: bool = True, file=sys.stdo
 
 
 def welcome() -> None:
-    display('{} - {}'.format(configure.boson_title, configure.boson_description))
-    display('Author: {}'.format(configure.boson_author), indent=4)
-    display('Email:  {}'.format(configure.boson_email), indent=4)
-    display('URL:    {}'.format(configure.boson_url), indent=4)
+    display(f'{configure.boson_title} - {configure.boson_description}')
+    display(f'Author: {configure.boson_author}', indent=4)
+    display(f'Email:  {configure.boson_email}', indent=4)
+    display(f'URL:    {configure.boson_url}', indent=4)
     display()
 
 
 def console_main() -> None:
     argument_parser = argparse.ArgumentParser(
         prog=configure.boson_name.lower(),
-        description='{} - {}'.format(configure.boson_title, configure.boson_description),
+        description=f'{configure.boson_title} - {configure.boson_description}',
         formatter_class=RawTextHelpFormatter)
     argument_parser.add_argument(
         'boson_script_file',
@@ -79,10 +79,10 @@ def console_main() -> None:
     try:
         display('[Generate Analyzer Code]')
         step = 1
-        display('[{}] Parse Boson Script... '.format(step), indent=4, newline=False)
+        display(f'[{step}] Parse Boson Script... ', indent=4, newline=False)
         start_time = time.time()
         global_start_time = start_time
-        logger.info('[Boson] Open Boson Script File: File="{}"'.format(arguments.boson_script_file))
+        logger.info(f'[Boson] Open Boson Script File: File="{arguments.boson_script_file}"')
         source_file = open(arguments.boson_script_file, 'r', encoding=configure.boson_default_encoding)
         script_analyzer = BosonScriptAnalyzer()
         logger.info('[Boson] Parse Boson Script.')
@@ -90,27 +90,27 @@ def console_main() -> None:
         command_executor = CommandExecutor()
         command_executor.execute(script_analyzer.command_list())
         end_time = time.time()
-        display('Done [{:.4f}s]'.format(end_time - start_time))
-        display('> Commands Count: {}'.format(len(script_analyzer.command_list())), indent=8)
-        display('> Lexical Definition: {}'.format('Yes' if script_analyzer.lexical_definition() else 'No'), indent=8)
-        display('> Grammar Definition: {}'.format('Yes' if script_analyzer.sentence_set() else 'No'), indent=8)
+        display(f'Done [{end_time - start_time:.4f}s]')
+        display(f'> Commands Count: {len(script_analyzer.command_list())}', indent=8)
+        display(f'> Lexical Definition: {"Yes" if script_analyzer.lexical_definition() else "No"}', indent=8)
+        display(f'> Grammar Definition: {"Yes" if script_analyzer.sentence_set() else "No"}', indent=8)
         if boson_option['code']['generator']['lexer'] == 'True' and script_analyzer.lexical_definition():
             step += 1
-            display('[{}] Generate Lexical Analysis Table... '.format(step), indent=4, newline=False)
+            display(f'[{step}] Generate Lexical Analysis Table... ', indent=4, newline=False)
             start_time = time.time()
             lexical_analyzer = LexerGenerator(script_analyzer.lexical_definition())
             lexical_analyzer.generate_lexical_dfa()
             lexical_analyzer.generate_compact_move_table()
             end_time = time.time()
-            display('Done [{:.4f}s]'.format(end_time - start_time))
-            display('> Lexical Definition Count: {}'.format(len(script_analyzer.lexical_definition())), indent=8)
-            display('> Character Set Size: {}'.format(len(lexical_analyzer.character_set())), indent=8)
-            display('> DFA State Count: {}'.format(len(lexical_analyzer.compact_move_table())), indent=8)
+            display(f'Done [{end_time - start_time:.4f}s]')
+            display(f'> Lexical Definition Count: {len(script_analyzer.lexical_definition())}', indent=8)
+            display(f'> Character Set Size: {len(lexical_analyzer.character_set())}', indent=8)
+            display(f'> DFA State Count: {len(lexical_analyzer.compact_move_table())}', indent=8)
         else:
             lexical_analyzer = None
         if script_analyzer.sentence_set():
             step += 1
-            display('[{}] Generate Grammar Analysis Table... '.format(step), indent=4, newline=False)
+            display(f'[{step}] Generate Grammar Analysis Table... ', indent=4, newline=False)
             start_time = time.time()
             parser_generator = parser_generator_library[boson_option['parser']['analyzer']](script_analyzer.sentence_set(), script_analyzer.sentence_attribute_mapping())
             parser_generator.initialize()
@@ -121,13 +121,13 @@ def console_main() -> None:
             parser_generator.generate_parse_table()
             parser_generator.parse_table_sparsification()
             end_time = time.time()
-            display('Done [{:.4f}s]'.format(end_time - start_time))
-            display('> Algorithm: {}'.format(boson_option['parser']['analyzer'].upper()), indent=8)
-            display('> Grammar Sentence Count: {}'.format(len(parser_generator.sentence_set()) - 1), indent=8)
-            display('> Non-Terminal Symbol Count: {}'.format(len(parser_generator.non_terminal_set())), indent=8)
-            display('> Terminal Symbol Count: {}'.format(len(parser_generator.terminal_set())), indent=8)
+            display(f'Done [{end_time - start_time:.4f}s]')
+            display(f'> Algorithm: {boson_option["parser"]["analyzer"].upper()}', indent=8)
+            display(f'> Grammar Sentence Count: {len(parser_generator.sentence_set()) - 1}', indent=8)
+            display(f'> Non-Terminal Symbol Count: {len(parser_generator.non_terminal_set())}', indent=8)
+            display(f'> Terminal Symbol Count: {len(parser_generator.terminal_set())}', indent=8)
             if isinstance(parser_generator, BottomUpParserGenerator):
-                display('> PDA State Count: {}'.format(len(parser_generator.state_reduce_mapping())), indent=8)
+                display(f'> PDA State Count: {len(parser_generator.state_reduce_mapping())}', indent=8)
                 if isinstance(parser_generator, BottomUpCanonicalParserGenerator):
                     action_table_size = sum([len(line) for line in parser_generator.action_table()])
                     sparse_action_table_size = sum([len(line) for _, line in parser_generator.sparse_action_table().items()])
@@ -135,8 +135,8 @@ def console_main() -> None:
                     goto_table_size = sum([len(line) for line in parser_generator.goto_table()])
                     sparse_goto_table_size = sum([len(line) for _, line in parser_generator.sparse_goto_table().items()])
                     goto_table_compression_rate = sparse_goto_table_size / goto_table_size * 100 if goto_table_size > 0 else 0
-                    display('> Action Table Size/Sparse-Size (Rate): {}/{} ({:.2f}%)'.format(action_table_size, sparse_action_table_size, action_table_compression_rate), indent=8)
-                    display('> Goto Table Size/Sparse-Size (Rate): {}/{} ({:.2f}%)'.format(goto_table_size, sparse_goto_table_size, goto_table_compression_rate), indent=8)
+                    display(f'> Action Table Size/Sparse-Size (Rate): {action_table_size}/{sparse_action_table_size} ({action_table_compression_rate:.2f}%)', indent=8)
+                    display(f'> Goto Table Size/Sparse-Size (Rate): {goto_table_size}/{sparse_goto_table_size} ({goto_table_compression_rate:.2f}%)', indent=8)
             if parser_generator.conflict_list():
                 conflict_type_text = {
                     configure.boson_conflict_reduce_reduce: 'Reduce/Reduce',
@@ -145,13 +145,13 @@ def console_main() -> None:
                 display('[Error] Conflict', indent=4)
                 for state_number, conflict_type, terminal in parser_generator.conflict_list():
                     if terminal in script_analyzer.literal_reverse_mapping():
-                        terminal = '\'{}\''.format(script_analyzer.literal_reverse_mapping()[terminal])
-                    display('[Conflict State: {}] <{}> Terminal: {}'.format(state_number, conflict_type_text[conflict_type], terminal), indent=8)
+                        terminal = f'\'{script_analyzer.literal_reverse_mapping()[terminal]}\''
+                    display(f'[Conflict State: {state_number}] <{conflict_type_text[conflict_type]}> Terminal: {terminal}', indent=8)
                 return
         else:
             parser_generator = None
         step += 1
-        display('[{}] Generate Code... '.format(step), indent=4, newline=False)
+        display(f'[{step}] Generate Code... ', indent=4, newline=False)
         start_time = time.time()
         if not os.path.isdir(arguments.output):
             os.mkdir(arguments.output)
@@ -161,18 +161,18 @@ def console_main() -> None:
         if parser_generator is not None:
             code_generator.dispose_parser(parser_generator)
         code_generator.generate_code()
-        logger.info('[Boson] Generate Target Code: Path="{}"'.format(arguments.output))
+        logger.info(f'[Boson] Generate Target Code: Path="{arguments.output}"')
         end_time = time.time()
-        display('Done [{:.4f}s]'.format(end_time - start_time))
-        display('> Language: {}'.format(boson_option['code']['language'].upper()), indent=8)
-        display('> Mode: {}'.format(boson_option['mode'].capitalize()), indent=8)
-        display('> Checker: {}'.format('Yes' if boson_option['code']['checker'] == 'True' else 'No'), indent=8)
-        display('> Generate Lexer: {}'.format('Yes' if lexical_analyzer else 'No'), indent=8)
-        display('> Generate Parser: {}'.format('Yes' if parser_generator else 'No'), indent=8)
-        display('> Generate Interpreter: {}'.format('Yes' if parser_generator and boson_option['code']['generator']['interpreter'] == 'True' else 'No'), indent=8)
-        display('> Output Path: "{}"'.format(arguments.output), indent=8)
+        display(f'Done [{end_time - start_time:.4f}s]')
+        display(f'> Language: {boson_option["code"]["language"].upper()}', indent=8)
+        display(f'> Mode: {boson_option["mode"].capitalize()}', indent=8)
+        display(f'> Checker: {"Yes" if boson_option["code"]["checker"] == "True" else "No"}', indent=8)
+        display(f'> Generate Lexer: {"Yes" if lexical_analyzer else "No"}', indent=8)
+        display(f'> Generate Parser: {"Yes" if parser_generator else "No"}', indent=8)
+        display(f'> Generate Interpreter: {"Yes" if parser_generator and boson_option["code"]["generator"]["interpreter"] == "True" else "No"}', indent=8)
+        display(f'> Output Path: "{arguments.output}"', indent=8)
         global_end_time = time.time()
-        display('[Complete!!! {:.4f}s]'.format(global_end_time - global_start_time))
+        display(f'[Complete!!! {global_end_time - global_start_time:.4f}s]')
         display()
     except ValueError as e:
         message = str(e)
@@ -180,10 +180,10 @@ def console_main() -> None:
             logger.error_block(message)
         else:
             logger.error(message)
-        display('\n\n[Error] {}'.format(e), file=sys.stderr)
+        display(f'\n\n[Error] {e}', file=sys.stderr)
     except Exception as e:
         logger.error_block(traceback.format_exc())
-        display('\n\n[Error] {}'.format(repr(e)), file=sys.stderr)
+        display(f'\n\n[Error] {repr(e)}', file=sys.stderr)
     finally:
         logger.close()
         if source_file is not None:

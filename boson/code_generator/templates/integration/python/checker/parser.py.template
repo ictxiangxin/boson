@@ -91,11 +91,11 @@ class {{ boson_code_option['class_name']['parser'] }}:
                 goto_next_state: int = self.__goto_table[current_state][current_non_terminal_index]
                 {%- endif %}
                 if goto_next_state == {{ configure.boson_invalid_goto }}:
-                    raise ValueError('Invalid goto action: state={}, non-terminal={}'.format(current_state, current_non_terminal_index))
+                    raise ValueError(f'Invalid goto action: state={current_state}, non-terminal={current_non_terminal_index}')
                 analysis_stack.append(goto_next_state)
             elif operation_flag == '{{ configure.boson_table_sign_accept }}':
                 return self.__check_pass_index
             else:
-                raise ValueError('Invalid action: action={}'.format(operation))
+                raise ValueError(f'Invalid action: action={operation}')
         raise RuntimeError('Analyzer unusual exit.')
 

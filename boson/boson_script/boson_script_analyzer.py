@@ -59,7 +59,7 @@ class BosonScriptAnalyzer:
         self.__current_index: int = 1
 
     def __generate_hidden_name(self, prefix: str = configure.boson_hidden_name_prefix) -> str:
-        hidden_name: str = '{}{}'.format(prefix, self.__hidden_name_number)
+        hidden_name: str = f'{prefix}{self.__hidden_name_number}'
         self.__hidden_name_number += 1
         return hidden_name
 
@@ -84,7 +84,7 @@ class BosonScriptAnalyzer:
             self.__positive_closure_cache[name] = hidden_name
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
-            self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            self.__sentence_add((hidden_name, hidden_name, name), attribute, (f'{configure.boson_grammar_tuple_unpack}0', '1'))
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, name), attribute)
@@ -98,7 +98,7 @@ class BosonScriptAnalyzer:
             self.__colin_closure_cache[name] = hidden_name
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
-            self.__sentence_add((hidden_name, hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack), '1'))
+            self.__sentence_add((hidden_name, hidden_name, name), attribute, (f'{configure.boson_grammar_tuple_unpack}0', '1'))
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
@@ -112,7 +112,7 @@ class BosonScriptAnalyzer:
             self.__optional_cache[name] = hidden_name
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
-            self.__sentence_add((hidden_name, name), attribute, ('{}0'.format(configure.boson_grammar_tuple_unpack),))
+            self.__sentence_add((hidden_name, name), attribute, (f'{configure.boson_grammar_tuple_unpack}0',))
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
@@ -330,8 +330,6 @@ class BosonScriptAnalyzer:
             select_node: BosonSemanticsNode = BosonSemanticsNode()
             select_node.set_text(self.__add_select(native_sentence_list))
             select_node.set_data((None, element_definition_map))
-            sentence_node: BosonSemanticsNode = BosonSemanticsNode()
-            sentence_node.append(select_node)
             return select_node
 
         @interpreter.register_action('getter_tuple')
@@ -474,7 +472,7 @@ class BosonScriptAnalyzer:
             error_token_list: List[BosonToken] = token_list[start_index + 1: end_index]
             error_message: str = f'\n[Boson Script Analyzer] Syntax Error <Line: {error_line}>\n'
             error_token_text_list: List[str] = [token.text for token in error_token_list]
-            error_message += '{}\n'.format(' '.join(error_token_text_list))
+            error_message += f'{" ".join(error_token_text_list)}\n'
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
             raise ValueError(error_message)
 

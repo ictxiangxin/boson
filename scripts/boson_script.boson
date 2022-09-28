@@ -16,13 +16,13 @@
 ####################################
 #        Lexical Definition        #
 ####################################
-name      = <[_a-zA-Z][_a-zA-Z0-9]*>;
-number    = <\-?[0-9]+|0x[0-9a-fA-F]+>;
-string    = <".*[^\\]"|'.*[^\\]'>!;
-regular   = <\<.*[^\\]\>>!;
-comment   = <#[^\r\n]*>@{skip};
-skip      = <[\ \t]+>@{skip};
-newline   = <\r\n|\n>@{skip, newline};
+name    = <[_a-zA-Z][_a-zA-Z0-9]*>;
+number  = <\-?[0-9]+|0x[0-9a-fA-F]+>;
+string  = <".*[^\\]"|'.*[^\\]'>!;
+regular = <\<.*[^\\]\>>!;
+comment = <#[^\r\n]*>@{skip};
+skip    = <[\ \t]+>@{skip};
+newline = <\r\n|\n>@{skip, newline};
 
 
 #####################################

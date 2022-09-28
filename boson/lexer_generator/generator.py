@@ -64,13 +64,13 @@ class LexerGenerator:
                 non_greedy_symbol_set.add(lexical_symbol)
             tokenizer_error_index: int = tokenizer.tokenize(regular_definition['regular'])
             if tokenizer_error_index != tokenizer.no_error_index():
-                raise ValueError('[Lexer Generator] Invalid Regular Expression: "{}", Error Index: {}'.format(regular_definition['regular'], tokenizer_error_index))
+                raise ValueError(f'[Lexer Generator] Invalid Regular Expression: "{regular_definition["regular"]}", Error Index: {tokenizer_error_index}')
             symbol_token_list_mapping[lexical_symbol] = tokenizer.token_list()
         for lexical_symbol in reference_set:
             if lexical_symbol in symbol_token_list_mapping:
                 reference_nfa_mapping[lexical_symbol] = analyzer.parse_to_lexical(symbol_token_list_mapping[lexical_symbol])
             else:
-                raise ValueError('[Lexer Generator] Invalid Reference: "{}".'.format(lexical_symbol))
+                raise ValueError(f'[Lexer Generator] Invalid Reference: "{lexical_symbol}".')
         for lexical_symbol, token_list in symbol_token_list_mapping.items():
             if not lexical_symbol.startswith(configure.boson_lexical_hidden_prefix):
                 lexical_symbol_nfa: LexicalNFA = reference_nfa_mapping[lexical_symbol] if lexical_symbol in reference_nfa_mapping else analyzer.parse_to_lexical(token_list)
