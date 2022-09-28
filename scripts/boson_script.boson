@@ -16,15 +16,16 @@
 ####################################
 #        Lexical Definition        #
 ####################################
-name     = <[_a-zA-Z][_a-zA-Z0-9]*>;
-node     = <$[0-9]+>;
-number   = <\-?[0-9]+|0x[0-9a-fA-F]+>;
-string   = <".*[^\\]"|'.*[^\\]'>!;
-regular  = <\<.*[^\\]\>>!;
-comment  = <#[^\r\n]*>@{skip};
-command  = <%[_a-zA-Z]+>;
-skip     = <[\ \t]+>@{skip};
-newline  = <\r\n|\n>@{skip, newline};
+name      = <[_a-zA-Z][_a-zA-Z0-9]*>;
+node      = <$[0-9]+>;
+node_name = <${name}>;
+number    = <\-?[0-9]+|0x[0-9a-fA-F]+>;
+string    = <".*[^\\]"|'.*[^\\]'>!;
+regular   = <\<.*[^\\]\>>!;
+comment   = <#[^\r\n]*>@{skip};
+command   = <%[_a-zA-Z]+>;
+skip      = <[\ \t]+>@{skip};
+newline   = <\r\n|\n>@{skip, newline};
 
 
 #####################################
@@ -37,21 +38,23 @@ statement : command_statement
           | grammar_statement
           ;
 
-command_statement : command (name | string | attribute)+ ';' = command($0, *$1);
+command_statement : command@command (name | string | attribute)+@arguments ';' = command($command, *$arguments);
 
-lexicon_statement : name '=' regular ['!'] ['@' '{' lexical_function '}'] ';' = lexical_define($0, $2, *$3, $4(*$2));
+lexicon_statement : name@lexicon_name '=' regular@regular ['!']@non_greedy ['@' '{' lexical_function '}']@functions ';'
+                  = lexical_define($lexicon_name, $regular, *$non_greedy, $functions(*$2));
 
 lexical_function : name (',' name)* = ($0, *$1[1]);
 
-grammar_statement : name ':' derivation_list ';' = reduce($0, $2);
+grammar_statement : name@reduce_name ':' derivation_list@list ';' = reduce($reduce_name, $list);
 
 derivation_list : derivation ('|' derivation)* = ($0, *$1[1]);
 
-derivation : derivation_body ['=' [name] grammar_tuple [attribute]] = ($0, *$1($1, $2, $3));
+derivation : derivation_body@body ['=' [name]@name grammar_tuple@tuple [attribute]@attribute]@postfix
+           = ($body, *$postfix($name, $tuple, $attribute));
 
 derivation_body : sentence | '~' | ;
 
-sentence : element+ = (*$0);
+sentence : element_definition+ = (*$0);
 
 grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
               | '[' number ']' = getter_tuple($1)
@@ -59,17 +62,23 @@ grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
 
 node_element_list : node_element (',' node_element)* = ($0, *$1[1]);
 
-node_element : ['*'] node [['*'] grammar_tuple] = grammar_node(*$0, $1, *$2(*$0, $1));
+node_element : ['*']@unpack (node | node_name)@node_id [['*']@sub_unpack grammar_tuple@sub_tuple]@sub
+             = grammar_node(*$unpack, *$node_id, *$sub(*$sub_unpack, $sub_tuple));
 
-element : complex_element | symbol [closure] = name_closure($0, *$1);
+element_definition : element@element ['@' name@alias_name]@alias = element_definition($element, *$alias($alias_name));
 
-symbol : name | string = literal($0);
+element : complex_element | symbol@symbol [closure]@closure = name_closure($symbol, *$closure);
 
-complex_element : '(' sub_derivation ')' [closure] = complex_closure($1, *$3)
-                | '[' sub_derivation ']' = complex_optional($1)
+symbol : name
+       | string = literal($0)
+       | regular@regular ['!']@no_greedy = regular($regular, *$no_greedy)
+       ;
+
+complex_element : '(' sub_derivation@sub ')' [closure]@closure = complex_closure($sub, *$closure)
+                | '[' sub_derivation@sub ']' = complex_optional($sub)
                 ;
 
-sub_derivation : sentence | sentence ('|' sentence)+ = select($0, *$1[1]);
+sub_derivation : sentence ('|' sentence)* = select($0, *$1[1]);
 
 attribute : '{' key_value_list '}' = attribute($1);
 

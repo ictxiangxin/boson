@@ -14,12 +14,24 @@ from boson.boson_script.sentence_attribute import SentenceAttribute
 interpreter = BosonInterpreter()
 
 
-def get_semantic_node_text_list(semantic_node: BosonSemanticsNode) -> List[str]:
-    return [node.get_text() for node in semantic_node.children()]
-
-
 def get_semantic_node_data_list(semantic_node: BosonSemanticsNode) -> list:
     return [node.get_data() for node in semantic_node.children()]
+
+
+def generate_naive_grammar_tuple(grammar_tuple: Tuple[str | tuple, ...], element_definition_map: Dict[str, int]) -> Tuple[str | tuple, ...]:
+    grammar_node_list: List[str | tuple, ...] = []
+    for node in grammar_tuple:
+        if isinstance(node, tuple):
+            grammar_node_list.append(generate_naive_grammar_tuple(node, element_definition_map))
+        else:
+            if node.startswith(configure.boson_grammar_tuple_unpack):
+                node_index = node[1:]
+                unpack = configure.boson_grammar_tuple_unpack
+            else:
+                node_index = node
+                unpack = ''
+            grammar_node_list.append(unpack + str(element_definition_map.get(node_index, node_index)))
+    return tuple(grammar_node_list)
 
 
 class BosonScriptAnalyzer:
@@ -35,6 +47,7 @@ class BosonScriptAnalyzer:
         self.__sentence_grammar_name_mapping: Dict[Tuple[str, ...], str] = {}
         self.__naive_sentence_set: Set[Tuple[str, ...]] = set()
         self.__literal_number: int = 1
+        self.__hidden_regular_number: int = 1
         self.__hidden_name_number: int = 0
         self.__lexical_definition: Dict[str, Dict[str, str | int | bool | Optional[List[str]]]] = {}
         self.__lexical_number: int = 0
@@ -113,7 +126,12 @@ class BosonScriptAnalyzer:
             attribute.parse_index = self.__generate_index()
             attribute.order = order
             self.__sentence_add(select_sentence, attribute)
-            self.__naive_sentence_set.add(select_sentence)
+            if len(select_sentence) == 2:
+                for i in range(2):
+                    if select_sentence[i].startswith(configure.boson_operator_name_prefix) or select_sentence[i].startswith(configure.boson_hidden_name_prefix):
+                        break
+                else:
+                    self.__naive_sentence_set.add(select_sentence)
         return hidden_name
 
     def __add_hidden_derivation(self, derivation: List[str]) -> str:
@@ -180,7 +198,7 @@ class BosonScriptAnalyzer:
             else:
                 function_index: int = 2
                 definition['non_greedy'] = False
-            definition['function_list'] = get_semantic_node_text_list(semantic_node[function_index])
+            definition['function_list'] = [node.get_text() for node in semantic_node[function_index].children()]
             self.__lexical_definition[lexical_name] = definition
             return BosonSemanticsNode.null_node()
 
@@ -191,11 +209,29 @@ class BosonScriptAnalyzer:
             self.__sentence_order_base_mapping.setdefault(reduce_name, 0)
             order_base: int = self.__sentence_order_base_mapping[reduce_name]
             for order, derivation in enumerate(derivation_list.children()):
+                element_definition_map: Dict[str, int] = {}
                 derivation_body = derivation[0]
                 if len(derivation_body.children()) == 0 and not derivation_body.is_null():
                     sentence: Tuple[str, ...] = (reduce_name, derivation_body.get_text())
                 elif len(derivation_body.children()) > 0:
-                    sentence: Tuple[str, ...] = (reduce_name,) + tuple(get_semantic_node_text_list(derivation_body))
+                    derivation_symbol_list: List[str] = []
+                    for element_index, node in enumerate(derivation_body.children()):
+                        element_name = node.get_text()
+                        definition_tuple: Tuple[Optional[str], Optional[Dict[str, int]]] = node.get_data()
+                        derivation_symbol_list.append(element_name)
+                        alias_name: Optional[str] = definition_tuple[0]
+                        lower_level_element_definition_map: Optional[Dict[str, int]] = definition_tuple[1]
+                        if lower_level_element_definition_map is not None:
+                            for alias, sub_index in lower_level_element_definition_map.items():
+                                if alias in element_definition_map:
+                                    raise ValueError(f'[Boson Script Analyzer] Element Definition Duplicate: {alias}')
+                                element_definition_map[alias] = sub_index
+                        if alias_name is not None:
+                            if alias_name in element_definition_map:
+                                raise ValueError(f'[Boson Script Analyzer] Element Definition Duplicate: {alias_name}')
+                            else:
+                                element_definition_map[alias_name] = element_index
+                    sentence: Tuple[str, ...] = (reduce_name,) + tuple(derivation_symbol_list)
                 else:
                     sentence: Tuple[str, ...] = (reduce_name, configure.boson_null_symbol)
                 if len(sentence) == 2:
@@ -213,12 +249,26 @@ class BosonScriptAnalyzer:
                 else:
                     if derivation[1].children():
                         self.__sentence_grammar_name_mapping[sentence] = derivation[1][0].get_text()
-                    grammar_tuple: Tuple[str | tuple, ...] = tuple(get_semantic_node_data_list(derivation[2]))
+                    grammar_tuple: Tuple[str | tuple, ...] = generate_naive_grammar_tuple(tuple(get_semantic_node_data_list(derivation[2])), element_definition_map)
                     if derivation[3].children():
                         attribute.custom = derivation[3][0].get_data()
                 self.__sentence_add(sentence, attribute, grammar_tuple)
             self.__sentence_order_base_mapping[reduce_name] += len(derivation_list.children())
             return BosonSemanticsNode.null_node()
+
+        @interpreter.register_action('element_definition')
+        def _element_definition(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            element_definition_node: BosonSemanticsNode = BosonSemanticsNode()
+            element_definition_node.set_text(semantic_node[0].get_text())
+            lower_level_data: Optional[Tuple[Optional[str], Optional[Dict[str, int]]]] = semantic_node[0].get_data()
+            element_alias: Optional[str] = None
+            if len(semantic_node.children()) == 2:
+                element_alias = semantic_node[1].get_text()
+            if lower_level_data is None:
+                element_definition_node.set_data((element_alias, None))
+            else:
+                element_definition_node.set_data((element_alias, lower_level_data[1]))
+            return element_definition_node
 
         @interpreter.register_action('name_closure')
         def _semantic_name_closure(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
@@ -236,7 +286,8 @@ class BosonScriptAnalyzer:
 
         @interpreter.register_action('complex_closure')
         def _semantic_complex_closure(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
-            name: str = self.__add_hidden_derivation(get_semantic_node_text_list(semantic_node[0]))
+            lower_level_data: Tuple[None, Dict[str, int]] = semantic_node[0].get_data()
+            name: str = semantic_node[0].get_text()
             if len(semantic_node.children()) == 2:
                 closure: str = semantic_node[1].get_text()
                 if closure == '+':
@@ -247,21 +298,41 @@ class BosonScriptAnalyzer:
                     raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
             complex_closure_node: BosonSemanticsNode = BosonSemanticsNode()
             complex_closure_node.set_text(name)
+            complex_closure_node.set_data((None, lower_level_data[1]))
             return complex_closure_node
 
         @interpreter.register_action('complex_optional')
         def _semantic_complex_optional(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            lower_level_data: Tuple[None, Dict[str, int]] = semantic_node[0].get_data()
+            name: str = semantic_node[0].get_text()
             complex_optional_node: BosonSemanticsNode = BosonSemanticsNode()
-            complex_optional_node.set_text(self.__add_optional(self.__add_hidden_derivation(get_semantic_node_text_list(semantic_node[0]))))
+            complex_optional_node.set_text(self.__add_optional(name))
+            complex_optional_node.set_data((None, lower_level_data[1]))
             return complex_optional_node
 
         @interpreter.register_action('select')
         def _semantic_select(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            native_sentence_list: List[List[str]] = []
+            element_definition_map: Dict[str, int] = {}
+            for sentence in semantic_node.children():
+                native_sentence: List[str] = []
+                for index, element_definition in enumerate(sentence):
+                    lower_level_data: Optional[Tuple[str, Optional[Dict[str, int]]]] = element_definition.get_data()
+                    native_sentence.append(element_definition.get_text())
+                    if lower_level_data[0] is not None:
+                        element_definition_map[lower_level_data[0]] = index
+                    if lower_level_data[1] is not None:
+                        for alias, sub_index in lower_level_data[1].items():
+                            if alias in element_definition_map:
+                                raise ValueError(f'[Boson Script Analyzer] Element Definition Duplicate: {alias}.')
+                            element_definition_map[alias] = sub_index
+                native_sentence_list.append(native_sentence)
             select_node: BosonSemanticsNode = BosonSemanticsNode()
-            select_node.set_text(self.__add_select([get_semantic_node_text_list(node) for node in semantic_node.children()]))
+            select_node.set_text(self.__add_select(native_sentence_list))
+            select_node.set_data((None, element_definition_map))
             sentence_node: BosonSemanticsNode = BosonSemanticsNode()
             sentence_node.append(select_node)
-            return sentence_node
+            return select_node
 
         @interpreter.register_action('getter_tuple')
         def _semantic_getter_tuple(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
@@ -313,6 +384,29 @@ class BosonScriptAnalyzer:
             literal_node: BosonSemanticsNode = BosonSemanticsNode()
             literal_node.set_text(literal_symbol)
             return literal_node
+
+        @interpreter.register_action('regular')
+        def _semantic_regular(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
+            regular_string: str = semantic_node[0].get_text()[1: -1]
+            if regular_string in self.__literal_mapping:
+                regular_symbol: str = self.__literal_mapping[regular_string]
+            else:
+                regular_symbol: str = configure.boson_symbol_template.format(self.__literal_number)
+                self.__literal_number += 1
+                self.__literal_mapping[regular_string] = regular_symbol
+                self.__literal_reverse_mapping[regular_symbol] = semantic_node[0].get_text()
+                if len(semantic_node.children()) == 2:
+                    no_greedy = True
+                else:
+                    no_greedy = False
+                self.__lexical_definition[regular_symbol] = {
+                    'regular': regular_string,
+                    'non_greedy': no_greedy,
+                    'function_list': None
+                }
+            regular_node: BosonSemanticsNode = BosonSemanticsNode()
+            regular_node.set_text(regular_symbol)
+            return regular_node
 
         @interpreter.register_action('attribute')
         def _semantic_attribute(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
@@ -378,7 +472,7 @@ class BosonScriptAnalyzer:
                     break
             offset: int = grammar.error_index - start_index - 1
             error_token_list: List[BosonToken] = token_list[start_index + 1: end_index]
-            error_message: str = '\n[Boson Script Analyzer] Syntax Error <Line: {}>\n'.format(error_line)
+            error_message: str = f'\n[Boson Script Analyzer] Syntax Error <Line: {error_line}>\n'
             error_token_text_list: List[str] = [token.text for token in error_token_list]
             error_message += '{}\n'.format(' '.join(error_token_text_list))
             error_message += ' ' * (sum([len(text) for text in error_token_text_list[:offset]]) + offset) + '^' * len(error_token_text_list[offset])
@@ -387,7 +481,7 @@ class BosonScriptAnalyzer:
     def tokenize_and_parse(self, boson_script_text: str) -> None:
         lexer: BosonLexer = BosonLexer()
         if lexer.tokenize(boson_script_text) != lexer.no_error_index():
-            raise ValueError('[Boson Script Analyzer] Invalid Token [Line: {}, Index: {}]'.format(lexer.line(), lexer.error_index()))
+            raise ValueError(f'[Boson Script Analyzer] Invalid Token [Line: {lexer.line()}, Index: {lexer.error_index()}]')
         self.__init__()
         self.init_semantic()
         interpreter.execute(self.parse(lexer.token_list()))
