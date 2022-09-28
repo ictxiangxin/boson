@@ -17,13 +17,10 @@
 #        Lexical Definition        #
 ####################################
 name      = <[_a-zA-Z][_a-zA-Z0-9]*>;
-node      = <$[0-9]+>;
-node_name = <${name}>;
 number    = <\-?[0-9]+|0x[0-9a-fA-F]+>;
 string    = <".*[^\\]"|'.*[^\\]'>!;
 regular   = <\<.*[^\\]\>>!;
 comment   = <#[^\r\n]*>@{skip};
-command   = <%[_a-zA-Z]+>;
 skip      = <[\ \t]+>@{skip};
 newline   = <\r\n|\n>@{skip, newline};
 
@@ -38,7 +35,7 @@ statement : command_statement
           | grammar_statement
           ;
 
-command_statement : command@command (name | string | attribute)+@arguments ';' = command($command, *$arguments);
+command_statement : <%[_a-zA-Z]+>@command (name | string | attribute)+@arguments ';' = command($command, *$arguments);
 
 lexicon_statement : name@lexicon_name '=' regular@regular ['!']@non_greedy ['@' '{' lexical_function '}']@functions ';'
                   = lexical_define($lexicon_name, $regular, *$non_greedy, $functions(*$2));
@@ -62,7 +59,7 @@ grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
 
 node_element_list : node_element (',' node_element)* = ($0, *$1[1]);
 
-node_element : ['*']@unpack (node | node_name)@node_id [['*']@sub_unpack grammar_tuple@sub_tuple]@sub
+node_element : ['*']@unpack (<$[0-9]+> | <${name}>)@node_id [['*']@sub_unpack grammar_tuple@sub_tuple]@sub
              = grammar_node(*$unpack, *$node_id, *$sub(*$sub_unpack, $sub_tuple));
 
 element_definition : element@element ['@' name@alias_name]@alias = element_definition($element, *$alias($alias_name));
