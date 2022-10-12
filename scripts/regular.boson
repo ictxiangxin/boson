@@ -1,6 +1,6 @@
-####################################
-#              Option              #
-####################################
+####################################################################################################
+#                                              Option                                              #
+####################################################################################################
 %option {
     parser = {
         start_symbol = "regular_expression",
@@ -19,22 +19,22 @@
 };
 
 
-####################################
-#        Lexical Definition        #
-####################################
+####################################################################################################
+#                                        Lexical Definition                                        #
+####################################################################################################
 reference = <\{[_a-zA-Z][_a-zA-Z0-9]*\}>@{reference};
 
 
-#####################################
-#        Grammar Definition         #
-#####################################
+####################################################################################################
+#                                        Grammar Definition                                        #
+####################################################################################################
 regular_expression: expression = regular_expression($0);
 
 expression : branch ('|' branch)* = expression($0, *$1[1]);
 
 branch: group+ = branch(*$0);
 
-group: element [postfix] = group($0, *$1);
+group: element postfix? = group($0, *$1);
 
 element : simple_element = simple_construct($0)
         | complex_element = [0]
@@ -50,7 +50,7 @@ character : <[^0-9\\\(\)\[\]\{\}\^\.\*\+\-\?\,\|]> # Normal Character
           | <[0-9]> # Number
           ;
 
-complex_element : '[' ['^']@reverse select_element+@character_set ']' = select(*$reverse, $character_set)
+complex_element : '[' '^'?@reverse select_element+@character_set ']' = select(*$reverse, $character_set)
                 | '(' expression ')' = [1]
                 | reference = reference($0)
                 ;
@@ -60,7 +60,7 @@ select_element : simple_element
                ;
 
 postfix : '+' | '*' | '?'
-        | '{' number@min ',' [number]@max '}' = ($min, *$max)
+        | '{' number@min ',' number?@max '}' = ($min, *$max)
         | '{' number '}' = ($1, $1)
         ;
 

@@ -104,7 +104,7 @@ class BosonScriptAnalyzer:
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
             return hidden_name
 
-    def __add_optional(self, name: str) -> str:
+    def __add_optional(self, name: str, auto_unpack: bool) -> str:
         if name in self.__optional_cache:
             return self.__optional_cache[name]
         else:
@@ -112,7 +112,7 @@ class BosonScriptAnalyzer:
             self.__optional_cache[name] = hidden_name
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
-            self.__sentence_add((hidden_name, name), attribute, (f'{configure.boson_grammar_tuple_unpack}0',))
+            self.__sentence_add((hidden_name, name), attribute, (f'{configure.boson_grammar_tuple_unpack if auto_unpack else ""}0',))
             attribute: SentenceAttribute = SentenceAttribute()
             attribute.parse_index = self.__generate_index()
             self.__sentence_add((hidden_name, configure.boson_null_symbol), attribute, tuple())
@@ -274,12 +274,15 @@ class BosonScriptAnalyzer:
         def _semantic_name_closure(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
             name: str = semantic_node[0].get_text()
             if len(semantic_node.children()) == 2:
-                if semantic_node[1].get_text() == '+':
-                    name: str = self.__add_positive_closure(name)
-                elif semantic_node[1].get_text() == '*':
-                    name: str = self.__add_colin_closure(name)
-                else:
-                    raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
+                match semantic_node[1].get_text():
+                    case '+':
+                        name: str = self.__add_positive_closure(name)
+                    case '*':
+                        name: str = self.__add_colin_closure(name)
+                    case '?':
+                        name: str = self.__add_optional(name, False)
+                    case _:
+                        raise RuntimeError('[Boson Script Analyzer] Never Touch Here. Action=\'name_closure\'')
             name_closure_node: BosonSemanticsNode = BosonSemanticsNode()
             name_closure_node.set_text(name)
             return name_closure_node
@@ -289,13 +292,15 @@ class BosonScriptAnalyzer:
             lower_level_data: Tuple[None, Dict[str, int]] = semantic_node[0].get_data()
             name: str = semantic_node[0].get_text()
             if len(semantic_node.children()) == 2:
-                closure: str = semantic_node[1].get_text()
-                if closure == '+':
-                    name: str = self.__add_positive_closure(name)
-                elif closure == '*':
-                    name: str = self.__add_colin_closure(name)
-                else:
-                    raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
+                match semantic_node[1].get_text():
+                    case '+':
+                        name: str = self.__add_positive_closure(name)
+                    case '*':
+                        name: str = self.__add_colin_closure(name)
+                    case '?':
+                        name: str = self.__add_optional(name, True)
+                    case _:
+                        raise RuntimeError('[Boson Script Analyzer] Never Touch Here. Action=\'complex_closure\'')
             complex_closure_node: BosonSemanticsNode = BosonSemanticsNode()
             complex_closure_node.set_text(name)
             complex_closure_node.set_data((None, lower_level_data[1]))
@@ -306,7 +311,7 @@ class BosonScriptAnalyzer:
             lower_level_data: Tuple[None, Dict[str, int]] = semantic_node[0].get_data()
             name: str = semantic_node[0].get_text()
             complex_optional_node: BosonSemanticsNode = BosonSemanticsNode()
-            complex_optional_node.set_text(self.__add_optional(name))
+            complex_optional_node.set_text(self.__add_optional(name, True))
             complex_optional_node.set_data((None, lower_level_data[1]))
             return complex_optional_node
 
@@ -346,22 +351,23 @@ class BosonScriptAnalyzer:
 
         @interpreter.register_action('grammar_node')
         def _semantic_grammar_node(semantic_node: BosonSemanticsNode) -> BosonSemanticsNode:
-            if len(semantic_node.children()) == 1:
-                grammar_node: str = semantic_node[0].get_text()[1:]
-            elif len(semantic_node.children()) == 2:
-                if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
-                    grammar_node: str = semantic_node[0].get_text() + semantic_node[1].get_text()[1:]
-                else:
-                    grammar_node: tuple = (semantic_node[0].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[1])))
-            elif len(semantic_node.children()) == 3:
-                if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
-                    grammar_node: tuple = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[2])))
-                else:
-                    grammar_node: tuple = (semantic_node[0].get_text()[1:], (semantic_node[1].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[2])))
-            elif len(semantic_node.children()) == 4:
-                grammar_node: tuple = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], (semantic_node[2].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[3])))
-            else:
-                raise RuntimeError('[Boson Script Analyzer] Never Touch Here.')
+            match len(semantic_node.children()):
+                case 1:
+                    grammar_node: str = semantic_node[0].get_text()[1:]
+                case 2:
+                    if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
+                        grammar_node: str = semantic_node[0].get_text() + semantic_node[1].get_text()[1:]
+                    else:
+                        grammar_node: tuple = (semantic_node[0].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[1])))
+                case 3:
+                    if semantic_node[0].get_text() == configure.boson_grammar_tuple_unpack:
+                        grammar_node: tuple = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], tuple(get_semantic_node_data_list(semantic_node[2])))
+                    else:
+                        grammar_node: tuple = (semantic_node[0].get_text()[1:], (semantic_node[1].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[2])))
+                case 4:
+                    grammar_node: tuple = (semantic_node[0].get_text() + semantic_node[1].get_text()[1:], (semantic_node[2].get_text(),) + tuple(get_semantic_node_data_list(semantic_node[3])))
+                case _:
+                    raise RuntimeError('[Boson Script Analyzer] Never Touch Here. Action=\'grammar_node\'')
             return BosonSemanticsNode(grammar_node)
 
         @interpreter.register_action('literal')
