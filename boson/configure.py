@@ -53,4 +53,5 @@ boson_operator_name_prefix = f'{boson_reserved_symbol}operator_'
 boson_grammar_name_prefix = f'{boson_reserved_symbol}grammar_'
 boson_default_symbol = f'{boson_reserved_symbol}symbol'
 
+boson_default_output = 'boson_output'
 boson_log_file_default_path = '.'

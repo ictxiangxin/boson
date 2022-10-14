@@ -61,7 +61,7 @@ def console_main() -> None:
         'boson_script_file',
         help='Input Boson Script File.')
     argument_parser.add_argument(
-        '-o', '--output', default='boson',
+        '-o', '--output', default=configure.boson_default_output,
         help='Output Boson Code Path(Default Is `boson`).')
     argument_parser.add_argument(
         '-l', '--log', action='store_true',

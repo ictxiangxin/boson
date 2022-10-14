@@ -9,7 +9,7 @@
 Boson是一个语法分析器生成器（也能生成词法分析器）。采用自有的Boson脚本（Boson Script）来定义语法和词法，
 Boson根据输入的脚本内容和命令参数生成相应的语法分析器及词法分析器的代码。
 
-> Boson需要Python3的运行环境。
+> Boson需要Python3.10的运行环境。
 
 * * *
 
@@ -35,38 +35,20 @@ Boson可通过pip命令安装或从源码进行安装：
 输入`boson -h`以查看Boson的简要的使用说明：
 
 ```
-usage: boson [-h] [-o OUTPUT] [-a {slr,lr,lalr}] [-l {python,c++,java,javascript}]
-             [-m {integration,library,binary}] [-c] [-f] [-q]
-             boson_script_file
+usage: boson [-h] [-o OUTPUT] [-l] [-q] boson_script_file
 
-Boson v1.5 - Grammar Analyzer Generator
+Boson v1.7 - Grammar Analyzer Generator
 
 positional arguments:
   boson_script_file     Input Boson Script File.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -o OUTPUT, --output OUTPUT
                         Output Boson Code Path(Default Is `boson`).
-  -a {slr,lr,lalr}, --analyzer {slr,lr,lalr}
-                        Grammar Analyzer Type (Default Is LALR).
-                          slr  - SLR(1) (Simple LR)
-                          lr   - LR(1) (Canonical LR)
-                          lalr - LALR(1) (Look-Ahead LR)
-  -l {python,c++,java,javascript}, --language {python,c++,java,javascript}
-                        Generate Code Program Language (Default Is Python3).
-                          python     - Python3 Code.
-                          c++        - C++ Code.
-                          java       - Java Code.
-                          javascript - Java Script Code.
-  -m {integration,library,binary}, --mode {integration,library,binary}
-                        Analyzer Mode (Default Is Integration).
-                          integration - Analyzer Table Integrated In Code.
-                          library     - Analyzer Static Library Code.
-                          binary      - Binary File Used for Drive Library.
-  -c, --checker         Generate Checker Instead Of Full Lexer And Parser.
-  -f, --force           Force Generate Parse Table When Exist Conflicts.
+  -l, --log             Enable Boson Log.
   -q, --quiet           Display Nothing.
+
 ```
 
 Boson运行命令形式简单，可归纳为`boson <Boson脚本文件> <其他各项参数>`。
@@ -75,29 +57,21 @@ Boson运行命令形式简单，可归纳为`boson <Boson脚本文件> <其他�
 
 1. `-h`或`--help`，Boson将显示简要的使用说明。
 
-2. `-o`或`--output`，该参数后跟输出代码文件的目录（不存在则自动创建）。
+2. `-o`或`--output`，该参数后跟输出代码文件的目录，默认为`boson_output`文件夹。
 
-3. `-a`或`--analyzer`，指定Boson使用的语法分析器，目前支持`slr`、`lr`、`lalr`，默认为`lalr`。
+3. `-l`或`--log`，打开日志，日志会生成在当前目录下，文件名为`Boson_{当前日期时间}.log`。
 
-4. `-l`或`--language`，指定生成代码的编程语言，目前支持`python3`、`c++`、`java`、`javascript`，默认为`c++`。
-
-5. `-m`或`--mode`，生成分析器的模式，`integration`模式为分析表集成于代码（默认模式），`library`模式为生成分析器的库源码，`binary`生成用于分析器库的二进制文件。
-
-6. `-c`或`--checker`，仅生成语法检查器，不生成完整的语法分析程序。
-
-7. `-f`或`--force`，在有语法冲突时，强制生成代码，后续手动解决冲突问题。
-
-8. `-q`或`--quiet`，安静模式，Boson运行时不输出任何信息。
+4. `-q`或`--quiet`，安静模式，Boson运行时不输出任何信息。
 
 ### Boson的自举
 
-Boson自身的部分代码也由Boson生成（该过程称为“自举”）。
+Boson自身的部分代码也由Boson生成（该过程称为“自举（Bootstrap）”）。
 
 > `boson/boson_script/boson_script_parser`目录是由`boson boson_script.boson -o boson_script_parser`生成。
 
 > `boson/lexer_generator/regular_parser`文件是由`boson regular.boson -o regular_parser`生成。
 
-上述命令中用到的`boson_script.boson`文件和`regular.boson`是两个Boson脚本文件，可在Boson源码的根目录找到。
+上述命令中用到的`boson_script.boson`文件和`regular.boson`是两个Boson脚本文件，可在Boson源码的`scripts`目录找到。
 
 # Boson脚本
 
@@ -121,36 +95,79 @@ Boson脚本中有一个很重要的概念叫做“符号”，符号是字母、
 ```
 
 命令都以`%`符号开头，后面为合法的符号。
-在命令名中，下划线命名和驼峰命名本质上是相同意义。例如`%start_symbol`与`%StartSymbol`等价。
+在命令名中，下划线命名和驼峰命名本质上是相同意义。例如`%hello_world`与`%HelloWorld`等价。
 
-在当前的Boson版本中，实现的所有命令都只有一个参数，以下为所有命令的清单:
+### 命令说明:
 
-|命令名|参数范围|默认值|备注|
-|:-|:-:|:-:|:-|
-|%start_symbol|任意符号名|start|指明脚本中语法定义的起始语法符号。|
-|%token_class_name|任意变量名|BosonToken|生成代码中词法符号的类名。|
-|%lexer_class_name|任意变量名|BosonLexer|生成代码中词法分析器类名。|
-|%parser_class_name|任意变量名|BosonParser|生成代码中语法分析器类名。|
-|%grammar_class_name|任意变量名|BosonGrammar|生成代码中语法结构类名。|
-|%grammar_node_class_name|任意变量名|BosonGrammarNode|生成代码中语法节点类名。|
-|%interpreter_class_name|任意变量名|BosonInterpreter|生成代码中语义分析器类名。|
-|%semantic_node_class_name|任意变量名|BosonSemanticsNode|生成代码中语义节点类名。|
-|%generate_interpreter|yes/no|yes|是否生成语义分析器代码。|
-|%generate_lexer|yes/no|yes|是否生成词法分析器代码。|
-|%code_comment|yes/no|yes|是否在生成代码中显示版本版权等信息。|
-|%parser_sparse_table|yes/no|yes|语法分析器是否生成稀疏分析表。|
-|%lexer_compact_table|yes/no|yes|词法分析器是否生成压缩分析表。|
-|%conflict_resolver|yes/no|no|是否开启内置冲突解决器。|
-|%shift_reduce_conflict_resolver|shift/reduce|shift|“移入-规约”冲突的解决方式，“shift”为移入优先，“reduce”为规约优先。|
-|%reduce_reduce_conflict_resolver|long/short|long|“规约-规约”冲突的解决方式，“long”为最长优先，“short”为最短优先。|
+> 当前Boson版本仅有一个命令，即`%option`命令。
 
-### 示例
+#### 1. `%option`
 
-1. 设置脚本的语法定义起始符号为`S`：`%StartSymbol S;`
+> `%option`命令用来配置改`Boson Script`的一些参数，包括分析器的算法、冲突解决策略、代码生成方式等。
 
-2. 打开内置冲突解决器：`%ConflictResolver yes;`
+`%option`命令的使用方式为：`%option 配置信息`。
+其中`配置信息`为树形结构，其语法如下（根为`attribute`）：
+```
+attribute : '{' key_value_list '}';
+key_value_list : key_value (',' key_value)* ','?;
+key_value : name '=' attribute_value;
+attribute_value : name | value_list | attribute | string | number;
+value_list : '[' attribute_value (',' attribute_value)+ ','? ']';
+```
 
-3. 设置“移入-规约”冲突的解决方式为规约优先：`%ShiftReduceConflictResolver reduce;`
+##### 配置信息
+
+###### 1. mode（模式）
+
+指定了`Boson`的工作模式，`Boson`将根据不同的模式产生不同的代码或数据。
+
+> 默认值为`integration`
+
+|序号|参数|含义|
+|:-:|:-|:-|
+|1|integration|生成集成代码，分析表的数据将以数据结构集成至分析器代码中。（当前支持唯一模式）|
+|2|table|生成分析表，仅生成分析表数据，不生成任何代码，用于辅助开发。（暂不支持）|
+|3|binary|生成二进制分析表数据，用于载入通用分析器使用。（暂不支持）|
+
+用法示例：
+```
+{
+    mode = 'integration'
+}
+```
+
+###### 2. parser（分析器）
+
+配置分析器的相关参数，包括起始分析符号、分析算法、冲突解决。
+参数包括：
+
+1. `start_symbol`（起始分析符号），指定分析符号，以字符串表示，默认值为`'start'`。
+2. `analyzer`（分析算法），可选`'slr'`、`'lr'`、`'lalr'`分析算法，默认值为`'lalr'`。
+3. `conflict_resolver`（冲突解决器），其中包括`enable`、`shift_reduce`、`reduce_reduce`子参数。
+
+其中`conflict_resolver`（冲突解决器）的子参数定义为：
+1. `enable`（是否打开冲突解决器），可选`True`、`False`，默认值为`False`。
+2. `shift_reduce`（“移入-规约”冲突解决策略），可选`'order'`、`'shift'`、`'reduce'`，默认值为`'order'`。其中（1）`'order'`脚本顺序，
+根据规约语句在脚本中的位置顺序觉得优先级，越靠前的优先级越高；（2）`'shift'`“移入”动作优先；（3）`reduce`“规约”动作优先。
+3. `reduce_reduce`（“规约-规约”冲突解决策略），可选`'order'`、`'long'`、`'short'`，默认值为`'order'`。其中（1）`'order'`脚本顺序，
+根据规约语句在脚本中的位置顺序觉得优先级，越靠前的优先级越高；（2）`'long'`较长的规约式优先；（3）`'short'`较短的规约式优先。
+
+用法示例：
+```
+{
+    parser = {
+        start_symbol = 'start',
+        analyzer = 'lalr',
+        conflict_resolver = {
+            enable = False,
+            shift_reduce = 'order',
+            reduce_reduce = 'order',
+        },
+    }
+}
+```
+
+> TODO: 还有一部分没写。
 
 ## 词法定义
 

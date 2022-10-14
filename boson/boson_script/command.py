@@ -7,7 +7,7 @@ from boson.system.logger import logger
 class CommandExecutor:
     def __init__(self):
         self.__boson_option_template: Dict[str, str | dict] = {
-            'mode': (str, ('integration', 'table', 'library', 'binary')),
+            'mode': (str, ('integration', 'table', 'binary')),
             'parser': {
                 'start_symbol': (str, None),
                 'analyzer': (str, ('slr', 'lr', 'lalr')),
