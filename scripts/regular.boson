@@ -3,17 +3,17 @@
 ####################################################################################################
 %option {
     parser = {
-        start_symbol = "regular_expression",
+        start_symbol = 'regular_expression',
     },
     code = {
         generator = {
             comment = False,
         },
         class_name = {
-            token = "RegularToken",
-            lexer = "RegularLexer",
-            parser = "RegularParser",
-            interpreter = "RegularInterpreter",
+            token = 'RegularToken',
+            lexer = 'RegularLexer',
+            parser = 'RegularParser',
+            interpreter = 'RegularInterpreter',
         },
     }
 };

@@ -3,7 +3,7 @@
 ####################################################################################################
 %option {
     parser = {
-        start_symbol = "boson",
+        start_symbol = 'boson',
     },
     code = {
         generator = {
@@ -38,7 +38,7 @@ statement : command_statement
 command_statement : <%[_a-zA-Z]+>@command (name | string | attribute)+@arguments ';' = command($command, *$arguments);
 
 lexicon_statement : name@lexicon_name '=' regular@regular '!'?@non_greedy ['@' '{' lexical_function '}']@functions ';'
-                  = lexical_define($lexicon_name, $regular, *$non_greedy, $functions(*$2));
+                    = lexical_define($lexicon_name, $regular, *$non_greedy, $functions(*$2));
 
 lexical_function : name (',' name)* = ($0, *$1[1]);
 
@@ -47,7 +47,7 @@ grammar_statement : name@reduce_name ':' derivation_list@list ';' = reduce($redu
 derivation_list : derivation ('|' derivation)* = ($0, *$1[1]);
 
 derivation : derivation_body@body ['=' name?@name grammar_tuple@tuple attribute?@attribute]@postfix
-           = ($body, *$postfix($name, $tuple, $attribute));
+             = ($body, *$postfix($name, $tuple, $attribute));
 
 derivation_body : sentence | '~' | ;
 
@@ -59,12 +59,14 @@ grammar_tuple : '(' [node_element_list] ')' = (*$1(*$0))
 
 node_element_list : node_element (',' node_element)* = ($0, *$1[1]);
 
-node_element : '*'?@unpack (<$[0-9]+> | <${name}>)@node_id [['*']@sub_unpack grammar_tuple@sub_tuple]@sub
-             = grammar_node(*$unpack, *$node_id, *$sub(*$sub_unpack, $sub_tuple));
+node_element : '*'?@unpack (<$[0-9]+>
+             | <${name}>)@node_id [['*']@sub_unpack grammar_tuple@sub_tuple]@sub
+               = grammar_node(*$unpack, *$node_id, *$sub(*$sub_unpack, $sub_tuple));
 
 element_definition : element@element ['@' name@alias_name]@alias = element_definition($element, *$alias($alias_name));
 
-element : complex_element | symbol@symbol closure?@closure = name_closure($symbol, *$closure);
+element : complex_element
+        | symbol@symbol closure?@closure = name_closure($symbol, *$closure);
 
 symbol : name
        | string = literal($0)
